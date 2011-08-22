@@ -6,7 +6,7 @@
  * or a config variable can point to a remote config
  * config options include specifying SOLR or ElasticSearch index
  *
- * open source license - cc-by-sa
+ * open source license - GNU Affero GPL v3
  * 
  * created by Mark MacGillivray - mark@cottagelabs.com
  *
