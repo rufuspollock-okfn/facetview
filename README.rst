@@ -81,8 +81,8 @@ customisation. There are a few ways to do this:
 Edit the config in jquery.facetview.js
 --------------------------------------
 
-::
-     // specify the defaults
+Specify the defaults::
+
     var defaults = {
         "config_file":false,
         "default_filters":["journal","author","year"],
