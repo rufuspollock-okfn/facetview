@@ -1,29 +1,64 @@
 <!DOCTYPE html>
-<html dir="ltr" lang="en-US">
+<html>
 <head>
-<meta charset="UTF-8" />
+  <meta charset="utf-8" />
+  <title>FacetView</title>
+  <link rel="stylesheet" href="vendorjs/bootstrap/1.4.0/bootstrap.css">
+  <link rel="stylesheet" href="css/style.css">
 
-<title>FacetView</title>
+  <script type="text/javascript" src="vendorjs/jquery/1.6.2/jquery.js"></script>
+  <script type="text/javascript" src="jquery.facetview.js"></script>
 
-
-<script src="http://cottagelabs.com/js/jquery.js"></script>
-
-<script type="text/javascript" src="jquery.facetview.js"></script>
-
-<script type="text/javascript">
+  <script type="text/javascript">
 jQuery(document).ready(function() {
-    jQuery('#embed_here').facetview();
+    jQuery('.facet-view-here').facetview();
 });
-</script>
-
+  </script>
 </head>
-
 <body>
-
-<p>An example of FacetView.</p>
-
-<div id="embed_here">
+<div class="topbar">
+  <div class="fill">
+    <div class="container">
+      <a class="brand" href="#">FacetView</a>
+      <ul class="nav">
+        <li><a href="#">Home</a></li>
+        <li><a href="http://github.com/okfn/facetview/">Github</a></li>
+        <li><a href="http://github.com/okfn/facetview/issues">Issues</a></li>
+        <li><a href="http://okfn.org/contact/">Contact</a></li>
+      </ul>
+      <a class="nav-logo pull-right" href="http://okfn.org/" title="An Open Knowledge Foundation Project">
+        <img src="http://assets.okfn.org/p/okfn/img/logo_28x30.png" alt="Open Knowledge Foundation logo" />
+      </a>
+    </div>
+  </div>
 </div>
+<div class="container"> 
+  <div class="content">
+    <div class="page-header">
+      <h1>
+        FacetView <small>Pure Javascript Frontend for SOLR and ElasticSearch</small>
+      </h1>
+    </div>
+    <h4>
+      FacetView is a pure javascript frontend for ElasticSearch or SOLR
+      search indices.
+    </h4>
+    <h4>
+      It's lets you easily embed a faceted browser and search front end into any web page. It also provides micro-framework you can build on when creating user interfaces to SOLR and ElasticSearch.
+    </h4>
 
+    <h2>Demo</h2>
+    <div class="facet-view-here"></div>
+
+    <h2>Use It</h2>
+    <p>See the <a href="https://github.com/okfn/facetview#readme">README on the GitHub repo</a>.</p>
+
+  </div>
+
+  <footer>
+  <p>&copy; Open Knowledge Foundation and Cottage Labs 2011. <a
+    href="http://opendefinition.org/">Openly Licensed</a>.</p>
+  </footer>
+</div>
 </body>
 </html>
