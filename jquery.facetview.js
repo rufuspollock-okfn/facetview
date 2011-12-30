@@ -77,8 +77,8 @@ return this.bind(type, data, cb);
         // specify the defaults
         var defaults = {
             "config_file":false,
-            "default_filters":["collection","journal","author","year"],
-            "result_display_headers":["title","journal","author"],
+            "default_filters":[],
+            "result_display_headers":["title"],
             "ignore_fields":["_id","_rev"],
             "header_content":"",
             "footer_content":"",
