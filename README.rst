@@ -151,13 +151,26 @@ A JSON file can be made available anywhere on the web with any of the above
 listed settings in it. Then, just pass the URL of your config file when you
 call FacetView, and it will read that config file for you.
 
-change the layout by making and using a custom CSS file
+Change the layout by making and using a custom CSS file
+-------------------------------------------------------
 
 When FacetView runs, it calls a default CSS file. Take a look at the
 jquery.facetview.js file – at the top, it defines a CSS file location, then
 calls it into your page. You can copy that CSS file, make your own version,
 then call your version instead. This will allow you to style it however you
 want.
+
+
+For Developers
+==============
+
+We use vendorjs_ as a submodule for our common JS (such as jquery, css etc). To
+pull this in::
+
+  git submodule init
+  git submodule update
+
+.. _vendorjs: https://github.com/okfn/vendorjs
 
 
 Copyright and License
