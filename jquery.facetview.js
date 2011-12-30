@@ -248,17 +248,19 @@ return this.bind(type, data, cb);
                 resultobj["records"] = dataobj.response.docs;
                 resultobj["start"] = dataobj.response.start;
                 resultobj["found"] = dataobj.response.numFound;
-                for (var item in dataobj.facet_counts.facet_fields) {
-                    var facetsobj = new Object();
-                    var count = 0;
-                    for ( var each in dataobj.facet_counts.facet_fields[item]) {
-                        if ( count % 2 == 0 ) {
-                            facetsobj[ dataobj.facet_counts.facet_fields[item][each] ] = dataobj.facet_counts.facet_fields[item][count + 1];
-                        }
-                        count += 1;
-                    }
-                    resultobj["facets"][item] = facetsobj;
-                }
+                if (dataobj.facet_counts) {
+                  for (var item in dataobj.facet_counts.facet_fields) {
+                      var facetsobj = new Object();
+                      var count = 0;
+                      for ( var each in dataobj.facet_counts.facet_fields[item]) {
+                          if ( count % 2 == 0 ) {
+                              facetsobj[ dataobj.facet_counts.facet_fields[item][each] ] = dataobj.facet_counts.facet_fields[item][count + 1];
+                          }
+                          count += 1;
+                      }
+                      resultobj["facets"][item] = facetsobj;
+                  }
+              }
             }
             return resultobj;
         }
