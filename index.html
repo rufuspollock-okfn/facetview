@@ -10,8 +10,17 @@
   <script type="text/javascript" src="jquery.facetview.js"></script>
 
   <script type="text/javascript">
-jQuery(document).ready(function() {
-    jQuery('.facet-view-here').facetview();
+jQuery(document).ready(function($) {
+  // set up form
+  $('.demo-form').submit(function(e) {
+    e.preventDefault();
+    var $form = $(e.target);
+    var _data = {};
+    $.each($form.serializeArray(), function(idx, item) {
+      _data[item.name] = item.value;
+    });
+    $('.facet-view-here').facetview(_data);
+  });
 });
   </script>
 </head>
@@ -48,6 +57,28 @@ jQuery(document).ready(function() {
     </h4>
 
     <h2>Demo</h2>
+    <p>Here we provide you with the option to supply a SOLR or ES endpoint. In
+    normal usage you will configure the search endpoint when you initialize
+    FacetView in your code.</p>
+    <form class="demo-form">
+      <fieldset>
+        <label for="search_url">SOLR/ES Endpoint</label>
+        <div class="input">
+          <input type="text" name="search_url" class="span9" value="http://openspending.org/api/search?" />
+        </div>
+        <div class="clearfix"></div>
+        <div class="input">
+          <div class="inline-inputs">
+            <input type="radio" checked="" name="search_index" value="solr" /><span>SOLR</span>
+            <input type="radio" name="search_index" value="elasticsearch" /><span>ElasticSearch</span>
+          </div>
+        </div>
+        <div class="clearfix"></div>
+        <div class="input">
+          <button type="submit" class="btn primary">Go &raquo;</button>
+        </div>
+      </fieldset>
+    </form>
     <div class="facet-view-here"></div>
 
     <h2>Use It</h2>
