@@ -459,7 +459,14 @@ return this.bind(type, data, cb);
         // execute a search
         var dosearch = function() {
             if ( options.search_index == "elasticsearch" ) {
-                jQuery.ajax( { type: "post", url: options.search_url, data:elasticsearchquery(), processData:false, dataType:"json", success: function(data) { showresults(data) } } );
+              jQuery.ajax({
+                type: "get",
+                url: options.search_url,
+                data: {source: elasticsearchquery()},
+                // processData: false,
+                dataType: "jsonp",
+                success: showresults
+              });
             } else {
                 jQuery.ajax( { type: "get", url: solrsearchquery(), dataType:"jsonp", jsonp:"json.wrf", success: function(data) { showresults(data) } } );
             }
