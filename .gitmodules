@@ -1,0 +1,3 @@
+[submodule "vendorjs"]
+	path = vendorjs
+	url = https://github.com/okfn/vendorjs
