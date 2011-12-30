@@ -436,10 +436,6 @@ return this.bind(type, data, cb);
                 query += jQuery('#facetview_freetext').val() + '*';
             }
             query = query.replace(/ AND $/,"");
-            // set a default for blank search
-            if (query == "") {
-                query = options.q;
-            }
             var querystring = '{';
             if ( options.default_paging.from != 0 ) {
                 querystring += '"from":' + options.default_paging.from + ',';
@@ -447,9 +443,15 @@ return this.bind(type, data, cb);
             if ( options.default_paging.size != 10 ) {
                 querystring += '"size":' + options.default_paging.size + ',';
             }
-            querystring += '"query":{"query_string":{"query":"' + query + '"}},"facets":{';
+            // set a default for blank search
+            if (query == "") {
+              querystring += '"query":{"match_all":{}}';
+            } else {
+              querystring += '"query":{"query_string":{"query":"' + query + '"}}';
+            }
+            querystring += ',"facets":{';
             for (var item in options.default_filters) {
-                querystring += '"' + options.default_filters[item] + '":{"terms":{"field":"' + options.default_filters[item] + '.raw","size":200,"order":"term"}},';
+                querystring += '"' + options.default_filters[item] + '":{"terms":{"field":"' + options.default_filters[item] + '","size":200,"order":"term"}},';
             }
             querystring = querystring.replace(/\,$/,"");
             querystring += '}}';
