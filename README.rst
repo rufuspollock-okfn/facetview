@@ -9,6 +9,13 @@ browse front end into any web page.
 Development is now taking place in this repo: http://github.com/okfn/facetview
 
 
+Demo
+====
+
+See http://okfnlabs.org/facetview/ or just take a look at index.html (if you
+have the source).
+
+
 Status
 ======
 
