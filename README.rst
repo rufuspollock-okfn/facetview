@@ -24,44 +24,21 @@ pretty stable. If you have suggestions or want to make a contribution please
 check out the github repo.
 
 
-Install
-=======
+Using FacetView
+===============
 
-Pre-requisites
---------------
+Add the following code to your web page::
 
-First, you need to have an index of your data available somewhere -- this part is
-up to you. I prefer elasticsearch.
-
-Get the code
-------------
-
-Now get the FacetView code and save it online somewhere that you can access it
-from, e.g. on your website. You should get the jquery.facetview.js file and the
-facetview.css file.
-
-Make a web page
----------------
-
-Then, set up a web page somewhere – even a blog will do, if you have the
-necessary authorisation to put code snippets into your posts.
-
-Include the FacetView into your page
-------------------------------------
-
-Once you have a page to put your FacetView on, add something like the following
-code to the page::
-
-  <script src="YOUR-JQUERY-SOURCE"></script>
+  <script src="JQUERY-SOURCE"></script>
   <script type="text/javascript" src="YOUR-FACETVIEW-SOURCE"></script>
   
   <script type="text/javascript">
   jQuery(document).ready(function() {
-      jQuery('YOUR-PAGE-PART').facetview();
+      jQuery('jquery-selector').facetview();
   });
   </script>
 
-* YOUR-JQUERY-SOURCE – change this to wherever you get your jQuery from. For
+* JQUERY-SOURCE – change this to wherever you get your jQuery from. For
   example, https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.js. If you
   already have jQuery on your page / site, then you can miss out that first
   script tag entirely.
@@ -71,9 +48,13 @@ code to the page::
   to append the FacetView into. For example, ‘body’ would do, or you could have
   a <div> on your page like this::
 
-    <div id="your-page-part>
-    </div>
+    <div id="your-page-part></div>
 
+.. note::
+  
+    You may also want to include css. The out of the box html and css is
+    Bootstrap plus css/facetview.css. However, you are welcome to customize
+    this or add your own.
 
 Now that you have everything ready, you will probably want to customize to
 get it looking the way you want it.
