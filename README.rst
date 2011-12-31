@@ -157,18 +157,6 @@ then call your version instead. This will allow you to style it however you
 want.
 
 
-For Developers
-==============
-
-We use vendorjs_ as a submodule for our common JS (such as jquery, css etc). To
-pull this in::
-
-  git submodule init
-  git submodule update
-
-.. _vendorjs: https://github.com/okfn/vendorjs
-
-
 Copyright and License
 =====================
 
