@@ -14,32 +14,6 @@
  *
 */
 
-// include facetview css - from the same location this script is placed
-// if you don't want this functionality, just set cssfromhere equal to the URL of your css file
-var scripts = document.getElementsByTagName("script");
-var cssfromhere = "";
-for ( var item in scripts ) {
-    if ( scripts[item].src != undefined ) {
-        if ( scripts[item].src.search("jquery.facetview.js") != -1 ) {
-            cssfromhere = scripts[item].src.replace("jquery.facetview.js","");
-        }
-    }
-}
-cssfromhere += 'facetview.css';
-
-//<![CDATA[
-if(document.createStyleSheet) {
-    document.createStyleSheet( cssfromhere );
-} else {
-    var styles = "@import url(" + cssfromhere + ");";
-    var newSS = document.createElement('link');
-    newSS.rel = 'stylesheet';
-    newSS.href = 'data:text/css,'+escape(styles);
-    document.getElementsByTagName("head")[0].appendChild(newSS);    
-}
-//]]>
-
-
 // first define the bind with delay function from (saves loading it separately) 
 // https://github.com/bgrins/bindWithDelay/blob/master/bindWithDelay.js
 (function($) {
