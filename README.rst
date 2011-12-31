@@ -148,9 +148,9 @@ want.
 Copyright and License
 =====================
 
-Copyright 2011 Cottage Labs.
+Copyright 2011 Open Knowledge Foundation and Cottage Labs.
 
-Licensed under the `GNU Affero GPL v3`_
+Licensed under the `MIT License`_
 
-.. _GNU Affero GPL v3: http://www.gnu.org/licenses/agpl.html
+.. _MIT License: http://www.opensource.org/licenses/mit-license.php
 
