@@ -88,8 +88,6 @@ Specify the defaults::
         "default_filters":["journal","author","year"],
         "result_display_headers":["title","journal","author"],
         "ignore_fields":["_id","_rev"],
-        "header_content":"",
-        "footer_content":"",
         "show_advanced":false,
         "search_url":"",
         "search_index":"elasticsearch",
@@ -108,8 +106,6 @@ Specify the defaults::
 * result_display_headers – which fields to display in the result list (other
   fields are shown when you click on the result)
 * ignore_fields – any fields not to show at all
-* header_content – anything you want to say at the top of the FacetView
-* footer_content – anything you want to say at the bottom of the FacetView
 * show_advanced – for now, just shows or hides the advanced panel, which at the
   moment only gives the options to add more filters
 * search_url – the endpoint for submitting search queries to
@@ -159,18 +155,6 @@ jquery.facetview.js file – at the top, it defines a CSS file location, then
 calls it into your page. You can copy that CSS file, make your own version,
 then call your version instead. This will allow you to style it however you
 want.
-
-
-For Developers
-==============
-
-We use vendorjs_ as a submodule for our common JS (such as jquery, css etc). To
-pull this in::
-
-  git submodule init
-  git submodule update
-
-.. _vendorjs: https://github.com/okfn/vendorjs
 
 
 Copyright and License

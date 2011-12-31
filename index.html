@@ -5,6 +5,7 @@
   <title>FacetView</title>
   <link rel="stylesheet" href="vendorjs/bootstrap/1.4.0/bootstrap.css">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/facetview.css">
 
   <script type="text/javascript" src="vendorjs/jquery/1.6.2/jquery.js"></script>
   <script type="text/javascript" src="jquery.facetview.js"></script>
@@ -14,8 +15,8 @@ jQuery(document).ready(function($) {
   $('.facet-view-simple').facetview({
     search_url: 'http://bibsoup.net/query?',
     search_index: 'elasticsearch',
-    default_filters: ['journal','author','year'],
-    result_display_headers: ['title','journal','author'],
+    default_filters: ['year', 'publisher'],
+    result_display_headers: ['title','info'],
     default_paging: {
       from: 0,
       size: 10
@@ -67,7 +68,6 @@ jQuery(document).ready(function($) {
     </h4>
 
     <h2>Simple Demo</h2>
-    <p>This uses a pre-configured endpoint and fields.</p>
     <div class="facet-view-simple"></div>
 
     <h2>More Complex Demo</h2>

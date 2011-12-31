@@ -14,32 +14,6 @@
  *
 */
 
-// include facetview css - from the same location this script is placed
-// if you don't want this functionality, just set cssfromhere equal to the URL of your css file
-var scripts = document.getElementsByTagName("script");
-var cssfromhere = "";
-for ( var item in scripts ) {
-    if ( scripts[item].src != undefined ) {
-        if ( scripts[item].src.search("jquery.facetview.js") != -1 ) {
-            cssfromhere = scripts[item].src.replace("jquery.facetview.js","");
-        }
-    }
-}
-cssfromhere += 'facetview.css';
-
-//<![CDATA[
-if(document.createStyleSheet) {
-    document.createStyleSheet( cssfromhere );
-} else {
-    var styles = "@import url(" + cssfromhere + ");";
-    var newSS = document.createElement('link');
-    newSS.rel = 'stylesheet';
-    newSS.href = 'data:text/css,'+escape(styles);
-    document.getElementsByTagName("head")[0].appendChild(newSS);    
-}
-//]]>
-
-
 // first define the bind with delay function from (saves loading it separately) 
 // https://github.com/bgrins/bindWithDelay/blob/master/bindWithDelay.js
 (function($) {
@@ -80,8 +54,6 @@ return this.bind(type, data, cb);
             "default_filters":[],
             "result_display_headers":["title"],
             "ignore_fields":["_id","_rev"],
-            "header_content":"",
-            "footer_content":"",
             "show_advanced":false,
             "search_url":"",
             "search_index":"elasticsearch",
@@ -155,11 +127,18 @@ return this.bind(type, data, cb);
         // pass a list of filters to be displayed
         var buildfilters = function() {
             var filters = options.default_filters;
-            var thefilters = "<p>FILTERS</p>";
-            for ( var item in filters ) {
-                thefilters += '<a class="facetview_filtershow" rel="' + 
-                    filters[item] + '" href="">' + filters[item] + '</a>';
-                thefilters += '<ul id="facetview_' + filters[item] + '" class="facetview_filters"></ul>';
+            var thefilters = "<h4>Filters</h4>";
+            for ( var idx in filters ) {
+                var _filterTmpl = ' \
+                  <h5> \
+                    <a class="facetview_filtershow" \
+                      rel="{{FILTER_NAME}}" href=""> \
+                      {{FILTER_NAME}}</a> \
+                  </h5> \
+                  <ul id="facetview_{{FILTER_NAME}}" \
+                    class="facetview_filters"></ul> \
+                    ';
+                thefilters += _filterTmpl.replace(/{{FILTER_NAME}}/g, filters[idx]);
             }
             $('#facetview_filters').append(thefilters);
             $('.facetview_filtershow').bind('click',showfiltervals);
@@ -300,10 +279,18 @@ return this.bind(type, data, cb);
 
         // write the metadata to the page
         var putmetadata = function(data) {
-            var meta = "";
-            meta += '<a id="facetview_decrement" href="' + options.default_paging.from + '">--</a> ';
-            meta += 'results ' + options.default_paging.from + ' to ' + (options.default_paging.from + 10) + ' of ' + data.found;
-            meta += '<a id="facetview_increment" href="' + (options.default_paging.from + 10) + '">++</a>';
+            var metaTmpl = ' \
+              <div class="pagination"> \
+                <ul> \
+                  <li class="prev"><a id="facetview_decrement" href="{{from}}">&laquo; back</a></li> \
+                  <li class="active"><a>{{from}}&ndash;{{to}} of {{total}}</a></li> \
+                  <li class="next"><a id="facetview_increment" href="{{to}}">next &raquo;</a></li> \
+                </ul> \
+              </div> \
+              ';
+            var meta = metaTmpl.replace(/{{from}}/g, options.default_paging.from);
+            meta = meta.replace(/{{to}}/g, options.default_paging.from+10);
+            meta = meta.replace(/{{total}}/g, data.found);
             jQuery('#facetview_metadata').html("").append(meta);
             jQuery('#facetview_decrement').bind('click',decrement);
             jQuery('#facetview_increment').bind('click',increment);
@@ -499,22 +486,21 @@ return this.bind(type, data, cb);
 
 
         // the facet view object to be appended to the page
-        var thefacetview = '<div id="facetview">' +
-            '<div id="facetview_header">';
-        if ( options.header_content) { thefacetview += options.header_content; }
-        thefacetview += '</div>' + '<div class="facetview_column">' +
-            '<div id="facetview_search">SEARCH<br />' +
-            '<span class="facetview_green">Find </span>' +
-            '<input type="text" id="facetview_freetext" />' +
-            '<ul id="facetview_selectedfilters"></ul></div>' + 
-            '<div id="facetview_filters"></div>' + 
-            '</div><div class="facetview_column">' +
-            '<div id="facetview_metadata"></div>' +
-            '<div id="facetview_results"></div>' +
-            '</div>' + 
-            '<div id="facetview_footer">';
-        if ( options.footer_content) { thefacetview += options.footer_content; }
-        thefacetview += '</div></div>';
+        var thefacetview = ' \
+           <div id="facetview"> \
+             <form method="GET" action="#search"> \
+               <input id="facetview_freetext" name="q" value="" placeholder="search term" autofocus > \
+               <ul id="facetview_selectedfilters"></ul> \
+             </form> \
+             <div class="row"> \
+                <div class="span4 facets" id="facetview_filters"></div> \
+                <div class="span12 results"> \
+                  <div id="facetview_results"></div> \
+                  <div id="facetview_metadata"></div> \
+                </div> \
+              </div> \
+            </div> \
+            ';
 
 
         // ===============================================
