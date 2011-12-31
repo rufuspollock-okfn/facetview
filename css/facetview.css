@@ -1,18 +1,9 @@
-#facetview{
-    font-size:11px;
-    background:#fff;
-    border:2px solid #c9d2d4;
-    margin:10px;
-    width:670px;
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-    border-radius: 5px;
+#facetview_freetext {
+  width: 85%;
+  display: block;
+  margin: auto;
 }
-.facetview_column{
-    float:left;
-    margin:0;
-    padding:0;
-}
+
 #facetview_advanced{
     float:left;
     clear:left;
@@ -36,53 +27,6 @@
     -webkit-border-radius: 2px;
     border-radius: 2px;
 }
-#facetview_filters{
-    background:#fff;
-    float:left;
-    clear:left;
-    margin:10px;
-    padding:3px 5px 5px 5px;
-    -moz-box-shadow: 0px 0px 10px #373737;
-    -webkit-box-shadow: 0px 0px 10px #373737;
-    box-shadow: 0px 0px 10px #373737;
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-    border-radius: 5px;
-    color:#a1a1a1;
-    border:1px solid #373737;
-    overflow:hidden;
-    width:165px;
-}
-#facetview_search{
-    float:left;
-    clear:left;
-    background:#fff;
-    margin:10px;
-    padding:3px 5px 5px 5px;
-    -moz-box-shadow: 0px 0px 10px #373737;
-    -webkit-box-shadow: 0px 0px 10px #373737;
-    box-shadow: 0px 0px 10px #373737;
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-    border-radius: 5px;
-    border:1px solid #373737;
-    color:#a1a1a1;
-    overflow:hidden;
-    width:165px;
-}
-.facetview_filters{
-    margin:0 0 10px 0;
-    background:#eee;
-    padding:2px;
-    list-style-type:none;
-    clear:both;
-    -moz-border-radius: 2px;
-    -webkit-border-radius: 2px;
-    border-radius: 2px;
-}
-.facetview_filters li{
-    border-bottom:1px dotted #373737;
-}
 .facetview_filtertag{
     padding:2px 0;
     font-weight:bold;
@@ -102,27 +46,6 @@
 }
 .facetview_filterhidden{
     display:none;
-}
-.facetview_filtershow{
-    float:left;
-    clear:both;
-    text-decoration:none;
-    font-weight:bold;
-    color:#373737;
-}
-#facetview_freetext{
-    height:20px;
-    width:130px;
-    padding:0;
-    margin:5px 0 5px 0;
-    background:#fff;
-    border-bottom:1px solid #ccc;
-    -moz-box-shadow: 0px 0px 2px #373737;
-    -webkit-box-shadow: 0px 0px 2px #373737;
-    box-shadow: 0px 0px 2px #373737;
-    -moz-border-radius: 2px;
-    -webkit-border-radius: 2px;
-    border-radius: 2px;
 }
 .facetview_freetext_filterdiv{
     float:left;
@@ -148,24 +71,7 @@
     text-decoration:none;
     color:#a1a1a1;
 }
-#facetview_metadata{
-    float:left;
-    clear:both;
-    width:470px;
-    margin:0 0 10px 0;
-    padding:0;
-    background:#999;
-    color:#fff;
-    font-weight:bold;
-/*    border-bottom:2px solid #a1a1a1;*/
-}
-#facetview_results{
-    width:470px;
-    float:left;
-    clear:left;
-    margin:0;
-    padding:0;
-}
+
 .facetview_result{
     color:#373737;
     border-bottom:1px dotted #373737;
@@ -225,7 +131,4 @@ td.facetview_fixed{
     width:340px;
     overflow:hidden;
 }
-
-
-
 
