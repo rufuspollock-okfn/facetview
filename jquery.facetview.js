@@ -80,8 +80,6 @@ return this.bind(type, data, cb);
             "default_filters":[],
             "result_display_headers":["title"],
             "ignore_fields":["_id","_rev"],
-            "header_content":"",
-            "footer_content":"",
             "show_advanced":false,
             "search_url":"",
             "search_index":"elasticsearch",
@@ -499,22 +497,20 @@ return this.bind(type, data, cb);
 
 
         // the facet view object to be appended to the page
-        var thefacetview = '<div id="facetview">' +
-            '<div id="facetview_header">';
-        if ( options.header_content) { thefacetview += options.header_content; }
-        thefacetview += '</div>' + '<div class="facetview_column">' +
-            '<div id="facetview_search">SEARCH<br />' +
-            '<span class="facetview_green">Find </span>' +
-            '<input type="text" id="facetview_freetext" />' +
-            '<ul id="facetview_selectedfilters"></ul></div>' + 
-            '<div id="facetview_filters"></div>' + 
-            '</div><div class="facetview_column">' +
-            '<div id="facetview_metadata"></div>' +
-            '<div id="facetview_results"></div>' +
-            '</div>' + 
-            '<div id="facetview_footer">';
-        if ( options.footer_content) { thefacetview += options.footer_content; }
-        thefacetview += '</div></div>';
+        var thefacetview = ' \
+            <div id="facetview"> \
+              <div class="facetview_column"> \
+              <div id="facetview_search">SEARCH<br /> \
+              <span class="facetview_green">Find </span> \
+              <input type="text" id="facetview_freetext" /> \
+              <ul id="facetview_selectedfilters"></ul></div> \
+              <div id="facetview_filters"></div> \
+              </div><div class="facetview_column"> \
+              <div id="facetview_metadata"></div> \
+              <div id="facetview_results"></div> \
+              </div> \
+            </div> \
+            ';
 
 
         // ===============================================

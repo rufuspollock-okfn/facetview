@@ -13,13 +13,6 @@
     margin:0;
     padding:0;
 }
-#facetview_header{
-    float:left;
-    clear:both;
-    margin:0;
-    padding:10px;
-    width:100%;
-}
 #facetview_advanced{
     float:left;
     clear:left;
@@ -178,12 +171,6 @@
     border-bottom:1px dotted #373737;
     padding:5px;
     margin:5px;
-}
-#facetview_footer{
-    clear:both;
-    margin:0;
-    padding:0;
-    width:100%;
 }
 a.facetview_clear{
     text-decoration:none;
