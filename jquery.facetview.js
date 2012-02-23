@@ -179,15 +179,15 @@
                       <a class="btn dropdown-toggle" data-toggle="dropdown" \
                       href="#"><span class="caret"></span></a> \
                       <ul class="dropdown-menu"> \
-                        <li><a class="facetview_sort facetview_count" href="{{FILTER_NAME}}">sort by count</a></li> \
-                        <li><a class="facetview_sort facetview_term" href="{{FILTER_NAME}}">sort by term</a></li> \
-                        <li><a class="facetview_sort facetview_rcount" href="{{FILTER_NAME}}">sort reverse count</a></li> \
-                        <li><a class="facetview_sort facetview_rterm" href="{{FILTER_NAME}}">sort reverse term</a></li> \
+                        <li><a class="facetview_sort facetview_count" href="{{FILTER_EXACT}}">sort by count</a></li> \
+                        <li><a class="facetview_sort facetview_term" href="{{FILTER_EXACT}}">sort by term</a></li> \
+                        <li><a class="facetview_sort facetview_rcount" href="{{FILTER_EXACT}}">sort reverse count</a></li> \
+                        <li><a class="facetview_sort facetview_rterm" href="{{FILTER_EXACT}}">sort reverse term</a></li> \
                         </ul></div> \
                   <ul id="facetview_{{FILTER_NAME}}" \
                     class="facetview_filters"></ul> \
                     ';
-                thefilters += _filterTmpl.replace(/{{FILTER_NAME}}/g, filters[idx]['field'].replace(/\./gi,'_'));
+                thefilters += _filterTmpl.replace(/{{FILTER_NAME}}/g, filters[idx]['field'].replace(/\./gi,'_')).replace(/{{FILTER_EXACT}}/g, filters[idx]['field']);
                 if ('display' in filters[idx]) {
                     thefilters = thefilters.replace(/{{FILTER_DISPLAY}}/g, filters[idx]['display'])
                 } else {
