@@ -3,21 +3,27 @@
 <head>
   <meta charset="utf-8" />
   <title>FacetView</title>
-  <link rel="stylesheet" href="vendorjs/bootstrap/1.4.0/bootstrap.css">
-  <link rel="stylesheet" href="css/style.css">
+
+  <script type="text/javascript" src="vendor/jquery/1.7.1/jquery-1.7.1.min.js"></script>
+  <script type="text/javascript" src="jquery.facetview.js"></script>
+
+  <link rel="stylesheet" href="vendor/bootstrap/css/bootstrap.min.css">
+  <script type="text/javascript" src="vendor/bootstrap/js/bootstrap.min.js"></script>  
+  
   <link rel="stylesheet" href="css/facetview.css">
 
-  <script type="text/javascript" src="vendorjs/jquery/1.6.2/jquery.js"></script>
-  <script type="text/javascript" src="jquery.facetview.js"></script>
+  <link rel="stylesheet" href="css/style.css">
 
   <script type="text/javascript">
 jQuery(document).ready(function($) {
   $('.facet-view-simple').facetview({
     search_url: 'http://bibsoup.net/query?',
     search_index: 'elasticsearch',
-    default_filters: ['year', 'publisher'],
-    result_display_headers: ['title','info'],
-    default_paging: {
+    facets: [
+        {'field':'year.exact', 'display': 'year'}, 
+        {'field':'publisher.exact', 'display': 'publisher'}
+    ],
+    paging: {
       from: 0,
       size: 10
     }
@@ -35,9 +41,11 @@ jQuery(document).ready(function($) {
 });
   </script>
 </head>
+
 <body>
-<div class="topbar">
-  <div class="fill">
+
+<div class="navbar navbar-fixed-top">
+  <div class="navbar-inner">
     <div class="container">
       <a class="brand" href="#">FacetView</a>
       <ul class="nav">
@@ -52,6 +60,7 @@ jQuery(document).ready(function($) {
     </div>
   </div>
 </div>
+
 <div class="container"> 
   <div class="content">
     <div class="page-header">
@@ -64,7 +73,7 @@ jQuery(document).ready(function($) {
       search indices.
     </h4>
     <h4>
-      It's lets you easily embed a faceted browser and search front end into any web page. It also provides micro-framework you can build on when creating user interfaces to SOLR and ElasticSearch.
+      It lets you easily embed a faceted browser and search front end into any web page. It also provides a micro-framework you can build on when creating user interfaces to SOLR and ElasticSearch.
     </h4>
 
     <h2>Demo</h2>

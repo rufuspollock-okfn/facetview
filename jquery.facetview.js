@@ -17,30 +17,30 @@
 // first define the bind with delay function from (saves loading it separately) 
 // https://github.com/bgrins/bindWithDelay/blob/master/bindWithDelay.js
 (function($) {
-$.fn.bindWithDelay = function( type, data, fn, timeout, throttle ) {
-var wait = null;
-var that = this;
+    $.fn.bindWithDelay = function( type, data, fn, timeout, throttle ) {
+    var wait = null;
+    var that = this;
 
-if ( $.isFunction( data ) ) {
-throttle = timeout;
-timeout = fn;
-fn = data;
-data = undefined;
-}
+    if ( $.isFunction( data ) ) {
+        throttle = timeout;
+        timeout = fn;
+        fn = data;
+        data = undefined;
+    }
 
-function cb() {
-var e = $.extend(true, { }, arguments[0]);
-var throttler = function() {
-wait = null;
-fn.apply(that, [e]);
-};
+    function cb() {
+        var e = $.extend(true, { }, arguments[0]);
+        var throttler = function() {
+            wait = null;
+            fn.apply(that, [e]);
+            };
 
-if (!throttle) { clearTimeout(wait); }
-if (!throttle || !wait) { wait = setTimeout(throttler, timeout); }
-}
+            if (!throttle) { clearTimeout(wait); }
+            if (!throttle || !wait) { wait = setTimeout(throttler, timeout); }
+        }
 
-return this.bind(type, data, cb);
-}
+        return this.bind(type, data, cb);
+    }
 })(jQuery);
 
 
@@ -48,25 +48,80 @@ return this.bind(type, data, cb);
 (function($){
     $.fn.facetview = function(options) {
 
+        // some big default values
+        var resdisplay = [
+                [
+                    {
+                        "field": "author.name"
+                    },
+                    {
+                        "pre": "(",
+                        "field": "year",
+                        "post": ")"
+                    }
+                ],
+                [
+                    {
+                        "pre": "<strong>",
+                        "field": "title",
+                        "post": "</strong>"
+                    }
+                ],
+                [
+                    {
+                        "field": "howpublished"
+                    },
+                    {
+                        "pre": "in <em>",
+                        "field": "journal.name",
+                        "post": "</em>,"
+                    },
+                    {
+                        "pre": "<em>",
+                        "field": "booktitle",
+                        "post": "</em>,"
+                    },
+                    {
+                        "pre": "vol. ",
+                        "field": "volume",
+                        "post": ","
+                    },
+                    {
+                        "field": "pages"
+                    },
+                    {
+                        "field": "publisher"
+                    }
+                ],
+                [
+                    {
+                        "field": "link.url"
+                    }
+                ]
+            ]
+
+
         // specify the defaults
         var defaults = {
             "config_file":false,
-            "default_filters":[],
-            "result_display_headers":["title"],
+            "facets":[],
+            "result_display": resdisplay,
             "ignore_fields":["_id","_rev"],
-            "show_advanced":false,
+            "description":"",
             "search_url":"",
             "search_index":"elasticsearch",
             "default_url_params":{},
             "freetext_submit_delay":"700",
             "query_parameter":"q",
             "q":"*:*",
-            "predefined_query_values":{},
-            "default_paging":{}
+            "predefined_filters":{},
+            "paging":{}
         };
 
         // and add in any overrides from the call
         var options = $.extend(defaults, options);
+        !options.paging.size ? options.paging.size = 10 : ""
+        !options.paging.from ? options.paging.from = 0 : ""
 
         // ===============================================
         // functions to do with filters
@@ -75,104 +130,115 @@ return this.bind(type, data, cb);
         // show the filter values
         var showfiltervals = function(event) {
             event.preventDefault();
-            if ( jQuery(this).hasClass('facetview_open') ) {
-                jQuery(this).removeClass('facetview_open');
-                jQuery('#facetview_' + jQuery(this).attr('rel') ).children().hide();
-                jQuery('#facetview_freetext_' + jQuery(this).attr('rel') ).parent().hide();
+            if ( $(this).hasClass('facetview_open') ) {
+                $(this).removeClass('facetview_open');
+                $('#facetview_' + $(this).attr('rel') ).children().hide();
+                $('#facetview_freetext_' + $(this).attr('rel') ).parent().hide();
             } else {
-                jQuery(this).addClass('facetview_open');
-                jQuery('#facetview_' + jQuery(this).attr('rel') ).children().show();      
-                jQuery('#facetview_freetext_' + jQuery(this).attr('rel') ).parent().show();
+                $(this).addClass('facetview_open');
+                $('#facetview_' + $(this).attr('rel') ).children().show();      
+                $('#facetview_freetext_' + $(this).attr('rel') ).parent().show();
             }
         }
 
-        // show the advanced functions
-        var showadvanced = function(event) {
-            event.preventDefault();
-            if ( jQuery(this).hasClass('facetview_open') ) {
-                jQuery(this).removeClass('facetview_open').siblings().hide();
-            } else {
-                jQuery(this).addClass('facetview_open').siblings().show();
-            }
-        }
-
-        // limit the filter values available based on text input
-        // by running a search with additional filter param and rebuilding filter values
-        var limitfilters = function(event) {
-            var query = searchquery();            
-            jQuery('.facetview_freetextfilter').each(function() {
-                if ( jQuery(this).val().length > 0 ) {
-                    if ( query.indexOf("*:*") != -1 ) { 
-                        query = query.replace("*:*","");
-                    } else {
-                        query += ' AND '; 
-                    }
-                    var facet = jQuery(this).attr("id").replace("facetview_freetext_","");
-                    var terms = jQuery(this).val().split(" ");
-                    for (var item in terms) {
-                        if ( terms[item].length > 0 ) {
-                            query += facet + ':"' + terms[item] + '*" AND ';
-                        }
+        // function to perform for sorting of filters
+        var sortfilters = function(event) {
+            event.preventDefault()
+            var sortwhat = $(this).attr('href')
+            var which = 0
+            for (item in options.facets) {
+                if ('field' in options.facets[item]) {
+                    if ( options.facets[item]['field'] == sortwhat) {
+                        which = item
                     }
                 }
-            });
-            query = query.replace(/ AND $/,"");
-            jQuery.ajax( { 
-                type: "get", url: query, dataType: "jsonp", jsonp:"json.wrf", success: function(data) {
-                    putvalsinfilters(data); 
-                } 
-            });
+            }
+            if ( $(this).hasClass('facetview_count') ) {
+                options.facets[which]['order'] = 'count'
+            } else if ( $(this).hasClass('facetview_term') ) {
+                options.facets[which]['order'] = 'term'
+            } else if ( $(this).hasClass('facetview_rcount') ) {
+                options.facets[which]['order'] = 'reverse_count'
+            } else if ( $(this).hasClass('facetview_rterm') ) {
+                options.facets[which]['order'] = 'reverse_term'
+            }
+            dosearch()            
         }
 
         // pass a list of filters to be displayed
         var buildfilters = function() {
-            var filters = options.default_filters;
-            var thefilters = "<h4>Filters</h4>";
+            var filters = options.facets;
+            var thefilters = "<h3>Filter by</h3>";
             for ( var idx in filters ) {
                 var _filterTmpl = ' \
-                  <h5> \
-                    <a class="facetview_filtershow" \
+                    <div class="btn-group"> \
+                    <a style="text-align:left; min-width:70%;" class="facetview_filtershow btn" \
                       rel="{{FILTER_NAME}}" href=""> \
-                      {{FILTER_NAME}}</a> \
-                  </h5> \
+                      <i class="icon-plus"></i> \
+                      {{FILTER_DISPLAY}}</a> \
+                      <a class="btn dropdown-toggle" data-toggle="dropdown" \
+                      href="#"><span class="caret"></span></a> \
+                      <ul class="dropdown-menu"> \
+                        <li><a class="facetview_sort facetview_count" href="{{FILTER_NAME}}">sort by count</a></li> \
+                        <li><a class="facetview_sort facetview_term" href="{{FILTER_NAME}}">sort by term</a></li> \
+                        <li><a class="facetview_sort facetview_rcount" href="{{FILTER_NAME}}">sort reverse count</a></li> \
+                        <li><a class="facetview_sort facetview_rterm" href="{{FILTER_NAME}}">sort reverse term</a></li> \
+                        </ul></div> \
                   <ul id="facetview_{{FILTER_NAME}}" \
                     class="facetview_filters"></ul> \
                     ';
-                thefilters += _filterTmpl.replace(/{{FILTER_NAME}}/g, filters[idx]);
+                thefilters += _filterTmpl.replace(/{{FILTER_NAME}}/g, filters[idx]['field'].replace(/\./gi,'_'));
+                if ('display' in filters[idx]) {
+                    thefilters = thefilters.replace(/{{FILTER_DISPLAY}}/g, filters[idx]['display'])
+                } else {
+                    thefilters = thefilters.replace(/{{FILTER_DISPLAY}}/g, filters[idx]['field'])
+                }
             }
-            $('#facetview_filters').append(thefilters);
-            $('.facetview_filtershow').bind('click',showfiltervals);
-            $('.facetview_freetextfilter').bindWithDelay('keyup',limitfilters,options.freetext_submit_delay);
-            $('.facetview_freetext_filterdiv').hide();
-        }
-
-        // add a filter when a new one is provided
-        var addfilters = function() {
-            options.default_filters.push(jQuery(this).val());
-            // remove any current filters
-            jQuery('#facetview_filters').html("");
-            buildfilters();
-            dosearch();
+            $('#facetview_filters').append(thefilters)
+            $('.facetview_sort').bind('click',sortfilters)
+            $('.facetview_filtershow').bind('click',showfiltervals)
         }
 
         // set the available filter values based on results
         var putvalsinfilters = function(data) {
             // for each filter setup, find the results for it and append them to the relevant filter
-            for ( var each in options.default_filters ) {
-                jQuery('#facetview_' + options.default_filters[each]).children().remove();
-                var records = data["facets"][ options.default_filters[each] ];
+            for ( var each in options.facets ) {
+                $('#facetview_' + options.facets[each]['field'].replace(/\./gi,'_')).children().remove();
+                var records = data["facets"][ options.facets[each]['field'] ];
                 for ( var item in records ) {
                     var append = '<li><a class="facetview_filterchoice' +
-                        '" rel="' + options.default_filters[each] + '" href="' + item + '">' + item +
+                        '" rel="' + options.facets[each]['field'] + '" href="' + item + '">' + item +
                         ' (' + records[item] + ')</a></li>';
-                    jQuery('#facetview_' + options.default_filters[each]).append(append);
+                    $('#facetview_' + options.facets[each]['field'].replace(/\./gi,'_')).append(append);
                 }
-                if ( !jQuery('.facetview_filtershow[rel="' + options.default_filters[each] + '"]').hasClass('facetview_open') ) {
-                    jQuery('#facetview_' + options.default_filters[each] ).children().hide();
+                if ( !$('.facetview_filtershow[rel="' + options.facets[each]['field'].replace(/\./gi,'_') + '"]').hasClass('facetview_open') ) {
+                    $('#facetview_' + options.facets[each]['field'].replace(/\./gi,'_') ).children().hide();
                 }
             }
-            //jQuery('.facetview_open').removeClass('facetview_open');
-            jQuery('.facetview_filterchoice').bind('click',clickfilterchoice);
+            $('.facetview_filterchoice').bind('click',clickfilterchoice);
+        }
+
+        // ===============================================
+        // functions to do with filter options
+        // ===============================================
+
+        // show the advanced functions
+        var showadvanced = function(event) {
+            event.preventDefault();
+            if ( $(this).hasClass('facetview_open') ) {
+                $(this).removeClass('facetview_open').siblings().hide();
+            } else {
+                $(this).addClass('facetview_open').siblings().show();
+            }
+        }
+
+        // add a filter when a new one is provided
+        var addfilters = function() {
+            options.facets.push({'field':$(this).val()});
+            // remove any current filters
+            $('#facetview_filters').html("");
+            buildfilters();
+            dosearch();
         }
 
         // set the user admin filters
@@ -180,8 +246,8 @@ return this.bind(type, data, cb);
             var advanceddiv = '<div id="facetview_advanced">' + 
                 '<a class="facetview_advancedshow" href="">ADVANCED ...</a>' +
                 '<p>add filter:<br /><select id="facetview_addfilters"></select></p></div>';
-            jQuery('#facetview_filters').after(advanceddiv);
-            jQuery('.facetview_advancedshow').bind('click',showadvanced).siblings().hide();
+            $('#facetview_filters').after(advanceddiv);
+            $('.facetview_advancedshow').bind('click',showadvanced).siblings().hide();
         }
         
         // populate the advanced options
@@ -191,13 +257,12 @@ return this.bind(type, data, cb);
             for (var item in data["records"][0]) {
                 options += '<option>' + item + '</option>';
             }
-            jQuery('#facetview_addfilters').html("");
-            jQuery('#facetview_addfilters').append(options);
-            jQuery('#facetview_addfilters').change(addfilters);
+            $('#facetview_addfilters').html("");
+            $('#facetview_addfilters').append(options);
+            $('#facetview_addfilters').change(addfilters);
         
         }
-
-
+        
         // ===============================================
         // functions to do with building results
         // ===============================================
@@ -223,6 +288,7 @@ return this.bind(type, data, cb);
                     }
                     resultobj["facets"][item] = facetsobj;
                 }
+            } else if ( options.search_index == "bibserver" ) {
             } else {
                 resultobj["records"] = dataobj.response.docs;
                 resultobj["start"] = dataobj.response.start;
@@ -244,28 +310,12 @@ return this.bind(type, data, cb);
             return resultobj;
         }
 
-        // write objects to string
-        var to_s = function(thing) {
-            var s = (thing instanceof Array) ? "[" : "{";
-            for (i in thing) {
-                if (thing[i] && typeof thing[i] == "object") {
-                    s += '    "' + i + '":' + to_s(thing[i]) + ', ';
-                } else {
-                    s += (thing instanceof Array) ? "" : '"' + i + '":';
-                    s += '"' + thing[i] + '", ';
-                }
-            }
-            s += (thing instanceof Array) ? "]" : "}";    
-            s = s.replace(/, ]/g,"]").replace(/, }/g,"}");
-            return s;
-        }
-
         // decrement result set
         var decrement = function(event) {
             event.preventDefault();
-            options.default_paging.from = parseInt(jQuery(this).attr('href')) - options.default_paging.size;
-            if ( options.default_paging.from < 0 ) {
-                options.default_paging.from = 0;
+            options.paging.from = parseInt($(this).attr('href')) - options.paging.size;
+            if ( options.paging.from < 0 ) {
+                options.paging.from = 0;
             }
             dosearch();
         }
@@ -273,7 +323,7 @@ return this.bind(type, data, cb);
         // increment result set
         var increment = function(event) {
             event.preventDefault();
-            options.default_paging.from = parseInt(jQuery(this).attr('href'));
+            options.paging.from = parseInt($(this).attr('href'));
             dosearch();
         }
 
@@ -288,55 +338,67 @@ return this.bind(type, data, cb);
                 </ul> \
               </div> \
               ';
-            var meta = metaTmpl.replace(/{{from}}/g, options.default_paging.from);
-            meta = meta.replace(/{{to}}/g, options.default_paging.from+10);
-            meta = meta.replace(/{{total}}/g, data.found);
-            jQuery('#facetview_metadata').html("").append(meta);
-            jQuery('#facetview_decrement').bind('click',decrement);
-            jQuery('#facetview_increment').bind('click',increment);
+            $('#facetview_metadata').html("Not found...")
+            if (data.found) {
+                var meta = metaTmpl.replace(/{{from}}/g, options.paging.from + 1);
+                meta = meta.replace(/{{to}}/g, options.paging.from+options.paging.size);
+                meta = meta.replace(/{{total}}/g, data.found);
+                $('#facetview_metadata').html("").append(meta);
+                $('#facetview_decrement').bind('click',decrement);
+                $('#facetview_increment').bind('click',increment);
+            }
 
         }
 
         // given a result record, build how it should look on the page
         var buildrecord = function(record) {
-            var result = '<div class="facetview_result">';
-            var displays = options.result_display_headers
-            for (var item in displays) {
-                if ( item == 0 ) {
-                    if ( record[displays[item]] ) {
-                        result += '<a class="facetview_more" href="">' + 
-                            record[displays[item]] + '</a>';
+            var result = '<tr><td>';
+            result +=  ' \
+            <div style="float:right;" class="btn-group"> \
+                <a class="btn dropdown-toggle" data-toggle="dropdown" href="#"> \
+                <i class="icon-cog"></i> <span class="caret"></span></a> \
+                <ul class="dropdown-menu"> \
+                <li><a href="">no options yet...</a></li> \
+                </ul> \
+               </div>';
+            var display = options.result_display
+            var lines = ''
+            for (lineitem in display) {
+                line = ""
+                for (object in display[lineitem]) {
+                    var thekey = display[lineitem][object]['field']
+                    parts = thekey.split('.')
+                    // TODO: this should perhaps recurse..
+                    if (parts.length == 1) {
+                        var res = record
+                    } else if (parts.length == 2) {
+                        var res = record[parts[0]]
+                    }
+                    var counter = parts.length - 1
+                    if (res && res.constructor.toString().indexOf("Array") == -1) {
+                        var thevalue = res[parts[counter]]  // if this is a dict
                     } else {
-                        result += '<a class="facetview_more" href="">UNKNOWN ITEM</a>';
-                    }                
-                } else {
-                    if ( record[displays[item]] ) {
-                        result += '<div class="facetview_resultextra">' + 
-                            record[displays[item]] + '</div>';
+                        var thevalue = []
+                        for (var row in res) {
+                            thevalue.push(res[row][parts[counter]])
+                        }
+                    }
+                    if (thevalue) {
+                        display[lineitem][object]['pre'] 
+                            ? line += display[lineitem][object]['pre'] : false
+                        line += thevalue
+                        display[lineitem][object]['post'] 
+                            ? line += display[lineitem][object]['post'] : false
+                        line += ' '
                     }
                 }
-            }
-            result += '<table class="facetview_moreinfo">';
-            for ( var each in record ) {
-                if ( jQuery.inArray(each,options.ignore_fields) == -1 ) {
-                    result += '<tr><td class="facetview_moretabletitle">' + 
-                        each + '</td>' + '<td class="facetview_fixed">' + record[each] + '</td></tr>';
+                if (line) {
+                    lines += line.replace(/^\s/,'').replace(/\s$/,'').replace(/\,$/,'') + "<br />"
                 }
             }
-            result += '</table>';
+            lines ? result += lines : result += 'unidentified item'
+            result += '</td></tr>'
             return result;
-        }
-
-        // show more details of an event, and trigger the book search
-        var showmore = function(event) {
-            event.preventDefault();
-            if ( !jQuery(this).hasClass('facetview_open') ) {
-                jQuery(this).addClass('facetview_open').siblings().show();
-                jQuery(this).siblings('.facetview_resultextra').hide();
-            } else {
-                jQuery(this).removeClass('facetview_open').siblings().not('.facetview_resultextra').hide();
-                jQuery(this).siblings('.facetview_resultextra').show();
-            }
         }
 
         // put the results on the page
@@ -350,16 +412,21 @@ return this.bind(type, data, cb);
             // populate the advanced options
             populateadvanced(data);
             // put the filtered results on the page
-            jQuery('#facetview_results').html("");
+            $('#facetview_results').html("");
             var infofiltervals = new Array();
-            jQuery.each(data.records, function(index, value) {
+            $.each(data.records, function(index, value) {
                 // write them out to the results div
-                jQuery('#facetview_results').append( buildrecord(value) );
+                $('#facetview_results').append( buildrecord(value) );
             });
             // bind the more action to show the hidden details
-            jQuery('.facetview_more').bind('click',showmore);
+            $('.facetview_more').bind('click',showmore);
         }
 
+        // show more details of an event, and trigger the book search
+        var showmore = function(event) {
+            event.preventDefault();
+            alert("show record view options")
+        }
 
         // ===============================================
         // functions to do with searching
@@ -374,29 +441,29 @@ return this.bind(type, data, cb);
             }
             // do paging params
             var pageparams = "";
-            for (var item in options.default_paging) {
-                pageparams += item + "=" + options.default_paging[item] + "&";
+            for (var item in options.paging) {
+                pageparams += item + "=" + options.paging[item] + "&";
             }
             // set facet params
             var urlfilters = "";
-            for (var item in options.default_filters) {
-                urlfilters += "facet.field=" + options.default_filters[item] + "&";
+            for (var item in options.facets) {
+                urlfilters += "facet.field=" + options.facets[item]['field'] + "&";
             }
             // build starting URL
             var theurl = options.search_url + urlparams + pageparams + urlfilters + options.query_parameter + "=";
             // add default query values
             // build the query, starting with default values
             var query = "";
-            for (var item in options.predefined_query_values) {
-                query += item + ":" + options.predefined_query_values[item] + " AND ";
+            for (var item in options.predefined_filters) {
+                query += item + ":" + options.predefined_filters[item] + " AND ";
             }
-            jQuery('.facetview_filterselected',obj).each(function() {
-                query += jQuery(this).attr('rel') + ':"' + 
-                    jQuery(this).attr('href') + '" AND ';
+            $('.facetview_filterselected',obj).each(function() {
+                query += $(this).attr('rel') + ':"' + 
+                    $(this).attr('href') + '" AND ';
             });
             // add any freetext filter
-            if (jQuery('#facetview_freetext').val() != "") {
-                query += jQuery('#facetview_freetext').val() + '*';
+            if ($('#facetview_freetext').val() != "") {
+                query += $('#facetview_freetext').val() + '*';
             }
             query = query.replace(/ AND $/,"");
             // set a default for blank search
@@ -409,46 +476,47 @@ return this.bind(type, data, cb);
 
         // build the search query URL based on current params
         var elasticsearchquery = function() {
-            // build the query, starting with default values
-            var query = "";
-            for (var item in options.predefined_query_values) {
-                query += item + ":" + options.predefined_query_values[item] + " AND ";
-            }
-            jQuery('.facetview_filterselected',obj).each(function() {
-                query += jQuery(this).attr('rel') + ':' + 
-                    jQuery(this).attr('href').replace(/:/g,"_") + ' AND ';
+            var qs = {}
+            var bool = false
+            $('.facetview_filterselected',obj).each(function() {
+                !bool ? bool = {'must': [] } : ""
+                var obj = {'term':{}}
+                obj['term'][ $(this).attr('rel') ] = $(this).attr('href')
+                bool['must'].push(obj)
             });
-            // add any freetext filter
-            if (jQuery('#facetview_freetext').val() != "") {
-                query += jQuery('#facetview_freetext').val() + '*';
+            for (var item in options.predefined_filters) {
+                !bool ? bool = {'must': [] } : ""
+                var obj = {'term': {}}
+                obj['term'][ item ] = options.predefined_filters[item]
+                bool['must'].push(obj)
             }
-            query = query.replace(/ AND $/,"");
-            var querystring = '{';
-            if ( options.default_paging.from != 0 ) {
-                querystring += '"from":' + options.default_paging.from + ',';
-            }
-            if ( options.default_paging.size != 10 ) {
-                querystring += '"size":' + options.default_paging.size + ',';
-            }
-            // set a default for blank search
-            if (query == "") {
-              querystring += '"query":{"match_all":{}}';
+            if (bool) {
+                $('#facetview_freetext').val() != ""
+                    ? bool['must'].push( {'query_string': { 'query': $('#facetview_freetext').val() } } )
+                    : ""
+                qs['query'] = {'bool': bool}
             } else {
-              querystring += '"query":{"query_string":{"query":"' + query + '"}}';
+                $('#facetview_freetext').val() != ""
+                    ? qs['query'] = {'query_string': { 'query': $('#facetview_freetext').val() } }
+                    : qs['query'] = {'match_all': {}}
             }
-            querystring += ',"facets":{';
-            for (var item in options.default_filters) {
-                querystring += '"' + options.default_filters[item] + '":{"terms":{"field":"' + options.default_filters[item] + '","size":200,"order":"term"}},';
+            // set any paging
+            options.paging.from != 0 ? qs['from'] = options.paging.from : ""
+            options.paging.size != 10 ? qs['size'] = options.paging.size : ""
+            // set any facets
+            qs['facets'] = {};
+            for (var item in options.facets) {
+                var obj = options.facets[item]
+                delete obj['display']
+                qs['facets'][obj['field']] = {"terms":obj}
             }
-            querystring = querystring.replace(/\,$/,"");
-            querystring += '}}';
-            return querystring;
+            return JSON.stringify(qs)
         }
 
         // execute a search
         var dosearch = function() {
             if ( options.search_index == "elasticsearch" ) {
-              jQuery.ajax({
+              $.ajax({
                 type: "get",
                 url: options.search_url,
                 data: {source: elasticsearchquery()},
@@ -457,50 +525,138 @@ return this.bind(type, data, cb);
                 success: showresults
               });
             } else {
-                jQuery.ajax( { type: "get", url: solrsearchquery(), dataType:"jsonp", jsonp:"json.wrf", success: function(data) { showresults(data) } } );
+                $.ajax( { type: "get", url: solrsearchquery(), dataType:"jsonp", jsonp:"json.wrf", success: function(data) { showresults(data) } } );
             }
         }
 
         // trigger a search when a filter choice is clicked
         var clickfilterchoice = function(event) {
             event.preventDefault();
-            var newobj = '<li><a class="facetview_filterselected" rel="' + 
-                jQuery(this).attr("rel") + '" href="' + jQuery(this).attr("href") + '">' +
-                jQuery(this).html() + '</a><a class="facetview_clear" href="">x</a></li>';
-            jQuery('#facetview_selectedfilters').append(newobj);
-            jQuery('.facetview_clear').unbind('click',clearfilter);
-            jQuery('.facetview_clear').bind('click',clearfilter);
+            var newobj = '<a class="facetview_filterselected facetview_clear ' + 
+                'btn btn-info" rel="' + $(this).attr("rel") + 
+                '" alt="remove" title="remove"' +
+                ' href="' + $(this).attr("href") + '">' +
+                $(this).html().replace(/\(.*\)/,'') + ' <i class="icon-remove"></i></a>';
+            $('#facetview_selectedfilters').append(newobj);
+            $('.facetview_filterselected').unbind('click',clearfilter);
+            $('.facetview_filterselected').bind('click',clearfilter);
+            options.paging.from = 0
             dosearch();
         }
 
         // clear a filter when clear button is pressed, and re-do the search
         var clearfilter = function(event) {
             event.preventDefault();
-            if ( jQuery(this).attr('id') == "facetview_clearall" ) {
-                jQuery('#facetview_freetext',obj).val("");
-            } else {
-                jQuery(this).parent().remove();
-            }
+            $(this).remove();
             dosearch();
         }
 
+        // do search options
+        var fixmatch = function(event) {
+            event.preventDefault();
+            if ( $(this).attr('id') == "facetview_partial_match" ) {
+                var newvals = $('#facetview_freetext').val().replace(/"/gi,'').replace(/\*/gi,'').replace(/\~/gi,'').split(' ');
+                var newstring = "";
+                for (item in newvals) {
+                    if (newvals[item].length > 0 && newvals[item] != ' ') {
+                        if (newvals[item] == 'OR' || newvals[item] == 'AND') {
+                            newstring += newvals[item] + ' ';
+                        } else {
+                            newstring += '*' + newvals[item] + '* ';
+                        }
+                    }
+                }
+                $('#facetview_freetext').val(newstring);
+            } else if ( $(this).attr('id') == "facetview_fuzzy_match" ) {
+                var newvals = $('#facetview_freetext').val().replace(/"/gi,'').replace(/\*/gi,'').replace(/\~/gi,'').split(' ');
+                var newstring = "";
+                for (item in newvals) {
+                    if (newvals[item].length > 0 && newvals[item] != ' ') {
+                        if (newvals[item] == 'OR' || newvals[item] == 'AND') {
+                            newstring += newvals[item] + ' ';
+                        } else {
+                            newstring += newvals[item] + '~ ';
+                        }
+                    }
+                }
+                $('#facetview_freetext').val(newstring);
+            } else if ( $(this).attr('id') == "facetview_exact_match" ) {
+                var newvals = $('#facetview_freetext').val().replace(/"/gi,'').replace(/\*/gi,'').replace(/\~/gi,'').split(' ');
+                var newstring = "";
+                for (item in newvals) {
+                    if (newvals[item].length > 0 && newvals[item] != ' ') {
+                        if (newvals[item] == 'OR' || newvals[item] == 'AND') {
+                            newstring += newvals[item] + ' ';
+                        } else {
+                            newstring += '"' + newvals[item] + '" ';
+                        }
+                    }
+                }
+                $.trim(newstring,' ');
+                $('#facetview_freetext').val(newstring);
+            } else if ( $(this).attr('id') == "facetview_match_all" ) {
+                $('#facetview_freetext').val($.trim($('#facetview_freetext').val().replace(/ OR /gi,' ')));
+                $('#facetview_freetext').val($('#facetview_freetext').val().replace(/ /gi,' AND '));
+            } else if ( $(this).attr('id') == "facetview_match_any" ) {
+                $('#facetview_freetext').val($.trim($('#facetview_freetext').val().replace(/ AND /gi,' ')));
+                $('#facetview_freetext').val($('#facetview_freetext').val().replace(/ /gi,' OR '));
+            }
+            $('#facetview_freetext').focus().trigger('keyup');
+        }
+
+
+        // adjust how many results are shown
+        var howmany = function(event) {
+            event.preventDefault()
+            var newhowmany = prompt('Currently displaying ' + options.paging.size + 
+                ' results per page. How many would you like instead?')
+            if (newhowmany) {
+                options.paging.size = parseInt(newhowmany)
+                options.paging.from = 0
+                dosearch()
+            }
+        }
 
         // the facet view object to be appended to the page
         var thefacetview = ' \
            <div id="facetview"> \
-             <form method="GET" action="#search"> \
-               <input id="facetview_freetext" name="q" value="" placeholder="search term" autofocus > \
-               <ul id="facetview_selectedfilters"></ul> \
-             </form> \
-             <div class="row"> \
-                <div class="span4 facets" id="facetview_filters"></div> \
-                <div class="span12 results"> \
-                  <div id="facetview_results"></div> \
-                  <div id="facetview_metadata"></div> \
-                </div> \
-              </div> \
-            </div> \
-            ';
+             <div class="row-fluid"> \
+               <div class="span3"> \
+                 <div id="facetview_filters"></div> \
+               </div> \
+               <div class="span9"> \
+                 <form method="GET" action="#search"> \
+                   <div id="facetview_searchbar" style="display:inline; float:left;" class="input-prepend"> \
+                   <span class="add-on"><i class="icon-search"></i></span> \
+                   <input class="span4" id="facetview_freetext" name="q" value="" placeholder="search term" autofocus /> \
+                   </div> \
+                   <div style="display:inline; float:left;margin-left:-2px;" class="btn-group"> \
+                    <a style="-moz-border-radius:0px 3px 3px 0px; \
+                    -webkit-border-radius:0px 3px 3px 0px; border-radius:0px 3px 3px 0px;" \
+                    class="btn dropdown-toggle" data-toggle="dropdown" href="#"> \
+                    <i class="icon-cog"></i> <span class="caret"></span></a> \
+                    <ul class="dropdown-menu"> \
+                    <li><a id="facetview_partial_match" href="">partial match</a></li> \
+                    <li><a id="facetview_exact_match" href="">exact match</a></li> \
+                    <li><a id="facetview_fuzzy_match" href="">fuzzy match</a></li> \
+                    <li><a id="facetview_match_all" href="">match all</a></li> \
+                    <li><a id="facetview_match_any" href="">match any</a></li> \
+                    <li><a href="#">clear all</a></li> \
+                    <li><a target="_blank" \
+                    href="http://lucene.apache.org/java/2_9_1/queryparsersyntax.html"> \
+                    learn more</a></li> \
+                    <li class="divider"></li> \
+                    <li><a id="facetview_howmany" href="#">pagination: {{HOW_MANY}}</a></li> \
+                    </ul> \
+                   </div> \
+                   <div style="clear:both;" id="facetview_selectedfilters"></div> \
+                 </form> \
+                 <table class="table table-striped" id="facetview_results"></table> \
+                 <div id="facetview_metadata"></div> \
+               </div> \
+             </div> \
+           </div> \
+           ';
 
 
         // ===============================================
@@ -510,14 +666,28 @@ return this.bind(type, data, cb);
             obj = $(this);
 
             // append the facetview object to this object
+            thefacetview = thefacetview.replace(/{{HOW_MANY}}/gi,options.paging.size)
             $(obj).append(thefacetview);
+
+            // setup search option triggers
+            $('#facetview_partial_match').bind('click',fixmatch)
+            $('#facetview_exact_match').bind('click',fixmatch)
+            $('#facetview_fuzzy_match').bind('click',fixmatch)
+            $('#facetview_match_any').bind('click',fixmatch)
+            $('#facetview_match_all').bind('click',fixmatch)
+            $('#facetview_howmany').bind('click',howmany)
+
+            // resize the searchbar
+            var thewidth = $('#facetview_searchbar').parent().parent().width()
+            $('#facetview_searchbar').css('width',thewidth - 50 + 'px')
+            $('#facetview_freetext').css('width', thewidth - 88 + 'px')
 
             // append the filters to the facetview object
             buildfilters();
+            if (options.description) {
+                $('#facetview_filters').append('<div><h3>Meta</h3>' + options.description + '</div>')
+            }
             $('#facetview_freetext',obj).bindWithDelay('keyup',dosearch,options.freetext_submit_delay);
-
-            // add userconfig functions
-            options.show_advanced ? advanced() : "";
 
             // trigger the search once on load, to get all results
             dosearch();
