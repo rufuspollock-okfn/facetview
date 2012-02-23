@@ -131,13 +131,13 @@
         var showfiltervals = function(event) {
             event.preventDefault();
             if ( $(this).hasClass('facetview_open') ) {
+                $(this).children('i').replaceWith('<i class="icon-plus"></i>')
                 $(this).removeClass('facetview_open');
                 $('#facetview_' + $(this).attr('rel') ).children().hide();
-                $('#facetview_freetext_' + $(this).attr('rel') ).parent().hide();
             } else {
+                $(this).children('i').replaceWith('<i class="icon-minus"></i>')
                 $(this).addClass('facetview_open');
                 $('#facetview_' + $(this).attr('rel') ).children().show();      
-                $('#facetview_freetext_' + $(this).attr('rel') ).parent().show();
             }
         }
 
@@ -162,8 +162,33 @@
             } else if ( $(this).hasClass('facetview_rterm') ) {
                 options.facets[which]['order'] = 'reverse_term'
             }
-            dosearch()            
+            dosearch()
+            if ( !$(this).parent().parent().siblings('.facetview_filtershow').hasClass('facetview_open') ) {
+                $(this).parent().parent().siblings('.facetview_filtershow').trigger('click')
+            }
         }
+
+        // adjust how many results are shown
+        var morefacetvals = function(event) {
+            event.preventDefault()
+            var morewhat = options.facets[ $(this).attr('rel') ]
+            if ('size' in morewhat ) {
+                var currentval = morewhat['size']
+            } else {
+                var currentval = 10
+            }
+            var newmore = prompt('Currently showing ' + currentval + 
+                '. How many would you like instead?')
+            if (newmore) {
+                options.facets[ $(this).attr('rel') ]['size'] = parseInt(newmore)
+                $(this).html('show up to ' + newmore )
+                dosearch()
+                if ( !$(this).parent().parent().siblings('.facetview_filtershow').hasClass('facetview_open') ) {
+                    $(this).parent().parent().siblings('.facetview_filtershow').trigger('click')
+                }
+            }
+        }
+
 
         // pass a list of filters to be displayed
         var buildfilters = function() {
@@ -183,11 +208,19 @@
                         <li><a class="facetview_sort facetview_term" href="{{FILTER_EXACT}}">sort by term</a></li> \
                         <li><a class="facetview_sort facetview_rcount" href="{{FILTER_EXACT}}">sort reverse count</a></li> \
                         <li><a class="facetview_sort facetview_rterm" href="{{FILTER_EXACT}}">sort reverse term</a></li> \
+                        <li class="divider"></li> \
+                        <li><a class="facetview_morefacetvals" rel="{{FACET_IDX}}" href="{{FILTER_EXACT}}">show up to {{FILTER_HOWMANY}}</a></li> \
                         </ul></div> \
                   <ul id="facetview_{{FILTER_NAME}}" \
                     class="facetview_filters"></ul> \
                     ';
                 thefilters += _filterTmpl.replace(/{{FILTER_NAME}}/g, filters[idx]['field'].replace(/\./gi,'_')).replace(/{{FILTER_EXACT}}/g, filters[idx]['field']);
+                if ('size' in filters[idx] ) {
+                    thefilters = thefilters.replace(/{{FILTER_HOWMANY}}/gi, filters[idx]['size'])
+                } else {
+                    thefilters = thefilters.replace(/{{FILTER_HOWMANY}}/gi, 10)
+                }
+                thefilters = thefilters.replace(/{{FACET_IDX}}/gi,idx)
                 if ('display' in filters[idx]) {
                     thefilters = thefilters.replace(/{{FILTER_DISPLAY}}/g, filters[idx]['display'])
                 } else {
@@ -195,6 +228,7 @@
                 }
             }
             $('#facetview_filters').append(thefilters)
+            $('.facetview_morefacetvals').bind('click',morefacetvals)
             $('.facetview_sort').bind('click',sortfilters)
             $('.facetview_filtershow').bind('click',showfiltervals)
         }
@@ -613,6 +647,7 @@
             if (newhowmany) {
                 options.paging.size = parseInt(newhowmany)
                 options.paging.from = 0
+                $('#facetview_howmany').html('results per page (' + options.paging.size + ')')
                 dosearch()
             }
         }
@@ -646,7 +681,7 @@
                     href="http://lucene.apache.org/java/2_9_1/queryparsersyntax.html"> \
                     learn more</a></li> \
                     <li class="divider"></li> \
-                    <li><a id="facetview_howmany" href="#">pagination: {{HOW_MANY}}</a></li> \
+                    <li><a id="facetview_howmany" href="#">results per page ({{HOW_MANY}})</a></li> \
                     </ul> \
                    </div> \
                    <div style="clear:both;" id="facetview_selectedfilters"></div> \
