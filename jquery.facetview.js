@@ -101,7 +101,7 @@
 
         // specify the defaults
         var defaults = {
-            "config_file":false,
+            "config_file": false,
             "facets":[],
             "result_display": resdisplay,
             "ignore_fields":["_id","_rev"],
@@ -179,7 +179,7 @@
                 '. How many would you like instead?')
             if (newmore) {
                 options.facets[ $(this).attr('rel') ]['size'] = parseInt(newmore)
-                $(this).html('show up to ' + newmore )
+                $(this).html('show up to (' + newmore + ')')
                 dosearch()
                 if ( !$(this).parent().parent().siblings('.facetview_filtershow').hasClass('facetview_open') ) {
                     $(this).parent().parent().siblings('.facetview_filtershow').trigger('click')
@@ -280,9 +280,9 @@
                         <li><a class="facetview_sort facetview_rcount" href="{{FILTER_EXACT}}">sort reverse count</a></li> \
                         <li><a class="facetview_sort facetview_rterm" href="{{FILTER_EXACT}}">sort reverse term</a></li> \
                         <li class="divider"></li> \
-                        <li><a class="facetview_facetrange" rel="{{FACET_IDX}}" href="{{FILTER_EXACT}}">select a filter range</a></li> \
+                        <li><a class="facetview_facetrange" rel="{{FACET_IDX}}" href="{{FILTER_EXACT}}">apply a filter range</a></li> \
                         <li class="divider"></li> \
-                        <li><a class="facetview_morefacetvals" rel="{{FACET_IDX}}" href="{{FILTER_EXACT}}">show up to {{FILTER_HOWMANY}}</a></li> \
+                        <li><a class="facetview_morefacetvals" rel="{{FACET_IDX}}" href="{{FILTER_EXACT}}">show up to ({{FILTER_HOWMANY}})</a></li> \
                         </ul></div> \
                   <ul id="facetview_{{FILTER_NAME}}" \
                     class="facetview_filters"></ul> \
@@ -795,6 +795,17 @@
            </div> \
            ';
 
+        // what to do when ready to go
+        var whenready = function() {
+            // append the filters to the facetview object
+            buildfilters();
+            if (options.description) {
+                $('#facetview_filters').append('<div><h3>Meta</h3>' + options.description + '</div>')
+            }
+            $('#facetview_freetext',obj).bindWithDelay('keyup',dosearch,options.freetext_submit_delay);
+            // trigger the search once on load, to get all results
+            dosearch();
+        }
 
         // ===============================================
         // now create the plugin on the page
@@ -818,16 +829,22 @@
             var thewidth = $('#facetview_searchbar').parent().parent().width()
             $('#facetview_searchbar').css('width',thewidth - 50 + 'px')
             $('#facetview_freetext').css('width', thewidth - 88 + 'px')
-
-            // append the filters to the facetview object
-            buildfilters();
-            if (options.description) {
-                $('#facetview_filters').append('<div><h3>Meta</h3>' + options.description + '</div>')
+            
+            // check for remote config options, then do first search
+            if (options.config_file) {
+                $.ajax({
+                    type: "get",
+                    url: options.config_file,
+                    dataType: "jsonp",
+                    success: function(data) {
+                        options = $.extend(options, data)
+                        whenready()
+                    }
+                })
+            } else {
+                whenready()
             }
-            $('#facetview_freetext',obj).bindWithDelay('keyup',dosearch,options.freetext_submit_delay);
 
-            // trigger the search once on load, to get all results
-            dosearch();
 
         }); // end of the function  
 
