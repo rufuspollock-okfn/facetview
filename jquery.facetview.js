@@ -5,8 +5,6 @@
  * can read config locally or can be passed in as variable when executed
  * or a config variable can point to a remote config
  * config options include specifying SOLR or ElasticSearch index
- *
- * open source license - GNU Affero GPL v3
  * 
  * created by Mark MacGillivray - mark@cottagelabs.com
  *
@@ -474,9 +472,9 @@
             var result = '<tr><td>';
             result +=  ' \
             <div style="float:right;" class="btn-group"> \
-                <a class="btn dropdown-toggle" data-toggle="dropdown" href="#"> \
+                <a style="margin-left:10px;" class="btn dropdown-toggle" data-toggle="dropdown" href="#"> \
                 <i class="icon-cog"></i> <span class="caret"></span></a> \
-                <ul class="dropdown-menu"> \
+                <ul style="margin-left:-100px;" class="dropdown-menu"> \
                 <li><a href="">no options yet...</a></li> \
                 </ul> \
                </div>';
@@ -774,7 +772,7 @@
                     -webkit-border-radius:0px 3px 3px 0px; border-radius:0px 3px 3px 0px;" \
                     class="btn dropdown-toggle" data-toggle="dropdown" href="#"> \
                     <i class="icon-cog"></i> <span class="caret"></span></a> \
-                    <ul class="dropdown-menu"> \
+                    <ul style="margin-left:-110px;" class="dropdown-menu"> \
                     <li><a id="facetview_partial_match" href="">partial match</a></li> \
                     <li><a id="facetview_exact_match" href="">exact match</a></li> \
                     <li><a id="facetview_fuzzy_match" href="">fuzzy match</a></li> \
