@@ -422,12 +422,6 @@
         var decrement = function(event) {
             event.preventDefault()
             if ( $(this).html() != '..' ) {
-                if ( typeof(options.paging.from) != 'number' ) {
-                    options.paging.from = parseInt(options.paging.from)
-                }
-                if ( typeof(options.paging.size) != 'number' ) {
-                    options.paging.size = parseInt(options.paging.size)
-                }
                 options.paging.from = options.paging.from - options.paging.size
                 options.paging.from < 0 ? options.paging.from = 0 : ""
                 dosearch();
@@ -445,6 +439,12 @@
 
         // write the metadata to the page
         var putmetadata = function(data) {
+            if ( typeof(options.paging.from) != 'number' ) {
+                options.paging.from = parseInt(options.paging.from)
+            }
+            if ( typeof(options.paging.size) != 'number' ) {
+                options.paging.size = parseInt(options.paging.size)
+            }
             var metaTmpl = ' \
               <div class="pagination"> \
                 <ul> \
