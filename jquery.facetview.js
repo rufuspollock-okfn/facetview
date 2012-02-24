@@ -502,10 +502,17 @@
                             thevalue.push(res[row][parts[counter]])
                         }
                     }
-                    if (thevalue) {
+                    if (thevalue && thevalue.length) {
                         display[lineitem][object]['pre'] 
                             ? line += display[lineitem][object]['pre'] : false
-                        line += thevalue
+                        if ( typeof(thevalue) == 'object' ) {
+                            for (var val in thevalue) {
+                                val != 0 ? line += ', ' : false
+                                line += thevalue[val]
+                            }
+                        } else {
+                            line += thevalue
+                        }
                         display[lineitem][object]['post'] 
                             ? line += display[lineitem][object]['post'] : false
                         line += ' '
@@ -536,6 +543,7 @@
             $.each(data.records, function(index, value) {
                 // write them out to the results div
                 $('#facetview_results').append( buildrecord(value) );
+                $('#facetview_results tr:last-child').linkify()
             });
             // bind the more action to show the hidden details
             $('.facetview_more').bind('click',showmore);
