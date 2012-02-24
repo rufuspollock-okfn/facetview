@@ -1,5 +1,6 @@
 FacetView_ is a pure javascript frontend for ElasticSearch or SOLR search
-indices.
+indices (although there have been recent changes that may not work for SOLR yet 
+- work in progress).
 
 It's been developed as a jQuery plugin and lets you easily embed a faceted
 browse front end into any web page.
@@ -30,15 +31,23 @@ Using FacetView
 Add the following code to your web page::
 
   <script type="text/javascript" src="vendor/jquery/1.7.1/jquery-1.7.1.min.js"></script>
-  <script type="text/javascript" src="jquery.facetview.js"></script>
 
   <link rel="stylesheet" href="vendor/bootstrap/css/bootstrap.min.css">
   <script type="text/javascript" src="vendor/bootstrap/js/bootstrap.min.js"></script>  
+
+  <script type="text/javascript" src="vendor/linkify/1.0/jquery.linkify-1.0-min.js"></script>  
   
+  <link rel="stylesheet" href="vendor/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.css">
+  <script type="text/javascript" src="vendor/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.min.js"></script>
+
+  <script type="text/javascript" src="jquery.facetview.js"></script>
+
   <link rel="stylesheet" href="css/facetview.css">
 
+
 * BUT change the src URLs to something sensible depending on where you install 
-  the files
+  the files; or something different if you have the files available already.
+  If using your own, NOTE the versions; particularly bootstrap - we are on the 2.x
 
 
 Then add a script somewhere to your page that actually calls and sets up the 
@@ -107,11 +116,30 @@ this::
 Providing the location of an external config file
 -----------------------------------------------
 
-(in development)
+A file can be made available anywhere on the web (depending, keep reading) 
+with any of the above listed settings in it (written in the usual way for a 
+JSON object). Then, just pass the URL of your config file when you call 
+FacetView - as a parameter called "config_file", and it will attempt to read 
+that config file for you.
 
-A JSON file can be made available anywhere on the web with any of the above
-listed settings in it. Then, just pass the URL of your config file when you
-call FacetView, and it will read that config file for you.
+The first attempt will make a JSONP request to the URL you specify, so if your 
+file is properly set up on a server that enables it to respond to such a request, 
+you can make these calls to any address on the internet.
+
+If JSONP call fails, then a normal GET will be executed. So if the file is under 
+the same domain, it should be retrievable. In this case, the file must be 
+normally readable to a GET request - e.g. it should have a .html extension, or 
+be otherwise set up to return your config as a string to the GET request. The 
+JSON config object is then parsed and read in.
+
+Config precedence
+-----------------
+
+When you introduce a new config object, they are merged into earlier configs with 
+overwrite. So any config you specify in facetview.jquery.js will be overwritten 
+and appended with newer info from any config passed in when calling facetview, 
+and a call to a remote config file will similarly overwrite and append to all 
+previous.
 
 Change the layout by making and using a custom CSS file
 -------------------------------------------------------
@@ -119,7 +147,7 @@ Change the layout by making and using a custom CSS file
 Facetview uses the latest `twitter bootstrap`_. When you embed facetview in a page, 
 you need to include the calls to bootstrap js and css files (see the example 
 index.html here for more info). You could restyle facetview any way you want, 
-either with our without bootstrap - although it would be a hassle to strip 
+either with or without bootstrap - although it would be a hassle to strip 
 bootstrap out; recommend working with or around it.
 
 
