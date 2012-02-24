@@ -839,6 +839,9 @@
                     success: function(data) {
                         options = $.extend(options, data)
                         whenready()
+                    },
+                    error: function() {
+                        whenready()
                     }
                 })
             } else {
