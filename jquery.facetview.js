@@ -189,6 +189,79 @@
             }
         }
 
+        // insert a facet range once selected
+        var dofacetrange = function(event) {
+            event.preventDefault()
+            var rel = $('#facetview_rangerel').html()
+            var range = $('#facetview_rangechoices').html()
+            var newobj = '<a class="facetview_filterselected facetview_facetrange facetview_clear ' + 
+                'btn btn-info" rel="' + rel + 
+                '" alt="remove" title="remove"' +
+                ' href="' + $(this).attr("href") + '">' +
+                range + ' <i class="icon-remove"></i></a>';
+            $('#facetview_selectedfilters').append(newobj);
+            $('.facetview_filterselected').unbind('click',clearfilter);
+            $('.facetview_filterselected').bind('click',clearfilter);
+            $('#facetview_rangemodal').modal('hide')
+            $('#facetview_rangemodal').remove()
+            options.paging.from = 0
+            dosearch();
+        }
+        // remove the range modal from page altogether on close (rebuilt for each filter)
+        var removerange = function(event) {
+            event.preventDefault()
+            $('#facetview_rangemodal').modal('hide')
+            $('#facetview_rangemodal').remove()
+        }
+        // build a facet range selector
+        var facetrange = function(event) {
+            event.preventDefault()
+            var modal = '<div class="modal" id="facetview_rangemodal"> \
+                <div class="modal-header"> \
+                <a class="facetview_removerange close">×</a> \
+                <h3>Set a filter range</h3> \
+                </div> \
+                <div class="modal-body"> \
+                <div style=" margin:20px;" id="facetview_slider"></div> \
+                <h3 id="facetview_rangechoices" style="text-align:center; margin:10px;"> \
+                <span class="facetview_lowrangeval">...</span> \
+                <small>to</small> \
+                <span class="facetview_highrangeval">...</span></h3> \
+                <p>(NOTE: ranges must be selected based on the current content of \
+                the filter. If you require more options than are currently available, \
+                cancel and return to the filter options; select sort by term, and set \
+                the number of values you require)</p> \
+                </div> \
+                <div class="modal-footer"> \
+                <a id="facetview_dofacetrange" href="#" class="btn btn-primary">Apply</a> \
+                <a class="facetview_removerange btn close">Cancel</a> \
+                </div> \
+                </div>';
+            $('#facetview').append(modal)
+            $('#facetview_rangemodal').append('<div id="facetview_rangerel" style="display:none;">' + $(this).attr('rel') + '</div>')
+            $('#facetview_rangemodal').modal('show')
+            $('#facetview_dofacetrange').bind('click',dofacetrange)
+            $('.facetview_removerange').bind('click',removerange)
+            var values = []
+            var valsobj = $( '#facetview_' + $(this).attr('href').replace(/\./gi,'_') )
+            valsobj.children('li').children('a').each(function() {
+                values.push( $(this).attr('href') )
+            })
+            values = values.sort()
+            $( "#facetview_slider" ).slider({
+	            range: true,
+	            min: 0,
+	            max: values.length-1,
+	            values: [0,values.length-1],
+	            slide: function( event, ui ) {
+		            $('#facetview_rangechoices .facetview_lowrangeval').html( values[ ui.values[0] ] )
+		            $('#facetview_rangechoices .facetview_highrangeval').html( values[ ui.values[1] ] )
+	            }
+            })
+            $('#facetview_rangechoices .facetview_lowrangeval').html( values[0] )
+            $('#facetview_rangechoices .facetview_highrangeval').html( values[ values.length-1] )
+        }
+
 
         // pass a list of filters to be displayed
         var buildfilters = function() {
@@ -208,6 +281,8 @@
                         <li><a class="facetview_sort facetview_term" href="{{FILTER_EXACT}}">sort by term</a></li> \
                         <li><a class="facetview_sort facetview_rcount" href="{{FILTER_EXACT}}">sort reverse count</a></li> \
                         <li><a class="facetview_sort facetview_rterm" href="{{FILTER_EXACT}}">sort reverse term</a></li> \
+                        <li class="divider"></li> \
+                        <li><a class="facetview_facetrange" rel="{{FACET_IDX}}" href="{{FILTER_EXACT}}">select a filter range</a></li> \
                         <li class="divider"></li> \
                         <li><a class="facetview_morefacetvals" rel="{{FACET_IDX}}" href="{{FILTER_EXACT}}">show up to {{FILTER_HOWMANY}}</a></li> \
                         </ul></div> \
@@ -229,6 +304,7 @@
             }
             $('#facetview_filters').append(thefilters)
             $('.facetview_morefacetvals').bind('click',morefacetvals)
+            $('.facetview_facetrange').bind('click',facetrange)
             $('.facetview_sort').bind('click',sortfilters)
             $('.facetview_filtershow').bind('click',showfiltervals)
         }
@@ -346,19 +422,21 @@
 
         // decrement result set
         var decrement = function(event) {
-            event.preventDefault();
-            options.paging.from = parseInt($(this).attr('href')) - options.paging.size;
-            if ( options.paging.from < 0 ) {
-                options.paging.from = 0;
+            event.preventDefault()
+            if ( $(this).html() != '..' ) {
+                options.paging.from = options.paging.from - options.paging.size
+                options.paging.from < 0 ? options.paging.from = 0 : ""
+                dosearch();
             }
-            dosearch();
         }
 
         // increment result set
         var increment = function(event) {
-            event.preventDefault();
-            options.paging.from = parseInt($(this).attr('href'));
-            dosearch();
+            event.preventDefault()
+            if ( $(this).html() != '..' ) {
+                options.paging.from = parseInt($(this).attr('href'))
+                dosearch()
+            }
         }
 
         // write the metadata to the page
@@ -367,19 +445,26 @@
               <div class="pagination"> \
                 <ul> \
                   <li class="prev"><a id="facetview_decrement" href="{{from}}">&laquo; back</a></li> \
-                  <li class="active"><a>{{from}}&ndash;{{to}} of {{total}}</a></li> \
+                  <li class="active"><a>{{from}} &ndash; {{to}} of {{total}}</a></li> \
                   <li class="next"><a id="facetview_increment" href="{{to}}">next &raquo;</a></li> \
                 </ul> \
               </div> \
               ';
             $('#facetview_metadata').html("Not found...")
             if (data.found) {
-                var meta = metaTmpl.replace(/{{from}}/g, options.paging.from + 1);
-                meta = meta.replace(/{{to}}/g, options.paging.from+options.paging.size);
+                var from = options.paging.from + 1
+                var size = options.paging.size
+                !size ? size = 10 : ""
+                var to = options.paging.from+size
+                data.found < to ? to = data.found : ""
+                var meta = metaTmpl.replace(/{{from}}/g, from);
+                meta = meta.replace(/{{to}}/g, to);
                 meta = meta.replace(/{{total}}/g, data.found);
                 $('#facetview_metadata').html("").append(meta);
-                $('#facetview_decrement').bind('click',decrement);
-                $('#facetview_increment').bind('click',increment);
+                $('#facetview_decrement').bind('click',decrement)
+                from < size ? $('#facetview_decrement').html('..') : ""
+                $('#facetview_increment').bind('click',increment)
+                data.found <= to ? $('#facetview_increment').html('..') : ""
             }
 
         }
@@ -514,9 +599,20 @@
             var bool = false
             $('.facetview_filterselected',obj).each(function() {
                 !bool ? bool = {'must': [] } : ""
-                var obj = {'term':{}}
-                obj['term'][ $(this).attr('rel') ] = $(this).attr('href')
-                bool['must'].push(obj)
+                if ( $(this).hasClass('facetview_facetrange') ) {
+                    var rel = options.facets[ $(this).attr('rel') ]['field']
+                    var rngs = {
+                        'from': $('.facetview_lowrangeval', this).html(),
+                        'to': $('.facetview_highrangeval', this).html()
+                    }
+                    var obj = {'range': {}}
+                    obj['range'][ rel ] = rngs
+                    bool['must'].push(obj)
+                } else {
+                    var obj = {'term':{}}
+                    obj['term'][ $(this).attr('rel') ] = $(this).attr('href')
+                    bool['must'].push(obj)
+                }
             });
             for (var item in options.predefined_filters) {
                 !bool ? bool = {'must': [] } : ""
