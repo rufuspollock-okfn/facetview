@@ -841,7 +841,17 @@
                         whenready()
                     },
                     error: function() {
-                        whenready()
+                        $.ajax({
+                            type: "get",
+                            url: options.config_file,
+                            success: function(data) {
+                                options = $.extend(options, $.parseJSON(data))
+                                whenready()
+                            },
+                            error: function() {
+                                whenready()
+                            }
+                        })
                     }
                 })
             } else {
