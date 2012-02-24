@@ -118,8 +118,6 @@
 
         // and add in any overrides from the call
         var options = $.extend(defaults, options);
-        !options.paging.size ? options.paging.size = 10 : ""
-        !options.paging.from ? options.paging.from = 0 : ""
 
         // ===============================================
         // functions to do with filters
@@ -803,6 +801,9 @@
 
         // what to do when ready to go
         var whenready = function() {
+            // check paging info is available
+            !options.paging.size ? options.paging.size = 10 : ""
+            !options.paging.from ? options.paging.from = 0 : ""
             // append the filters to the facetview object
             buildfilters();
             if (options.description) {
