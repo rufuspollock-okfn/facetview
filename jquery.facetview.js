@@ -46,7 +46,7 @@
 (function($){
     $.fn.facetview = function(options) {
 
-        // some big default values
+        // a big default value (pulled into options below)
         var resdisplay = [
                 [
                     {
@@ -85,6 +85,7 @@
                         "post": ","
                     },
                     {
+                        "pre": "p. ",
                         "field": "pages"
                     },
                     {
@@ -93,6 +94,7 @@
                 ],
                 [
                     {
+                        "template": '<a href="{{link.url}}">{{link.anchor}}</a>',
                         "field": "link.url"
                     }
                 ]
@@ -104,6 +106,7 @@
             "config_file": false,
             "facets":[],
             "result_display": resdisplay,
+            "display_images": true,
             "ignore_fields":["_id","_rev"],
             "description":"",
             "search_url":"",
@@ -474,6 +477,16 @@
         // given a result record, build how it should look on the page
         var buildrecord = function(record) {
             var result = '<tr><td>';
+            // add first image where available
+            if (options.display_images) {
+                var recstr = JSON.stringify(record)
+                var regex = /(http:\/\/\S+?\.(jpg|png|gif|jpeg))/
+                var img = regex.exec(recstr)
+                if (img) {
+                    result += '<img class="thumbnail" style="float:left; width:100px; margin:0 5px 10px 0; max-height:150px;" src="' + img[0] + '" />'
+                }
+            }
+            // add options button
             result +=  ' \
             <div style="float:right;" class="btn-group"> \
                 <a style="margin-left:10px;" class="btn dropdown-toggle" data-toggle="dropdown" href="#"> \
@@ -482,9 +495,10 @@
                 <li><a href="">no options yet...</a></li> \
                 </ul> \
                </div>';
+            // add the record based on display template if available
             var display = options.result_display
             var lines = ''
-            for (lineitem in display) {
+            for (var lineitem in display) {
                 line = ""
                 for (object in display[lineitem]) {
                     var thekey = display[lineitem][object]['field']
@@ -494,6 +508,8 @@
                         var res = record
                     } else if (parts.length == 2) {
                         var res = record[parts[0]]
+                    } else if (parts.length == 3) {
+                        var res = record[parts[0]][parts[1]]
                     }
                     var counter = parts.length - 1
                     if (res && res.constructor.toString().indexOf("Array") == -1) {
@@ -524,7 +540,7 @@
                     lines += line.replace(/^\s/,'').replace(/\s$/,'').replace(/\,$/,'') + "<br />"
                 }
             }
-            lines ? result += lines : result += 'unidentified item'
+            lines ? result += lines : result += 'unknown'
             result += '</td></tr>'
             return result;
         }
