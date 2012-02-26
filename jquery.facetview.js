@@ -340,8 +340,8 @@
 
         var show_vis = function(event) {
             event.preventDefault();
-            if (jQuery('#facetview_visualisation').length) {
-                jQuery('#facetview_visualisation').remove()
+            if ($('#facetview_visualisation').length) {
+                $('#facetview_visualisation').remove()
             } else {
                 var vis = '<div id="facetview_visualisation"> \
                     <div class="modal-header"> \
@@ -400,18 +400,23 @@
                 .attr("dy", ".3em")
                 .text(function(d) { return d.data.className.substr(0,10) + ".. (" + d.data.value + ")"; })
             node.on('click',function(d) {
-                var target = window.location.href
-                if (target.indexOf('?') == -1) {
-                    target += '?'
-                }
-                if ($('#vis_facet').val() != '...') {
-                    target += '&' + facetkey + '=["' + d.data.className + '"]'
-                } else {
-                    target += '&q=' + d.data.className
-                }
-                window.location = target
+                clickbubble(facetkey,d.data.className)
             })
         };
+
+        var clickbubble = function(facetkey,facetvalue) {
+            var newobj = '<a class="facetview_filterselected facetview_clear ' + 
+                'btn btn-info" rel="' + facetkey + 
+                '" alt="remove" title="remove"' +
+                ' href="' + facetvalue + '">' +
+                facetvalue + ' <i class="icon-remove"></i></a>'
+            $('#facetview_selectedfilters').append(newobj)
+            $('.facetview_filterselected').unbind('click',clearfilter)
+            $('.facetview_filterselected').bind('click',clearfilter)
+            options.paging.from = 0
+            dosearch()
+            $('#facetview_visualisation').remove()
+        }
 
         // ===============================================
         // functions to do with filter options

@@ -36,6 +36,9 @@
     -webkit-border-radius: 5px;
     border-radius: 5px;
 }
+.node{
+    cursor:pointer;
+}
 .facetview_filterchoice{
     text-decoration:none;
     color:#373737;
