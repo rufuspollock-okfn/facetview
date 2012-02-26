@@ -31,23 +31,22 @@ Using FacetView
 Add the following code to your web page::
 
   <script type="text/javascript" src="vendor/jquery/1.7.1/jquery-1.7.1.min.js"></script>
-
   <link rel="stylesheet" href="vendor/bootstrap/css/bootstrap.min.css">
   <script type="text/javascript" src="vendor/bootstrap/js/bootstrap.min.js"></script>  
-
   <script type="text/javascript" src="vendor/linkify/1.0/jquery.linkify-1.0-min.js"></script>  
-  
   <link rel="stylesheet" href="vendor/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.css">
   <script type="text/javascript" src="vendor/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.min.js"></script>
-
   <script type="text/javascript" src="jquery.facetview.js"></script>
-
   <link rel="stylesheet" href="css/facetview.css">
+  <script type="text/javascript" src="vendor/d3/d3.min.js"></script>
+  <script type="text/javascript" src="vendor/d3/d3.geom.min.js?2.1.3"></script>
+  <script type="text/javascript" src="vendor/d3/d3.layout.min.js?2.1.3"></script>
 
 
 * BUT change the src URLs to something sensible depending on where you install 
   the files; or something different if you have the files available already.
   If using your own, NOTE the versions; particularly bootstrap - we are on the 2.x
+* d3 scripts can be dropped if you intend to disable filter visualisations.
 
 
 Then add a script somewhere to your page that actually calls and sets up the 
@@ -84,12 +83,16 @@ Edit the config in jquery.facetview.js
 View the config options near the top of the file to learn more. Some 
 important points:
 
+* search_url – you need this. Should be an elasticsearch or SOLR query endpoint
+* search_index – your index type, solr or elasticsearch
 * result_display - there is a long example of result display. It is a list of 
   lists; each list represents a line; each line contains objects; the objects 
   specify the field they should output, and pre and post information to surround
   it with
-* search_url – you need this. Should be an elasticsearch or SOLR query endpoint
-* search_index – your index type, solr or elasticsearch
+* display_images - if this is set to true, then facetview will attempt to find 
+  the first http://... that ends with .jpg / .jpeg / .png / .gif in each record;
+  if one is found, it will be displayed in the search result as a 100 x (up to) 
+  150 px thumbnail
 * default_url_params – parameters to pass through with every query; should
   include “wt”:”json” for SOLR queries to return JSON, and probably
   “facet.mincount”:1 for SOLR queries to ignore zero counts on facet values

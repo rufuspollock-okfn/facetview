@@ -29,6 +29,13 @@
     -webkit-border-radius: 2px;
     border-radius: 2px;
 }
+#facetview_visualisation{
+    border:1px solid #ccc;
+    margin:10px 0 10px 0;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+}
 .facetview_filterchoice{
     text-decoration:none;
     color:#373737;

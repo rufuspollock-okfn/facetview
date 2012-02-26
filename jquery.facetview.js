@@ -94,7 +94,6 @@
                 ],
                 [
                     {
-                        "template": '<a href="{{link.url}}">{{link.anchor}}</a>',
                         "field": "link.url"
                     }
                 ]
@@ -107,6 +106,7 @@
             "facets":[],
             "result_display": resdisplay,
             "display_images": true,
+            "visualise_filters": true,
             "ignore_fields":["_id","_rev"],
             "description":"",
             "search_url":"",
@@ -281,14 +281,20 @@
                         <li><a class="facetview_sort facetview_rcount" href="{{FILTER_EXACT}}">sort reverse count</a></li> \
                         <li><a class="facetview_sort facetview_rterm" href="{{FILTER_EXACT}}">sort reverse term</a></li> \
                         <li class="divider"></li> \
-                        <li><a class="facetview_facetrange" rel="{{FACET_IDX}}" href="{{FILTER_EXACT}}">apply a filter range</a></li> \
+                        <li><a class="facetview_facetrange" rel="{{FACET_IDX}}" href="{{FILTER_EXACT}}">apply a filter range</a></li>{{FACET_VIS}} \
                         <li class="divider"></li> \
                         <li><a class="facetview_morefacetvals" rel="{{FACET_IDX}}" href="{{FILTER_EXACT}}">show up to ({{FILTER_HOWMANY}})</a></li> \
                         </ul></div> \
                   <ul id="facetview_{{FILTER_NAME}}" \
                     class="facetview_filters"></ul> \
                     ';
-                thefilters += _filterTmpl.replace(/{{FILTER_NAME}}/g, filters[idx]['field'].replace(/\./gi,'_')).replace(/{{FILTER_EXACT}}/g, filters[idx]['field']);
+                if (options.visualise_filters) {
+                    var vis = '<li class="divider"></li><li><a class="facetview_visualise" rel="{{FACET_IDX}}" href="{{FILTER_DISPLAY}}">visualise this filter</a></li>'
+                    thefilters += _filterTmpl.replace(/{{FACET_VIS}}/g, vis)
+                } else {
+                    thefilters += _filterTmpl.replace(/{{FACET_VIS}}/g, '')
+                }
+                thefilters = thefilters.replace(/{{FILTER_NAME}}/g, filters[idx]['field'].replace(/\./gi,'_')).replace(/{{FILTER_EXACT}}/g, filters[idx]['field']);
                 if ('size' in filters[idx] ) {
                     thefilters = thefilters.replace(/{{FILTER_HOWMANY}}/gi, filters[idx]['size'])
                 } else {
@@ -302,6 +308,7 @@
                 }
             }
             $('#facetview_filters').append(thefilters)
+            options.visualise_filters ? $('.facetview_visualise').bind('click',show_vis) : ""
             $('.facetview_morefacetvals').bind('click',morefacetvals)
             $('.facetview_facetrange').bind('click',facetrange)
             $('.facetview_sort').bind('click',sortfilters)
@@ -326,6 +333,85 @@
             }
             $('.facetview_filterchoice').bind('click',clickfilterchoice);
         }
+
+        // ===============================================
+        // functions to do with filter visualisations
+        // ===============================================
+
+        var show_vis = function(event) {
+            event.preventDefault();
+            if (jQuery('#facetview_visualisation').length) {
+                jQuery('#facetview_visualisation').remove()
+            } else {
+                var vis = '<div id="facetview_visualisation"> \
+                    <div class="modal-header"> \
+                    <a class="facetview_removevis close">×</a> \
+                    <h3>{{VIS_TITLE}}</h3> \
+                    </div> \
+                    <div class="modal-body"> \
+                    </div> \
+                    <div class="modal-footer"> \
+                    <a class="facetview_removevis btn close">Cancel</a> \
+                    </div> \
+                    </div>';
+                vis = vis.replace(/{{VIS_TITLE}}/gi,$(this).attr('href'))
+                $('#facetview_rightcol').prepend(vis)
+                $('.facetview_removevis').bind('click',show_vis)
+                bubble($(this).attr('rel'),$('#facetview_rightcol').css('width').replace(/px/,'')-20)
+            }
+        }
+
+        var bubble = function(facetidx,width) {
+            var facetkey = options.facets[facetidx]['field']
+            var facets = options.data.facets[facetkey]
+            data = {"children":[]};
+            var count = 0;
+            for (var fct in facets) {
+                var arr = {
+                    "className": fct,
+                    "packageName": count++,
+                    "value": facets[fct]
+                }
+                data["children"].push(arr);
+            }
+            var r = width,
+                format = d3.format(",d"),
+                fill = d3.scale.category20c();
+            var bubble = d3.layout.pack()
+                .sort(null)
+                .size([r, r]);
+            var vis = d3.select("#facetview_visualisation > .modal-body").append("svg:svg")
+                .attr("width", r)
+                .attr("height", r)
+                .attr("class", "bubble")
+            var node = vis.selectAll("g.node")
+                .data(bubble(data)
+                .filter(function(d) { return !d.children; }))
+                .enter().append("svg:g")
+                .attr("class", "node")
+                .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+            node.append("svg:title")
+                .text(function(d) { return d.data.className + ": " + format(d.value); })
+            node.append("svg:circle")
+                .attr("r", function(d) { return d.r; })
+                .style("fill", function(d) { return fill(d.data.packageName); })
+            node.append("svg:text")
+                .attr("text-anchor", "middle")
+                .attr("dy", ".3em")
+                .text(function(d) { return d.data.className.substr(0,10) + ".. (" + d.data.value + ")"; })
+            node.on('click',function(d) {
+                var target = window.location.href
+                if (target.indexOf('?') == -1) {
+                    target += '?'
+                }
+                if ($('#vis_facet').val() != '...') {
+                    target += '&' + facetkey + '=["' + d.data.className + '"]'
+                } else {
+                    target += '&q=' + d.data.className
+                }
+                window.location = target
+            })
+        };
 
         // ===============================================
         // functions to do with filter options
@@ -549,6 +635,7 @@
         showresults = function(sdata) {
             // get the data and parse from the solr / es layout
             var data = parseresults(sdata);
+            options.data = data
             // change filter options
             putvalsinfilters(data);
             // put result metadata on the page
@@ -781,7 +868,7 @@
                <div class="span3"> \
                  <div id="facetview_filters"></div> \
                </div> \
-               <div class="span9"> \
+               <div class="span9" id="facetview_rightcol"> \
                  <form method="GET" action="#search"> \
                    <div id="facetview_searchbar" style="display:inline; float:left;" class="input-prepend"> \
                    <span class="add-on"><i class="icon-search"></i></span> \
@@ -799,6 +886,7 @@
                     <li><a id="facetview_match_all" href="">match all</a></li> \
                     <li><a id="facetview_match_any" href="">match any</a></li> \
                     <li><a href="#">clear all</a></li> \
+                    <li class="divider"></li> \
                     <li><a target="_blank" \
                     href="http://lucene.apache.org/java/2_9_1/queryparsersyntax.html"> \
                     learn more</a></li> \
@@ -817,6 +905,23 @@
 
         // what to do when ready to go
         var whenready = function() {
+            // append the facetview object to this object
+            thefacetview = thefacetview.replace(/{{HOW_MANY}}/gi,options.paging.size)
+            $(obj).append(thefacetview);
+
+            // setup search option triggers
+            $('#facetview_partial_match').bind('click',fixmatch)
+            $('#facetview_exact_match').bind('click',fixmatch)
+            $('#facetview_fuzzy_match').bind('click',fixmatch)
+            $('#facetview_match_any').bind('click',fixmatch)
+            $('#facetview_match_all').bind('click',fixmatch)
+            $('#facetview_howmany').bind('click',howmany)
+
+            // resize the searchbar
+            var thewidth = $('#facetview_searchbar').parent().parent().width()
+            $('#facetview_searchbar').css('width',thewidth - 50 + 'px')
+            $('#facetview_freetext').css('width', thewidth - 88 + 'px')
+
             // check paging info is available
             !options.paging.size ? options.paging.size = 10 : ""
             !options.paging.from ? options.paging.from = 0 : ""
@@ -835,23 +940,6 @@
         return this.each(function() {
             // get this object
             obj = $(this);
-
-            // append the facetview object to this object
-            thefacetview = thefacetview.replace(/{{HOW_MANY}}/gi,options.paging.size)
-            $(obj).append(thefacetview);
-
-            // setup search option triggers
-            $('#facetview_partial_match').bind('click',fixmatch)
-            $('#facetview_exact_match').bind('click',fixmatch)
-            $('#facetview_fuzzy_match').bind('click',fixmatch)
-            $('#facetview_match_any').bind('click',fixmatch)
-            $('#facetview_match_all').bind('click',fixmatch)
-            $('#facetview_howmany').bind('click',howmany)
-
-            // resize the searchbar
-            var thewidth = $('#facetview_searchbar').parent().parent().width()
-            $('#facetview_searchbar').css('width',thewidth - 50 + 'px')
-            $('#facetview_freetext').css('width', thewidth - 88 + 'px')
             
             // check for remote config options, then do first search
             if (options.config_file) {
