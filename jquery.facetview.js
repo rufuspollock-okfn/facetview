@@ -104,10 +104,10 @@
         var defaults = {
             "config_file": false,
             "facets":[],
+            "addremovefacets": false,
             "result_display": resdisplay,
             "display_images": true,
             "visualise_filters": true,
-            "ignore_fields":["_id","_rev"],
             "description":"",
             "search_url":"",
             "search_index":"elasticsearch",
@@ -268,7 +268,7 @@
             var thefilters = "<h3>Filter by</h3>";
             for ( var idx in filters ) {
                 var _filterTmpl = ' \
-                    <div class="btn-group"> \
+                    <div id="facetview_filterbuttons" class="btn-group"> \
                     <a style="text-align:left; min-width:70%;" class="facetview_filtershow btn" \
                       rel="{{FILTER_NAME}}" href=""> \
                       <i class="icon-plus"></i> \
@@ -307,12 +307,16 @@
                     thefilters = thefilters.replace(/{{FILTER_DISPLAY}}/g, filters[idx]['field'])
                 }
             }
-            $('#facetview_filters').append(thefilters)
+            $('#facetview_filters').html("").append(thefilters)
             options.visualise_filters ? $('.facetview_visualise').bind('click',show_vis) : ""
             $('.facetview_morefacetvals').bind('click',morefacetvals)
             $('.facetview_facetrange').bind('click',facetrange)
             $('.facetview_sort').bind('click',sortfilters)
             $('.facetview_filtershow').bind('click',showfiltervals)
+            options.addremovefacets ? addremovefacets() : ""
+            if (options.description) {
+                $('#facetview_filters').append('<div><h3>Meta</h3>' + options.description + '</div>')
+            }
         }
 
         // set the available filter values based on results
@@ -334,6 +338,34 @@
             $('.facetview_filterchoice').bind('click',clickfilterchoice);
         }
 
+        // show the add/remove filters options
+        var addremovefacet = function(event) {
+            event.preventDefault()
+            if ( $(this).hasClass('facetview_filterselected') ) {
+                $(this).removeClass('facetview_filterselected')
+                // and remove from options.facets
+            } else {
+                $(this).addClass('facetview_filterselected')
+                options.facets.push({'field':$(this).attr('href')})
+            }
+            buildfilters()
+            dosearch()
+        }
+        var showarf = function(event) {
+            event.preventDefault()
+            $('#facetview_addremovefilters').toggle()
+        }
+        var addremovefacets = function() {
+            $('#facetview_filters').append('<a id="facetview_showarf" href="">' + 
+                'add more filters</a><div id="facetview_addremovefilters"></div>')
+            for (var facet in options.addremovefacets) {
+                $('#facetview_addremovefilters').append()
+            }
+            $('#facetview_addremovefilters').hide()
+            $('#facetview_showarf').bind('click',showarf)
+            $('.facetview_filterchoose').bind('click',addremovefacet)
+        }
+
         // ===============================================
         // functions to do with filter visualisations
         // ===============================================
@@ -351,7 +383,7 @@
                     <div class="modal-body"> \
                     </div> \
                     <div class="modal-footer"> \
-                    <a class="facetview_removevis btn close">Cancel</a> \
+                    <a class="facetview_removevis btn close">Close</a> \
                     </div> \
                     </div>';
                 vis = vis.replace(/{{VIS_TITLE}}/gi,$(this).attr('href'))
@@ -417,51 +449,6 @@
             dosearch()
             $('#facetview_visualisation').remove()
         }
-
-        // ===============================================
-        // functions to do with filter options
-        // ===============================================
-
-        // show the advanced functions
-        var showadvanced = function(event) {
-            event.preventDefault();
-            if ( $(this).hasClass('facetview_open') ) {
-                $(this).removeClass('facetview_open').siblings().hide();
-            } else {
-                $(this).addClass('facetview_open').siblings().show();
-            }
-        }
-
-        // add a filter when a new one is provided
-        var addfilters = function() {
-            options.facets.push({'field':$(this).val()});
-            // remove any current filters
-            $('#facetview_filters').html("");
-            buildfilters();
-            dosearch();
-        }
-
-        // set the user admin filters
-        var advanced = function() {
-            var advanceddiv = '<div id="facetview_advanced">' + 
-                '<a class="facetview_advancedshow" href="">ADVANCED ...</a>' +
-                '<p>add filter:<br /><select id="facetview_addfilters"></select></p></div>';
-            $('#facetview_filters').after(advanceddiv);
-            $('.facetview_advancedshow').bind('click',showadvanced).siblings().hide();
-        }
-        
-        // populate the advanced options
-        var populateadvanced = function(data) {
-            // iterate through source keys
-            var options = "";
-            for (var item in data["records"][0]) {
-                options += '<option>' + item + '</option>';
-            }
-            $('#facetview_addfilters').html("");
-            $('#facetview_addfilters').append(options);
-            $('#facetview_addfilters').change(addfilters);
-        
-        }
         
         // ===============================================
         // functions to do with building results
@@ -488,7 +475,6 @@
                     }
                     resultobj["facets"][item] = facetsobj;
                 }
-            } else if ( options.search_index == "bibserver" ) {
             } else {
                 resultobj["records"] = dataobj.response.docs;
                 resultobj["start"] = dataobj.response.start;
@@ -566,7 +552,8 @@
         }
 
         // given a result record, build how it should look on the page
-        var buildrecord = function(record) {
+        var buildrecord = function(index) {
+            var record = options.data['records'][index]
             var result = '<tr><td>';
             // add first image where available
             if (options.display_images) {
@@ -578,14 +565,12 @@
                 }
             }
             // add options button
-            result +=  ' \
-            <div style="float:right;" class="btn-group"> \
-                <a style="margin-left:10px;" class="btn dropdown-toggle" data-toggle="dropdown" href="#"> \
-                <i class="icon-cog"></i> <span class="caret"></span></a> \
-                <ul style="margin-left:-100px;" class="dropdown-menu"> \
-                <li><a href="">no options yet...</a></li> \
-                </ul> \
-               </div>';
+            result +=  '<div style="float:right;" class="btn-group">' +
+                '<a style="margin-left:10px;" class="btn dropdown-toggle" data-toggle="dropdown" href="#">' +
+                '<i class="icon-cog"></i> <span class="caret"></span></a>' +
+                '<ul style="margin-left:-100px;" class="dropdown-menu">' +
+                '<li><a class="facetview_viewrecord" href="' + index + '">view full record</a></li>' +
+                '</ul>' + '</div>'
             // add the record based on display template if available
             var display = options.result_display
             var lines = ''
@@ -631,9 +616,17 @@
                     lines += line.replace(/^\s/,'').replace(/\s$/,'').replace(/\,$/,'') + "<br />"
                 }
             }
-            lines ? result += lines : result += 'unknown'
+            lines ? result += lines : result += JSON.stringify(record,"","    ")
             result += '</td></tr>'
             return result;
+        }
+
+        // view a full record when selected
+        var viewrecord = function(event) {
+            event.preventDefault()
+            var record = options.data['records'][$(this).attr('href')]
+            alert(JSON.stringify(record,"","    "))
+            
         }
 
         // put the results on the page
@@ -645,24 +638,15 @@
             putvalsinfilters(data);
             // put result metadata on the page
             putmetadata(data);
-            // populate the advanced options
-            populateadvanced(data);
             // put the filtered results on the page
             $('#facetview_results').html("");
             var infofiltervals = new Array();
             $.each(data.records, function(index, value) {
                 // write them out to the results div
-                $('#facetview_results').append( buildrecord(value) );
+                $('#facetview_results').append( buildrecord(index) );
                 $('#facetview_results tr:last-child').linkify()
             });
-            // bind the more action to show the hidden details
-            $('.facetview_more').bind('click',showmore);
-        }
-
-        // show more details of an event, and trigger the book search
-        var showmore = function(event) {
-            event.preventDefault();
-            alert("show record view options")
+            $('.facetview_viewrecord').bind('click',viewrecord)
         }
 
         // ===============================================
@@ -874,7 +858,6 @@
                  <div id="facetview_filters"></div> \
                </div> \
                <div class="span9" id="facetview_rightcol"> \
-                 <form method="GET" action="#search"> \
                    <div id="facetview_searchbar" style="display:inline; float:left;" class="input-prepend"> \
                    <span class="add-on"><i class="icon-search"></i></span> \
                    <input class="span4" id="facetview_freetext" name="q" value="" placeholder="search term" autofocus /> \
@@ -900,7 +883,6 @@
                     </ul> \
                    </div> \
                    <div style="clear:both;" id="facetview_selectedfilters"></div> \
-                 </form> \
                  <table class="table table-striped" id="facetview_results"></table> \
                  <div id="facetview_metadata"></div> \
                </div> \
@@ -923,7 +905,7 @@
             $('#facetview_howmany').bind('click',howmany)
 
             // resize the searchbar
-            var thewidth = $('#facetview_searchbar').parent().parent().width()
+            var thewidth = $('#facetview_searchbar').parent().width()
             $('#facetview_searchbar').css('width',thewidth - 50 + 'px')
             $('#facetview_freetext').css('width', thewidth - 88 + 'px')
 
@@ -932,9 +914,6 @@
             !options.paging.from ? options.paging.from = 0 : ""
             // append the filters to the facetview object
             buildfilters();
-            if (options.description) {
-                $('#facetview_filters').append('<div><h3>Meta</h3>' + options.description + '</div>')
-            }
             $('#facetview_freetext',obj).bindWithDelay('keyup',dosearch,options.freetext_submit_delay);
             // trigger the search once on load, to get all results
             dosearch();
