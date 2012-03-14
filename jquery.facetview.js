@@ -608,8 +608,7 @@
                             line += thevalue
                         }
                         display[lineitem][object]['post'] 
-                            ? line += display[lineitem][object]['post'] : false
-                        line += ' '
+                            ? line += display[lineitem][object]['post'] : line += ' '
                     }
                 }
                 if (line) {
