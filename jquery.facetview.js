@@ -117,10 +117,14 @@
             "q":"*:*",
             "predefined_filters":{},
             "paging":{}
-        };
+        }
 
         // and add in any overrides from the call
-        var options = $.extend(defaults, options);
+        // facetview options are declared as a function so they are available externally
+        // (see bottom of this file)
+        $.fn.facetview.options = $.extend(defaults, options)
+        var options = $.fn.facetview.options
+
 
         // ===============================================
         // functions to do with filters
@@ -565,12 +569,12 @@
                 }
             }
             // add options button
-            result +=  '<div style="float:right;" class="btn-group">' +
+            /*result +=  '<div style="float:right;" class="btn-group">' +
                 '<a style="margin-left:10px;" class="btn dropdown-toggle" data-toggle="dropdown" href="#">' +
                 '<i class="icon-cog"></i> <span class="caret"></span></a>' +
                 '<ul style="margin-left:-100px;" class="dropdown-menu">' +
                 '<li><a class="facetview_viewrecord" href="' + index + '">view full record</a></li>' +
-                '</ul>' + '</div>'
+                '</ul>' + '</div>'*/
             // add the record based on display template if available
             var display = options.result_display
             var lines = ''
@@ -737,7 +741,7 @@
             // set any facets
             qs['facets'] = {};
             for (var item in options.facets) {
-                var obj = options.facets[item]
+                var obj = jQuery.extend(true, {}, options.facets[item] );
                 delete obj['display']
                 qs['facets'][obj['field']] = {"terms":obj}
             }
@@ -955,8 +959,12 @@
 
         }); // end of the function  
 
-
     };
+
+    // facetview options are declared as a function so that they can be retrieved
+    // externally (which allows for saving them remotely etc)
+    $.fn.facetview.options = {}
+
 })(jQuery);
 
 
