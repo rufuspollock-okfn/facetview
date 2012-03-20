@@ -2,6 +2,9 @@ FacetView_ is a pure javascript frontend for ElasticSearch or SOLR search
 indices (although there have been recent changes that may not work for SOLR yet 
 - work in progress).
 
+(NOTE: recent changes have not been built against SOLR... it probably does 
+ not currently work against a SOLR index. May fix soon.)
+
 It's been developed as a jQuery plugin and lets you easily embed a faceted
 browse front end into any web page.
 
