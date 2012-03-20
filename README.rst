@@ -118,8 +118,15 @@ this::
   });
   </script>
 
+Passing config parameters in the URL
+------------------------------------
+
+Configs can be passed on the URL as query parameters. For example, 
+?q=blah will set the starting search to "blah". You can add complex 
+queries as JSON objects, such as ?paging={"size":20,"from":10}. Nice...
+
 Providing the location of an external config file
------------------------------------------------
+-------------------------------------------------
 
 A file can be made available anywhere on the web (depending, keep reading) 
 with any of the above listed settings in it (written in the usual way for a 
@@ -143,6 +150,7 @@ Config precedence
 When you introduce a new config object, they are merged into earlier configs with 
 overwrite. So any config you specify in facetview.jquery.js will be overwritten 
 and appended with newer info from any config passed in when calling facetview, 
+which is overwritten by config parameters passed in the URL, 
 and a call to a remote config file will similarly overwrite and append to all 
 previous.
 

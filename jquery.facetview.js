@@ -41,6 +41,30 @@
     }
 })(jQuery);
 
+// add extension to jQuery with a function to get URL parameters
+jQuery.extend({
+    getUrlVars: function() {
+        var params = new Object
+        var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&')
+        for ( var i = 0; i < hashes.length; i++ ) {
+            hash = hashes[i].split('=');
+            if ( hash.length > 1 ) {
+                if ( hash[1].replace(/%22/gi,"")[0] == "[" || hash[1].replace(/%22/gi,"")[0] == "{" ) {
+                    hash[1] = hash[1].replace(/^%22/,"").replace(/%22$/,"")
+                    var newval = JSON.parse(unescape(hash[1].replace(/%22/gi,'"')))
+                } else {
+                    var newval = unescape(hash[1].replace(/%22/gi,""))
+                }
+                params[hash[0]] = newval
+            }
+        }
+        return params
+    },
+    getUrlVar: function(name){
+        return jQuery.getUrlVars()[name]
+    }
+})
+
 
 // now the facetview function
 (function($){
@@ -114,15 +138,21 @@
             "default_url_params":{},
             "freetext_submit_delay":"700",
             "query_parameter":"q",
-            "q":"*:*",
+            "q":"",
             "predefined_filters":{},
-            "paging":{}
+            "paging":{
+                "from":0,
+                "size":10
+            }
         }
 
         // and add in any overrides from the call
+        // these options are also overridable by URL parameters
         // facetview options are declared as a function so they are available externally
         // (see bottom of this file)
-        $.fn.facetview.options = $.extend(defaults, options)
+        var provided_options = $.extend(defaults, options)
+        var url_options = $.getUrlVars()
+        $.fn.facetview.options = $.extend(provided_options,url_options)
         var options = $.fn.facetview.options
 
 
@@ -692,7 +722,7 @@
             query = query.replace(/ AND $/,"");
             // set a default for blank search
             if (query == "") {
-                query = options.q;
+                query = "*:*";
             }
             theurl += query;
             return theurl;
@@ -750,6 +780,9 @@
 
         // execute a search
         var dosearch = function() {
+            // update the options with the latest q value
+            options.q = $('#facetview_freetext').val()
+            // make the search query
             if ( options.search_index == "elasticsearch" ) {
               $.ajax({
                 type: "get",
@@ -915,9 +948,14 @@
             // check paging info is available
             !options.paging.size ? options.paging.size = 10 : ""
             !options.paging.from ? options.paging.from = 0 : ""
+
+            // set any default search values into the search bar
+            $('#facetview_freetext').val() == "" && options.q != "" ? $('#facetview_freetext').val(options.q) : ""
+
             // append the filters to the facetview object
             buildfilters();
             $('#facetview_freetext',obj).bindWithDelay('keyup',dosearch,options.freetext_submit_delay);
+
             // trigger the search once on load, to get all results
             dosearch();
         }
