@@ -126,23 +126,23 @@ jQuery.extend({
 
         // specify the defaults
         var defaults = {
-            "config_file": false,
-            "facets":[],
-            "addremovefacets": ["_created","year.exact"],
-            "result_display": resdisplay,
-            "display_images": true,
-            "visualise_filters": true,
-            "description":"",
-            "search_url":"",
-            "search_index":"elasticsearch",
-            "default_url_params":{},
-            "freetext_submit_delay":"700",
-            "query_parameter":"q",
-            "q":"",
-            "predefined_filters":{},
+            "config_file": false,           // a remote config file URL
+            "facets":[],                    // facet objects: {"field":"blah", "display":"arg",...}
+            "addremovefacets": false,       // false if no facets can be added at front end, otherwise list of facet names
+            "result_display": resdisplay,   // display template for search results
+            "display_images": true,         // whether or not to display images found in links in search results
+            "visualise_filters": true,      // whether or not to allow filter vis via d3
+            "description":"",               // a description of the current search to embed in the display
+            "search_url":"",                // the URL against which to submit searches
+            "search_index":"elasticsearch", // elasticsearch or SOLR
+            "default_url_params":{},        // any params that the search URL needs by default
+            "freetext_submit_delay":"700",  // delay for auto-update of search results
+            "query_parameter":"q",          // the query parameter if required for setting to the search URL
+            "q":"",                         // default query value
+            "predefined_filters":{},        // predefined filters to apply to all searches
             "paging":{
-                "from":0,
-                "size":10
+                "from":0,                   // where to start the results from
+                "size":10                   // how many results to get
             }
         }
 
