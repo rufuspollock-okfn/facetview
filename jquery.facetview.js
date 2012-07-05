@@ -137,6 +137,7 @@ jQuery.extend({
             "description":"",                       // a description of the current search to embed in the display
             "search_url":"",                        // the URL against which to submit searches
             "datatype":"jsonp",                     // the datatype for the search url - json for local, jsonp for remote
+            "initialsearch":true,                   // whether or not to search on first load or not
             "search_index":"elasticsearch",         // elasticsearch or SOLR
             "default_url_params":{},                // any params that the search URL needs by default
             "freetext_submit_delay":"500",          // delay for auto-update of search results
@@ -1007,11 +1008,11 @@ jQuery.extend({
             $(options.searchbox_class).val() == "" && options.q != "" ? $(options.searchbox_class).val(options.q) : ""
 
             // append the filters to the facetview object
-            buildfilters();
-            $(options.searchbox_class).bindWithDelay('keyup',dosearch,options.freetext_submit_delay);
+            buildfilters()
+            $(options.searchbox_class).bindWithDelay('keyup',dosearch,options.freetext_submit_delay)
 
             // trigger the search once on load, to get all results
-            dosearch();
+            options.initialsearch ? dosearch() : ""
         }
 
         // ===============================================
