@@ -136,6 +136,7 @@ jQuery.extend({
             "visualise_filters": true,              // whether or not to allow filter vis via d3
             "description":"",                       // a description of the current search to embed in the display
             "search_url":"",                        // the URL against which to submit searches
+            "datatype":"jsonp",                     // the datatype for the search url - json for local, jsonp for remote
             "search_index":"elasticsearch",         // elasticsearch or SOLR
             "default_url_params":{},                // any params that the search URL needs by default
             "freetext_submit_delay":"500",          // delay for auto-update of search results
@@ -841,11 +842,11 @@ jQuery.extend({
                 url: options.search_url,
                 data: {source: elasticsearchquery()},
                 // processData: false,
-                dataType: "jsonp",
+                dataType: options.datatype,
                 success: showresults
               });
             } else {
-                $.ajax( { type: "get", url: solrsearchquery(), dataType:"jsonp", jsonp:"json.wrf", success: function(data) { showresults(data) } } );
+                $.ajax( { type: "get", url: solrsearchquery(), dataType:options.datatype, jsonp:"json.wrf", success: function(data) { showresults(data) } } );
             }
         }
 
