@@ -16,30 +16,30 @@
 // https://github.com/bgrins/bindWithDelay/blob/master/bindWithDelay.js
 (function($) {
     $.fn.bindWithDelay = function( type, data, fn, timeout, throttle ) {
-    var wait = null;
-    var that = this;
+        var wait = null
+        var that = this
 
-    if ( $.isFunction( data ) ) {
-        throttle = timeout;
-        timeout = fn;
-        fn = data;
-        data = undefined;
-    }
+        if ( $.isFunction( data ) ) {
+            throttle = timeout
+            timeout = fn
+            fn = data
+            data = undefined
+        }
 
-    function cb() {
-        var e = $.extend(true, { }, arguments[0]);
-        var throttler = function() {
-            wait = null;
-            fn.apply(that, [e]);
-            };
+        function cb() {
+            var e = $.extend(true, { }, arguments[0])
+            var throttler = function() {
+                wait = null
+                fn.apply(that, [e])
+            }
 
             if (!throttle) { clearTimeout(wait); }
             if (!throttle || !wait) { wait = setTimeout(throttler, timeout); }
         }
 
-        return this.bind(type, data, cb);
+        return this.bind(type, data, cb)
     }
-})(jQuery);
+})(jQuery)
 
 // add extension to jQuery with a function to get URL parameters
 jQuery.extend({
@@ -47,7 +47,7 @@ jQuery.extend({
         var params = new Object
         var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&')
         for ( var i = 0; i < hashes.length; i++ ) {
-            hash = hashes[i].split('=');
+            hash = hashes[i].split('=')
             if ( hash.length > 1 ) {
                 if ( hash[1].replace(/%22/gi,"")[0] == "[" || hash[1].replace(/%22/gi,"")[0] == "{" ) {
                     hash[1] = hash[1].replace(/^%22/,"").replace(/%22$/,"")
@@ -137,6 +137,7 @@ jQuery.extend({
             "description":"",                       // a description of the current search to embed in the display
             "search_url":"",                        // the URL against which to submit searches
             "datatype":"jsonp",                     // the datatype for the search url - json for local, jsonp for remote
+            "initialsearch":true,                   // whether or not to search on first load or not
             "search_index":"elasticsearch",         // elasticsearch or SOLR
             "default_url_params":{},                // any params that the search URL needs by default
             "freetext_submit_delay":"500",          // delay for auto-update of search results
@@ -175,12 +176,12 @@ jQuery.extend({
             event.preventDefault();
             if ( $(this).hasClass('facetview_open') ) {
                 $(this).children('i').replaceWith('<i class="icon-plus"></i>')
-                $(this).removeClass('facetview_open');
-                $('#facetview_' + $(this).attr('rel') ).children().hide();
+                $(this).removeClass('facetview_open')
+                $('#facetview_' + $(this).attr('rel') ).children().hide()
             } else {
                 $(this).children('i').replaceWith('<i class="icon-minus"></i>')
-                $(this).addClass('facetview_open');
-                $('#facetview_' + $(this).attr('rel') ).children().show();      
+                $(this).addClass('facetview_open')
+                $('#facetview_' + $(this).attr('rel') ).children().show()
             }
         }
 
@@ -261,14 +262,14 @@ jQuery.extend({
                 'btn btn-info" rel="' + rel + 
                 '" alt="remove" title="remove"' +
                 ' href="' + $(this).attr("href") + '">' +
-                range + ' <i class="icon-remove"></i></a>';
-            $('#facetview_selectedfilters').append(newobj);
-            $('.facetview_filterselected').unbind('click',clearfilter);
-            $('.facetview_filterselected').bind('click',clearfilter);
+                range + ' <i class="icon-remove"></i></a>'
+            $('#facetview_selectedfilters').append(newobj)
+            $('.facetview_filterselected').unbind('click',clearfilter)
+            $('.facetview_filterselected').bind('click',clearfilter)
             $('#facetview_rangemodal').modal('hide')
             $('#facetview_rangemodal').remove()
             options.paging.from = 0
-            dosearch();
+            dosearch()
         }
         // remove the range modal from page altogether on close (rebuilt for each filter)
         var removerange = function(event) {
@@ -329,11 +330,10 @@ jQuery.extend({
         // pass a list of filters to be displayed
         var buildfilters = function() {
             if ( options.facets.length > 0 ) {
-                var filters = options.facets;
-                var thefilters = "<h3>Filter by</h3>";
+                var filters = options.facets
+                var thefilters = "<h3>Filter by</h3>"
                 for ( var idx in filters ) {
-                    var _filterTmpl = ' \
-                        <div id="facetview_filterbuttons" class="btn-group"> \
+                    var _filterTmpl = '<div id="facetview_filterbuttons" class="btn-group"> \
                         <a style="text-align:left; min-width:70%;" class="facetview_filtershow btn" \
                           rel="{{FILTER_NAME}}" href=""> \
                           <i class="icon-plus"></i> \
@@ -352,8 +352,7 @@ jQuery.extend({
                             <li><a class="facetview_renamefilter" rel="{{FACET_IDX}}" href="{{FILTER_EXACT}}">rename this filter</a></li> \
                             </ul></div> \
                       <ul id="facetview_{{FILTER_NAME}}" \
-                        class="facetview_filters"></ul> \
-                        ';
+                        class="facetview_filters"></ul>'
                     if (options.visualise_filters) {
                         var vis = '<li><a class="facetview_visualise" rel="{{FACET_IDX}}" href="{{FILTER_DISPLAY}}">visualise this filter</a></li>'
                         thefilters += _filterTmpl.replace(/{{FACET_VIS}}/g, vis)
@@ -391,19 +390,19 @@ jQuery.extend({
         var putvalsinfilters = function(data) {
             // for each filter setup, find the results for it and append them to the relevant filter
             for ( var each in options.facets ) {
-                $('#facetview_' + options.facets[each]['field'].replace(/\./gi,'_')).children().remove();
-                var records = data["facets"][ options.facets[each]['field'] ];
+                $('#facetview_' + options.facets[each]['field'].replace(/\./gi,'_')).children().remove()
+                var records = data["facets"][ options.facets[each]['field'] ]
                 for ( var item in records ) {
                     var append = '<li><a class="facetview_filterchoice' +
                         '" rel="' + options.facets[each]['field'] + '" href="' + item + '">' + item +
-                        ' (' + records[item] + ')</a></li>';
-                    $('#facetview_' + options.facets[each]['field'].replace(/\./gi,'_')).append(append);
+                        ' (' + records[item] + ')</a></li>'
+                    $('#facetview_' + options.facets[each]['field'].replace(/\./gi,'_')).append(append)
                 }
                 if ( !$('.facetview_filtershow[rel="' + options.facets[each]['field'].replace(/\./gi,'_') + '"]').hasClass('facetview_open') ) {
-                    $('#facetview_' + options.facets[each]['field'].replace(/\./gi,'_') ).children().hide();
+                    $('#facetview_' + options.facets[each]['field'].replace(/\./gi,'_') ).children().hide()
                 }
             }
-            $('.facetview_filterchoice').bind('click',clickfilterchoice);
+            $('.facetview_filterchoice').bind('click',clickfilterchoice)
         }
 
         // show the add/remove filters options
@@ -456,7 +455,7 @@ jQuery.extend({
         // ===============================================
 
         var show_vis = function(event) {
-            event.preventDefault();
+            event.preventDefault()
             if ($('#facetview_visualisation').length) {
                 $('#facetview_visualisation').remove()
             } else {
@@ -470,7 +469,7 @@ jQuery.extend({
                     <div class="modal-footer"> \
                     <a class="facetview_removevis btn close">Close</a> \
                     </div> \
-                    </div>';
+                    </div>'
                 vis = vis.replace(/{{VIS_TITLE}}/gi,$(this).attr('href'))
                 $('#facetview_rightcol').prepend(vis)
                 $('.facetview_removevis').bind('click',show_vis)
@@ -481,22 +480,22 @@ jQuery.extend({
         var bubble = function(facetidx,width) {
             var facetkey = options.facets[facetidx]['field']
             var facets = options.data.facets[facetkey]
-            data = {"children":[]};
-            var count = 0;
+            data = {"children":[]}
+            var count = 0
             for (var fct in facets) {
                 var arr = {
                     "className": fct,
                     "packageName": count++,
                     "value": facets[fct]
                 }
-                data["children"].push(arr);
+                data["children"].push(arr)
             }
             var r = width,
                 format = d3.format(",d"),
-                fill = d3.scale.category20c();
+                fill = d3.scale.category20c()
             var bubble = d3.layout.pack()
                 .sort(null)
-                .size([r, r]);
+                .size([r, r])
             var vis = d3.select("#facetview_visualisation > .modal-body").append("svg:svg")
                 .attr("width", r)
                 .attr("height", r)
@@ -506,7 +505,7 @@ jQuery.extend({
                 .filter(function(d) { return !d.children; }))
                 .enter().append("svg:g")
                 .attr("class", "node")
-                .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+                .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
             node.append("svg:title")
                 .text(function(d) { return d.data.className + ": " + format(d.value); })
             node.append("svg:circle")
@@ -519,7 +518,7 @@ jQuery.extend({
             node.on('click',function(d) {
                 clickbubble(facetkey,d.data.className)
             })
-        };
+        }
 
         var clickbubble = function(facetkey,facetvalue) {
             var newobj = '<a class="facetview_filterselected facetview_clear ' + 
@@ -542,43 +541,43 @@ jQuery.extend({
         // read the result object and return useful vals depending on if ES or SOLR
         // returns an object that contains things like ["data"] and ["facets"]
         var parseresults = function(dataobj) {
-            var resultobj = new Object();
+            var resultobj = new Object()
             resultobj["records"] = new Array();
-            resultobj["start"] = "";
-            resultobj["found"] = "";
+            resultobj["start"] = ""
+            resultobj["found"] = ""
             resultobj["facets"] = new Object();
             if ( options.search_index == "elasticsearch" ) {
                 for (var item in dataobj.hits.hits) {
-                    resultobj["records"].push(dataobj.hits.hits[item]._source);
-                    resultobj["start"] = "";
-                    resultobj["found"] = dataobj.hits.total;
+                    resultobj["records"].push(dataobj.hits.hits[item]._source)
+                    resultobj["start"] = ""
+                    resultobj["found"] = dataobj.hits.total
                 }
                 for (var item in dataobj.facets) {
-                    var facetsobj = new Object();
+                    var facetsobj = new Object()
                     for (var thing in dataobj.facets[item]["terms"]) {
-                        facetsobj[ dataobj.facets[item]["terms"][thing]["term"] ] = dataobj.facets[item]["terms"][thing]["count"];
+                        facetsobj[ dataobj.facets[item]["terms"][thing]["term"] ] = dataobj.facets[item]["terms"][thing]["count"]
                     }
-                    resultobj["facets"][item] = facetsobj;
+                    resultobj["facets"][item] = facetsobj
                 }
             } else {
-                resultobj["records"] = dataobj.response.docs;
-                resultobj["start"] = dataobj.response.start;
-                resultobj["found"] = dataobj.response.numFound;
+                resultobj["records"] = dataobj.response.docs
+                resultobj["start"] = dataobj.response.start
+                resultobj["found"] = dataobj.response.numFound
                 if (dataobj.facet_counts) {
                   for (var item in dataobj.facet_counts.facet_fields) {
                       var facetsobj = new Object();
-                      var count = 0;
+                      var count = 0
                       for ( var each in dataobj.facet_counts.facet_fields[item]) {
                           if ( count % 2 == 0 ) {
-                              facetsobj[ dataobj.facet_counts.facet_fields[item][each] ] = dataobj.facet_counts.facet_fields[item][count + 1];
+                              facetsobj[ dataobj.facet_counts.facet_fields[item][each] ] = dataobj.facet_counts.facet_fields[item][count + 1]
                           }
-                          count += 1;
+                          count += 1
                       }
-                      resultobj["facets"][item] = facetsobj;
+                      resultobj["facets"][item] = facetsobj
                   }
               }
             }
-            return resultobj;
+            return resultobj
         }
 
         // decrement result set
@@ -587,7 +586,7 @@ jQuery.extend({
             if ( $(this).html() != '..' ) {
                 options.paging.from = options.paging.from - options.paging.size
                 options.paging.from < 0 ? options.paging.from = 0 : ""
-                dosearch();
+                dosearch()
             }
         }
 
@@ -608,15 +607,13 @@ jQuery.extend({
             if ( typeof(options.paging.size) != 'number' ) {
                 options.paging.size = parseInt(options.paging.size)
             }
-            var metaTmpl = ' \
-              <div class="pagination"> \
+            var metaTmpl = '<div class="pagination"> \
                 <ul> \
                   <li class="prev"><a id="facetview_decrement" href="{{from}}">&laquo; back</a></li> \
                   <li class="active"><a>{{from}} &ndash; {{to}} of {{total}}</a></li> \
                   <li class="next"><a id="facetview_increment" href="{{to}}">next &raquo;</a></li> \
                 </ul> \
-              </div> \
-              ';
+              </div>'
             $('#facetview_metadata').html("Not found...")
             if (data.found) {
                 var from = options.paging.from + 1
@@ -624,16 +621,15 @@ jQuery.extend({
                 !size ? size = 10 : ""
                 var to = options.paging.from+size
                 data.found < to ? to = data.found : ""
-                var meta = metaTmpl.replace(/{{from}}/g, from);
-                meta = meta.replace(/{{to}}/g, to);
-                meta = meta.replace(/{{total}}/g, data.found);
-                $('#facetview_metadata').html("").append(meta);
+                var meta = metaTmpl.replace(/{{from}}/g, from)
+                meta = meta.replace(/{{to}}/g, to)
+                meta = meta.replace(/{{total}}/g, data.found)
+                $('#facetview_metadata').html("").append(meta)
                 $('#facetview_decrement').bind('click',decrement)
                 from < size ? $('#facetview_decrement').html('..') : ""
                 $('#facetview_increment').bind('click',increment)
                 data.found <= to ? $('#facetview_increment').html('..') : ""
             }
-
         }
 
         // given a result record, build how it should look on the page
@@ -695,7 +691,7 @@ jQuery.extend({
             }
             lines ? result += lines : result += JSON.stringify(record,"","    ")
             result += options.resultwrap_end
-            return result;
+            return result
         }
 
         // view a full record when selected
@@ -709,18 +705,18 @@ jQuery.extend({
         // put the results on the page
         showresults = function(sdata) {
             // get the data and parse from the solr / es layout
-            var data = parseresults(sdata);
+            var data = parseresults(sdata)
             options.data = data
             // change filter options
-            putvalsinfilters(data);
+            putvalsinfilters(data)
             // put result metadata on the page
-            putmetadata(data);
+            putmetadata(data)
             // put the filtered results on the page
-            $('#facetview_results').html("");
-            var infofiltervals = new Array();
+            $('#facetview_results').html("")
+            var infofiltervals = new Array()
             $.each(data.records, function(index, value) {
                 // write them out to the results div
-                $('#facetview_results').append( buildrecord(index) );
+                $('#facetview_results').append( buildrecord(index) )
                 $('#facetview_results tr:last-child').linkify()
             });
             if ( options.result_box_colours.length > 0 ) {
@@ -741,43 +737,43 @@ jQuery.extend({
         // build the search query URL based on current params
         var solrsearchquery = function() {
             // set default URL params
-            var urlparams = "";
+            var urlparams = ""
             for (var item in options.default_url_params) {
-                urlparams += item + "=" + options.default_url_params[item] + "&";
+                urlparams += item + "=" + options.default_url_params[item] + "&"
             }
             // do paging params
-            var pageparams = "";
+            var pageparams = ""
             for (var item in options.paging) {
-                pageparams += item + "=" + options.paging[item] + "&";
+                pageparams += item + "=" + options.paging[item] + "&"
             }
             // set facet params
             var urlfilters = "";
             for (var item in options.facets) {
-                urlfilters += "facet.field=" + options.facets[item]['field'] + "&";
+                urlfilters += "facet.field=" + options.facets[item]['field'] + "&"
             }
             // build starting URL
-            var theurl = options.search_url + urlparams + pageparams + urlfilters + options.query_parameter + "=";
+            var theurl = options.search_url + urlparams + pageparams + urlfilters + options.query_parameter + "="
             // add default query values
             // build the query, starting with default values
-            var query = "";
+            var query = ""
             for (var item in options.predefined_filters) {
-                query += item + ":" + options.predefined_filters[item] + " AND ";
+                query += item + ":" + options.predefined_filters[item] + " AND "
             }
             $('.facetview_filterselected',obj).each(function() {
                 query += $(this).attr('rel') + ':"' + 
-                    $(this).attr('href') + '" AND ';
+                    $(this).attr('href') + '" AND '
             });
             // add any freetext filter
             if ($(options.searchbox_class).val() != "") {
-                query += $(options.searchbox_class).val() + '*';
+                query += $(options.searchbox_class).val() + '*'
             }
-            query = query.replace(/ AND $/,"");
+            query = query.replace(/ AND $/,"")
             // set a default for blank search
             if (query == "") {
-                query = "*:*";
+                query = "*:*"
             }
-            theurl += query;
-            return theurl;
+            theurl += query
+            return theurl
         }
 
         // build the search query URL based on current params
@@ -821,9 +817,9 @@ jQuery.extend({
             options.paging.from != 0 ? qs['from'] = options.paging.from : ""
             options.paging.size != 10 ? qs['size'] = options.paging.size : ""
             // set any facets
-            qs['facets'] = {};
+            qs['facets'] = {}
             for (var item in options.facets) {
-                var obj = jQuery.extend(true, {}, options.facets[item] );
+                var obj = jQuery.extend(true, {}, options.facets[item] )
                 delete obj['display']
                 qs['facets'][obj['field']] = {"terms":obj}
             }
@@ -844,59 +840,59 @@ jQuery.extend({
                 // processData: false,
                 dataType: options.datatype,
                 success: showresults
-              });
+              })
             } else {
-                $.ajax( { type: "get", url: solrsearchquery(), dataType:options.datatype, jsonp:"json.wrf", success: function(data) { showresults(data) } } );
+                $.ajax( { type: "get", url: solrsearchquery(), dataType:options.datatype, jsonp:"json.wrf", success: function(data) { showresults(data) } } )
             }
         }
 
         // trigger a search when a filter choice is clicked
         var clickfilterchoice = function(event) {
-            event.preventDefault();
+            event.preventDefault()
             var newobj = '<a class="facetview_filterselected facetview_clear ' + 
                 'btn btn-info" rel="' + $(this).attr("rel") + 
                 '" alt="remove" title="remove"' +
                 ' href="' + $(this).attr("href") + '">' +
-                $(this).html().replace(/\(.*\)/,'') + ' <i class="icon-remove"></i></a>';
-            $('#facetview_selectedfilters').append(newobj);
-            $('.facetview_filterselected').unbind('click',clearfilter);
-            $('.facetview_filterselected').bind('click',clearfilter);
+                $(this).html().replace(/\(.*\)/,'') + ' <i class="icon-remove"></i></a>'
+            $('#facetview_selectedfilters').append(newobj)
+            $('.facetview_filterselected').unbind('click',clearfilter)
+            $('.facetview_filterselected').bind('click',clearfilter)
             options.paging.from = 0
-            dosearch();
+            dosearch()
         }
 
         // clear a filter when clear button is pressed, and re-do the search
         var clearfilter = function(event) {
-            event.preventDefault();
-            $(this).remove();
-            dosearch();
+            event.preventDefault()
+            $(this).remove()
+            dosearch()
         }
 
         // do search options
         var fixmatch = function(event) {
             event.preventDefault();
             if ( $(this).attr('id') == "facetview_partial_match" ) {
-                var newvals = $(options.searchbox_class).val().replace(/"/gi,'').replace(/\*/gi,'').replace(/\~/gi,'').split(' ');
-                var newstring = "";
+                var newvals = $(options.searchbox_class).val().replace(/"/gi,'').replace(/\*/gi,'').replace(/\~/gi,'').split(' ')
+                var newstring = ""
                 for (item in newvals) {
                     if (newvals[item].length > 0 && newvals[item] != ' ') {
                         if (newvals[item] == 'OR' || newvals[item] == 'AND') {
-                            newstring += newvals[item] + ' ';
+                            newstring += newvals[item] + ' '
                         } else {
-                            newstring += '*' + newvals[item] + '* ';
+                            newstring += '*' + newvals[item] + '* '
                         }
                     }
                 }
-                $(options.searchbox_class).val(newstring);
+                $(options.searchbox_class).val(newstring)
             } else if ( $(this).attr('id') == "facetview_fuzzy_match" ) {
                 var newvals = $(options.searchbox_class).val().replace(/"/gi,'').replace(/\*/gi,'').replace(/\~/gi,'').split(' ');
-                var newstring = "";
+                var newstring = ""
                 for (item in newvals) {
                     if (newvals[item].length > 0 && newvals[item] != ' ') {
                         if (newvals[item] == 'OR' || newvals[item] == 'AND') {
-                            newstring += newvals[item] + ' ';
+                            newstring += newvals[item] + ' '
                         } else {
-                            newstring += newvals[item] + '~ ';
+                            newstring += newvals[item] + '~ '
                         }
                     }
                 }
@@ -907,22 +903,22 @@ jQuery.extend({
                 for (item in newvals) {
                     if (newvals[item].length > 0 && newvals[item] != ' ') {
                         if (newvals[item] == 'OR' || newvals[item] == 'AND') {
-                            newstring += newvals[item] + ' ';
+                            newstring += newvals[item] + ' '
                         } else {
-                            newstring += '"' + newvals[item] + '" ';
+                            newstring += '"' + newvals[item] + '" '
                         }
                     }
                 }
                 $.trim(newstring,' ');
                 $(options.searchbox_class).val(newstring);
             } else if ( $(this).attr('id') == "facetview_match_all" ) {
-                $(options.searchbox_class).val($.trim($(options.searchbox_class).val().replace(/ OR /gi,' ')));
-                $(options.searchbox_class).val($(options.searchbox_class).val().replace(/ /gi,' AND '));
+                $(options.searchbox_class).val($.trim($(options.searchbox_class).val().replace(/ OR /gi,' ')))
+                $(options.searchbox_class).val($(options.searchbox_class).val().replace(/ /gi,' AND '))
             } else if ( $(this).attr('id') == "facetview_match_any" ) {
-                $(options.searchbox_class).val($.trim($(options.searchbox_class).val().replace(/ AND /gi,' ')));
-                $(options.searchbox_class).val($(options.searchbox_class).val().replace(/ /gi,' OR '));
+                $(options.searchbox_class).val($.trim($(options.searchbox_class).val().replace(/ AND /gi,' ')))
+                $(options.searchbox_class).val($(options.searchbox_class).val().replace(/ /gi,' OR '))
             }
-            $(options.searchbox_class).focus().trigger('keyup');
+            $(options.searchbox_class).focus().trigger('keyup')
         }
 
 
@@ -972,7 +968,7 @@ jQuery.extend({
                 <li><a id="facetview_howmany" href="#">results per page ({{HOW_MANY}})</a></li> \
                 </ul> \
                </div> \
-            ';
+            '
         }
         thefacetview += '<div style="clear:both;" id="facetview_selectedfilters"></div>'
         thefacetview += options.searchwrap_start + options.searchwrap_end
@@ -982,7 +978,7 @@ jQuery.extend({
         var whenready = function() {
             // append the facetview object to this object
             thefacetview = thefacetview.replace(/{{HOW_MANY}}/gi,options.paging.size)
-            $(obj).append(thefacetview);
+            $(obj).append(thefacetview)
 
             if ( options.embedded_search == true ) {
                 // setup search option triggers
@@ -1007,18 +1003,18 @@ jQuery.extend({
             $(options.searchbox_class).val() == "" && options.q != "" ? $(options.searchbox_class).val(options.q) : ""
 
             // append the filters to the facetview object
-            buildfilters();
-            $(options.searchbox_class).bindWithDelay('keyup',dosearch,options.freetext_submit_delay);
+            buildfilters()
+            $(options.searchbox_class).bindWithDelay('keyup',dosearch,options.freetext_submit_delay)
 
             // trigger the search once on load, to get all results
-            dosearch();
+            options.initialsearch ? dosearch() : ""
         }
 
         // ===============================================
         // now create the plugin on the page
         return this.each(function() {
             // get this object
-            obj = $(this);
+            obj = $(this)
             
             // check for remote config options, then do first search
             if (options.config_file) {
@@ -1048,15 +1044,12 @@ jQuery.extend({
                 whenready()
             }
 
+        }) // end of the function  
 
-        }); // end of the function  
-
-    };
+    }
 
     // facetview options are declared as a function so that they can be retrieved
     // externally (which allows for saving them remotely etc)
     $.fn.facetview.options = {}
 
-})(jQuery);
-
-
+})(jQuery)
