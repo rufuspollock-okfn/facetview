@@ -126,7 +126,7 @@ jQuery.extend({
 
         // specify the defaults
         var defaults = {
-            "searchbox_class": ".facetview_freetext",// the class of the search boxes
+            "searchbox_class": ".facetview_freetext",// the class of the search boxes - only the value in the last found box will count
             "embedded_search": true,                // whether or not to put a search bar on the page (if not, another must be identified manually)
             "config_file": false,                   // a remote config file URL
             "facets":[],                            // facet objects: {"field":"blah", "display":"arg",...}
@@ -764,8 +764,8 @@ jQuery.extend({
                     $(this).attr('href') + '" AND '
             });
             // add any freetext filter
-            if ($(options.searchbox_class).val() != "") {
-                query += $(options.searchbox_class).val() + '*'
+            if (options.q != "") {
+                query += options.q + '*'
             }
             query = query.replace(/ AND $/,"")
             // set a default for blank search
@@ -804,13 +804,13 @@ jQuery.extend({
                 bool['must'].push(obj)
             }
             if (bool) {
-                $(options.searchbox_class).val() != ""
-                    ? bool['must'].push( {'query_string': { 'query': $(options.searchbox_class).val() } } )
+                options.q != ""
+                    ? bool['must'].push( {'query_string': { 'query': options.q } } )
                     : ""
                 qs['query'] = {'bool': bool}
             } else {
-                $(options.searchbox_class).val() != ""
-                    ? qs['query'] = {'query_string': { 'query': $(options.searchbox_class).val() } }
+                options.q != ""
+                    ? qs['query'] = {'query_string': { 'query': options.q } }
                     : qs['query'] = {'match_all': {}}
             }
             // set any paging
@@ -830,7 +830,10 @@ jQuery.extend({
         var dosearch = function() {
             jQuery('.notify_loading').show()
             // update the options with the latest q value
-            options.q = $(options.searchbox_class).val()
+            // TODO: should add a check and perhaps a clear of other searchboxes
+            $(options.searchbox_class).each(function() {
+                $(this).val().length != 0 ? options.q = $(this).val() : ""
+            })
             // make the search query
             if ( options.search_index == "elasticsearch" ) {
               $.ajax({
@@ -870,55 +873,62 @@ jQuery.extend({
 
         // do search options
         var fixmatch = function(event) {
-            event.preventDefault();
-            if ( $(this).attr('id') == "facetview_partial_match" ) {
-                var newvals = $(options.searchbox_class).val().replace(/"/gi,'').replace(/\*/gi,'').replace(/\~/gi,'').split(' ')
-                var newstring = ""
-                for (item in newvals) {
-                    if (newvals[item].length > 0 && newvals[item] != ' ') {
-                        if (newvals[item] == 'OR' || newvals[item] == 'AND') {
-                            newstring += newvals[item] + ' '
-                        } else {
-                            newstring += '*' + newvals[item] + '* '
+            event.preventDefault()
+            var fixtype = $(this).attr('id')
+            $(options.searchbox_class).each(function() {
+                if ( fixtype == "facetview_partial_match" && $(this).val().length != 0 ) {
+                    var newvals = $(this).val().replace(/"/gi,'').replace(/\*/gi,'').replace(/\~/gi,'').split(' ')
+                    var newstring = ""
+                    for (item in newvals) {
+                        if (newvals[item].length > 0 && newvals[item] != ' ') {
+                            if (newvals[item] == 'OR' || newvals[item] == 'AND') {
+                                newstring += newvals[item] + ' '
+                            } else {
+                                newstring += '*' + newvals[item] + '* '
+                            }
                         }
                     }
-                }
-                $(options.searchbox_class).val(newstring)
-            } else if ( $(this).attr('id') == "facetview_fuzzy_match" ) {
-                var newvals = $(options.searchbox_class).val().replace(/"/gi,'').replace(/\*/gi,'').replace(/\~/gi,'').split(' ');
-                var newstring = ""
-                for (item in newvals) {
-                    if (newvals[item].length > 0 && newvals[item] != ' ') {
-                        if (newvals[item] == 'OR' || newvals[item] == 'AND') {
-                            newstring += newvals[item] + ' '
-                        } else {
-                            newstring += newvals[item] + '~ '
+                    $(this).val(newstring)
+                    $(this).focus().trigger('keyup')
+                } else if ( fixtype == "facetview_fuzzy_match" && $(this).val().length != 0 ) {
+                    var newvals = $(this).val().replace(/"/gi,'').replace(/\*/gi,'').replace(/\~/gi,'').split(' ');
+                    var newstring = ""
+                    for (item in newvals) {
+                        if (newvals[item].length > 0 && newvals[item] != ' ') {
+                            if (newvals[item] == 'OR' || newvals[item] == 'AND') {
+                                newstring += newvals[item] + ' '
+                            } else {
+                                newstring += newvals[item] + '~ '
+                            }
                         }
                     }
-                }
-                $(options.searchbox_class).val(newstring);
-            } else if ( $(this).attr('id') == "facetview_exact_match" ) {
-                var newvals = $(options.searchbox_class).val().replace(/"/gi,'').replace(/\*/gi,'').replace(/\~/gi,'').split(' ');
-                var newstring = "";
-                for (item in newvals) {
-                    if (newvals[item].length > 0 && newvals[item] != ' ') {
-                        if (newvals[item] == 'OR' || newvals[item] == 'AND') {
-                            newstring += newvals[item] + ' '
-                        } else {
-                            newstring += '"' + newvals[item] + '" '
+                    $(this).val(newstring);
+                    $(this).focus().trigger('keyup')
+                } else if ( fixtype == "facetview_exact_match" && $(this).val().length != 0 ) {
+                    var newvals = $(this).val().replace(/"/gi,'').replace(/\*/gi,'').replace(/\~/gi,'').split(' ');
+                    var newstring = "";
+                    for (item in newvals) {
+                        if (newvals[item].length > 0 && newvals[item] != ' ') {
+                            if (newvals[item] == 'OR' || newvals[item] == 'AND') {
+                                newstring += newvals[item] + ' '
+                            } else {
+                                newstring += '"' + newvals[item] + '" '
+                            }
                         }
                     }
+                    $.trim(newstring,' ');
+                    $(this).val(newstring);
+                    $(this).focus().trigger('keyup')
+                } else if ( fixtype == "facetview_match_all" && $(this).val().length != 0 ) {
+                    $(this).val($.trim($(this).val().replace(/ OR /gi,' ')))
+                    $(this).val($(this).val().replace(/ /gi,' AND '))
+                    $(this).focus().trigger('keyup')
+                } else if ( fixtype == "facetview_match_any" && $(this).val().length != 0 ) {
+                    $(this).val($.trim($(this).val().replace(/ AND /gi,' ')))
+                    $(this).val($(this).val().replace(/ /gi,' OR '))
+                    $(this).focus().trigger('keyup')
                 }
-                $.trim(newstring,' ');
-                $(options.searchbox_class).val(newstring);
-            } else if ( $(this).attr('id') == "facetview_match_all" ) {
-                $(options.searchbox_class).val($.trim($(options.searchbox_class).val().replace(/ OR /gi,' ')))
-                $(options.searchbox_class).val($(options.searchbox_class).val().replace(/ /gi,' AND '))
-            } else if ( $(this).attr('id') == "facetview_match_any" ) {
-                $(options.searchbox_class).val($.trim($(options.searchbox_class).val().replace(/ AND /gi,' ')))
-                $(options.searchbox_class).val($(options.searchbox_class).val().replace(/ /gi,' OR '))
-            }
-            $(options.searchbox_class).focus().trigger('keyup')
+            })
         }
 
 
@@ -999,8 +1009,12 @@ jQuery.extend({
             !options.paging.size ? options.paging.size = 10 : ""
             !options.paging.from ? options.paging.from = 0 : ""
 
-            // set any default search values into the search bar
-            $(options.searchbox_class).val() == "" && options.q != "" ? $(options.searchbox_class).val(options.q) : ""
+            // set any default search values into the last search bar
+            var allempty = true
+            $(options.searchbox_class).each(function() {
+                $(this).val().length != 0 ? allempty = false : ""
+            })
+            allempty && options.q != "" ? $(options.searchbox_class).last().val(options.q) : ""
 
             // append the filters to the facetview object
             buildfilters()
