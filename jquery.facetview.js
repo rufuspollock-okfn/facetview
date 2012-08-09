@@ -716,8 +716,13 @@ jQuery.extend({
             var infofiltervals = new Array()
             $.each(data.records, function(index, value) {
                 // write them out to the results div
-                $('#facetview_results').append( buildrecord(index) )
-                $('#facetview_results tr:last-child').linkify()
+            	 if (options.renderer) {
+            		 $('#facetview_results').append("<tr><td></td></tr>");
+            		 options.renderer(value, $('#facetview_results tr:last-child td'));
+            	 } else {
+            		 $('#facetview_results').append( buildrecord(index) )
+            		 $('#facetview_results tr:last-child').linkify()
+            	 }
             });
             if ( options.result_box_colours.length > 0 ) {
                 jQuery('.result_box').each(function () {
