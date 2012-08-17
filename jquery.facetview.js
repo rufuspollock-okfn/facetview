@@ -148,6 +148,7 @@ jQuery.extend({
                 "from":0,                           // where to start the results from
                 "size":10                           // how many results to get
             },
+            "sort":[],                              // sort parameters for result set, as per elasticsearch
             "searchwrap_start":'<table class="table table-striped" id="facetview_results">',                  // wrap the search result set in these tags
             "searchwrap_end":"</table>",            // wrap the search result set in these tags
             "resultwrap_start":"<tr><td>",          // wrap a given result in this
@@ -821,6 +822,8 @@ jQuery.extend({
             // set any paging
             options.paging.from != 0 ? qs['from'] = options.paging.from : ""
             options.paging.size != 10 ? qs['size'] = options.paging.size : ""
+            // set any sort options
+            options.sort ? qs['sort'] = options.sort : ""
             // set any facets
             qs['facets'] = {}
             for (var item in options.facets) {
