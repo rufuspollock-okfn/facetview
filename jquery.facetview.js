@@ -53,7 +53,7 @@ jQuery.extend({
                     hash[1] = hash[1].replace(/^%22/,"").replace(/%22$/,"")
                     var newval = JSON.parse(unescape(hash[1].replace(/%22/gi,'"')))
                 } else {
-                    var newval = unescape(hash[1].replace(/%22/gi,""))
+                    var newval = unescape(hash[1].replace(/%22/gi,'"'))
                 }
                 params[hash[0]] = newval
             }
@@ -130,6 +130,7 @@ jQuery.extend({
             "embedded_search": true,                // whether or not to put a search bar on the page (if not, another must be identified manually)
             "config_file": false,                   // a remote config file URL
             "facets":[],                            // facet objects: {"field":"blah", "display":"arg",...}
+                                                    // be sure if you expect to define any of these as nested that you use their full scope eg. nestedobj.nestedfield
             "addremovefacets": false,               // false if no facets can be added at front end, otherwise list of facet names
             "result_display": resdisplay,           // display template for search results
             "display_images": true,                 // whether or not to display images found in links in search results
@@ -139,6 +140,10 @@ jQuery.extend({
             "datatype":"jsonp",                     // the datatype for the search url - json for local, jsonp for remote
             "initialsearch":true,                   // whether or not to search on first load or not
             "search_index":"elasticsearch",         // elasticsearch or SOLR
+            "fields": false,                        // a list of the fields for the query to return, if not just wanting the default all
+            "partial_fields": false,                // a definition of which fields to return, as per elasticsearch docs http://www.elasticsearch.org/guide/reference/api/search/fields.html
+            "nested": [],                           // a list of keys for which the content should be considered nested for query and facet purposes. 
+                                                    // NOTE this requires you refer to such keys with their full scope e.g. nestedobj.nestedfield
             "default_url_params":{},                // any params that the search URL needs by default
             "freetext_submit_delay":"500",          // delay for auto-update of search results
             "query_parameter":"q",                  // the query parameter if required for setting to the search URL
@@ -174,7 +179,7 @@ jQuery.extend({
         
         // show the filter values
         var showfiltervals = function(event) {
-            event.preventDefault();
+            event.preventDefault()
             if ( $(this).hasClass('facetview_open') ) {
                 $(this).children('i').replaceWith('<i class="icon-plus"></i>')
                 $(this).removeClass('facetview_open')
@@ -301,7 +306,7 @@ jQuery.extend({
                 <a id="facetview_dofacetrange" href="#" class="btn btn-primary">Apply</a> \
                 <a class="facetview_removerange btn close">Cancel</a> \
                 </div> \
-                </div>';
+                </div>'
             $('#facetview').append(modal)
             $('#facetview_rangemodal').append('<div id="facetview_rangerel" style="display:none;">' + $(this).attr('rel') + '</div>')
             $('#facetview_rangemodal').modal('show')
@@ -360,7 +365,7 @@ jQuery.extend({
                     } else {
                         thefilters += _filterTmpl.replace(/{{FACET_VIS}}/g, '')
                     }
-                    thefilters = thefilters.replace(/{{FILTER_NAME}}/g, filters[idx]['field'].replace(/\./gi,'_')).replace(/{{FILTER_EXACT}}/g, filters[idx]['field']);
+                    thefilters = thefilters.replace(/{{FILTER_NAME}}/g, filters[idx]['field'].replace(/\./gi,'_')).replace(/{{FILTER_EXACT}}/g, filters[idx]['field'])
                     if ('size' in filters[idx] ) {
                         thefilters = thefilters.replace(/{{FILTER_HOWMANY}}/gi, filters[idx]['size'])
                     } else {
@@ -543,13 +548,23 @@ jQuery.extend({
         // returns an object that contains things like ["data"] and ["facets"]
         var parseresults = function(dataobj) {
             var resultobj = new Object()
-            resultobj["records"] = new Array();
+            resultobj["records"] = new Array()
             resultobj["start"] = ""
             resultobj["found"] = ""
-            resultobj["facets"] = new Object();
+            resultobj["facets"] = new Object()
             if ( options.search_index == "elasticsearch" ) {
                 for (var item in dataobj.hits.hits) {
-                    resultobj["records"].push(dataobj.hits.hits[item]._source)
+                    if ( options.fields ) {
+                        resultobj["records"].push(dataobj.hits.hits[item].fields)                    
+                    } else if ( options.partial_fields ) {
+                        var keys = []
+                        for(var key in options.partial_fields){
+                            keys.push(key)
+                        }
+                        resultobj["records"].push(dataobj.hits.hits[item].fields[keys[0]])
+                    } else {
+                        resultobj["records"].push(dataobj.hits.hits[item]._source)
+                    }
                     resultobj["start"] = ""
                     resultobj["found"] = dataobj.hits.total
                 }
@@ -566,7 +581,7 @@ jQuery.extend({
                 resultobj["found"] = dataobj.response.numFound
                 if (dataobj.facet_counts) {
                   for (var item in dataobj.facet_counts.facet_fields) {
-                      var facetsobj = new Object();
+                      var facetsobj = new Object()
                       var count = 0
                       for ( var each in dataobj.facet_counts.facet_fields[item]) {
                           if ( count % 2 == 0 ) {
@@ -718,13 +733,13 @@ jQuery.extend({
             $.each(data.records, function(index, value) {
                 // write them out to the results div
             	 if (options.renderer) {
-            		 $('#facetview_results').append("<tr><td></td></tr>");
-            		 options.renderer(value, $('#facetview_results tr:last-child td'));
+            		 $('#facetview_results').append("<tr><td></td></tr>")
+            		 options.renderer(value, $('#facetview_results tr:last-child td'))
             	 } else {
             		 $('#facetview_results').append( buildrecord(index) )
             		 $('#facetview_results tr:last-child').linkify()
             	 }
-            });
+            })
             if ( options.result_box_colours.length > 0 ) {
                 jQuery('.result_box').each(function () {
                     var colour = options.result_box_colours[Math.floor(Math.random()*options.result_box_colours.length)] 
@@ -753,7 +768,7 @@ jQuery.extend({
                 pageparams += item + "=" + options.paging[item] + "&"
             }
             // set facet params
-            var urlfilters = "";
+            var urlfilters = ""
             for (var item in options.facets) {
                 urlfilters += "facet.field=" + options.facets[item]['field'] + "&"
             }
@@ -768,7 +783,7 @@ jQuery.extend({
             $('.facetview_filterselected',obj).each(function() {
                 query += $(this).attr('rel') + ':"' + 
                     $(this).attr('href') + '" AND '
-            });
+            })
             // add any freetext filter
             if (options.q != "") {
                 query += options.q + '*'
@@ -786,6 +801,7 @@ jQuery.extend({
         var elasticsearchquery = function() {
             var qs = {}
             var bool = false
+            var nested = false
             $('.facetview_filterselected',obj).each(function() {
                 !bool ? bool = {'must': [] } : ""
                 if ( $(this).hasClass('facetview_facetrange') ) {
@@ -796,23 +812,43 @@ jQuery.extend({
                     }
                     var obj = {'range': {}}
                     obj['range'][ rel ] = rngs
-                    bool['must'].push(obj)
+                    // check if this should be a nested query
+                    var parts = rel.split('.')
+                    if ( options.nested.indexOf(parts[0]) != -1 ) {
+                        !nested ? nested = {"nested":{"_scope":parts[0],"path":parts[0],"query":{"bool":{"must":[obj]}}}} : nested.nested.query.bool.must.push(obj)
+                    } else {
+                        bool['must'].push(obj)
+                    }
                 } else {
                     var obj = {'term':{}}
                     obj['term'][ $(this).attr('rel') ] = $(this).attr('href')
-                    bool['must'].push(obj)
+                    // check if this should be a nested query
+                    var parts = $(this).attr('rel').split('.')
+                    if ( options.nested.indexOf(parts[0]) != -1 ) {
+                        !nested ? nested = {"nested":{"_scope":parts[0],"path":parts[0],"query":{"bool":{"must":[obj]}}}} : nested.nested.query.bool.must.push(obj)
+                    } else {
+                        bool['must'].push(obj)
+                    }
                 }
-            });
+            })
             for (var item in options.predefined_filters) {
                 !bool ? bool = {'must': [] } : ""
                 var obj = {'term': {}}
                 obj['term'][ item ] = options.predefined_filters[item]
+                // check if this should be a nested query
+                var parts = item.split('.')
+                if ( options.nested.indexOf(parts[0]) != -1 ) {
+                    !nested ? nested = {"nested":{"_scope":parts[0],"path":parts[0],"query":{"bool":{"must":[obj]}}}} : nested.nested.query.bool.must.push(obj)
+                } else {
+                    bool['must'].push(obj)
+                }
                 bool['must'].push(obj)
             }
             if (bool) {
                 options.q != ""
                     ? bool['must'].push( {'query_string': { 'query': options.q } } )
                     : ""
+                nested ? bool['must'].push(nested) : ""
                 qs['query'] = {'bool': bool}
             } else {
                 options.q != ""
@@ -822,15 +858,23 @@ jQuery.extend({
             // set any paging
             options.paging.from != 0 ? qs['from'] = options.paging.from : ""
             options.paging.size != 10 ? qs['size'] = options.paging.size : ""
-            // set any sort options
+            // set any sort or fields options
             options.sort ? qs['sort'] = options.sort : ""
+            options.fields ? qs['fields'] = options.fields : ""
+            options.partial_fields ? qs['partial_fields'] = options.partial_fields : ""
             // set any facets
             qs['facets'] = {}
             for (var item in options.facets) {
                 var obj = jQuery.extend(true, {}, options.facets[item] )
                 delete obj['display']
+                var parts = obj['field'].split('.')
                 qs['facets'][obj['field']] = {"terms":obj}
+                if ( options.nested.indexOf(parts[0]) != -1 ) {
+                    //qs['facets'][obj['field']]["nested"] = parts[0]
+                    nested ? qs['facets'][obj['field']]["scope"] = parts[0] : qs['facets'][obj['field']]["nested"] = parts[0]
+                }
             }
+            //alert(JSON.stringify(qs,"","    "))
             return JSON.stringify(qs)
         }
 
@@ -899,7 +943,7 @@ jQuery.extend({
                     $(this).val(newstring)
                     $(this).focus().trigger('keyup')
                 } else if ( fixtype == "facetview_fuzzy_match" && $(this).val().length != 0 ) {
-                    var newvals = $(this).val().replace(/"/gi,'').replace(/\*/gi,'').replace(/\~/gi,'').split(' ');
+                    var newvals = $(this).val().replace(/"/gi,'').replace(/\*/gi,'').replace(/\~/gi,'').split(' ')
                     var newstring = ""
                     for (item in newvals) {
                         if (newvals[item].length > 0 && newvals[item] != ' ') {
@@ -910,11 +954,11 @@ jQuery.extend({
                             }
                         }
                     }
-                    $(this).val(newstring);
+                    $(this).val(newstring)
                     $(this).focus().trigger('keyup')
                 } else if ( fixtype == "facetview_exact_match" && $(this).val().length != 0 ) {
-                    var newvals = $(this).val().replace(/"/gi,'').replace(/\*/gi,'').replace(/\~/gi,'').split(' ');
-                    var newstring = "";
+                    var newvals = $(this).val().replace(/"/gi,'').replace(/\*/gi,'').replace(/\~/gi,'').split(' ')
+                    var newstring = ""
                     for (item in newvals) {
                         if (newvals[item].length > 0 && newvals[item] != ' ') {
                             if (newvals[item] == 'OR' || newvals[item] == 'AND') {
@@ -924,8 +968,8 @@ jQuery.extend({
                             }
                         }
                     }
-                    $.trim(newstring,' ');
-                    $(this).val(newstring);
+                    $.trim(newstring,' ')
+                    $(this).val(newstring)
                     $(this).focus().trigger('keyup')
                 } else if ( fixtype == "facetview_match_all" && $(this).val().length != 0 ) {
                     $(this).val($.trim($(this).val().replace(/ OR /gi,' ')))
