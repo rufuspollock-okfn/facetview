@@ -131,6 +131,8 @@ jQuery.extend({
             "config_file": false,                   // a remote config file URL
             "facets":[],                            // facet objects: {"field":"blah", "display":"arg",...}
                                                     // be sure if you expect to define any of these as nested that you use their full scope eg. nestedobj.nestedfield
+            "allow_facet_logic_choice": false,       // whether or not users can change facet logic from default - say from AND to OR
+            "default_facet_logic": "AND",           // how facet choices should be applied to the query by default
             "addremovefacets": false,               // false if no facets can be added at front end, otherwise list of facet names
             "result_display": resdisplay,           // display template for search results
             "display_images": true,                 // whether or not to display images found in links in search results
@@ -804,6 +806,9 @@ jQuery.extend({
             var nested = false
             $('.facetview_filterselected',obj).each(function() {
                 !bool ? bool = {'must': [] } : ""
+                var logic = options.default_facet_logic
+                options.allow_facet_logic_choice && $('.facetview_facetlogic_' + $(this).attr('rel').replace('.','_')).first().html() != 'AND' ? logic = 'OR' : ""
+                logic != 'AND' && bool['should'] == undefined ? bool['should'] = [] : ""
                 if ( $(this).hasClass('facetview_facetrange') ) {
                     var rel = options.facets[ $(this).attr('rel') ]['field']
                     var rngs = {
@@ -815,9 +820,13 @@ jQuery.extend({
                     // check if this should be a nested query
                     var parts = rel.split('.')
                     if ( options.nested.indexOf(parts[0]) != -1 ) {
-                        !nested ? nested = {"nested":{"_scope":parts[0],"path":parts[0],"query":{"bool":{"must":[obj]}}}} : nested.nested.query.bool.must.push(obj)
+                        if (logic == 'AND') {
+                            !nested ? nested = {"nested":{"_scope":parts[0],"path":parts[0],"query":{"bool":{"must":[obj]}}}} : nested.nested.query.bool.must.push(obj)
+                        } else {
+                            !nested ? nested = {"nested":{"_scope":parts[0],"path":parts[0],"query":{"bool":{"should":[obj]}}}} : nested.nested.query.bool.should.push(obj)
+                        }
                     } else {
-                        bool['must'].push(obj)
+                        logic == 'AND' ? bool['must'].push(obj) : bool['should'].push(obj)
                     }
                 } else {
                     var obj = {'term':{}}
@@ -825,9 +834,13 @@ jQuery.extend({
                     // check if this should be a nested query
                     var parts = $(this).attr('rel').split('.')
                     if ( options.nested.indexOf(parts[0]) != -1 ) {
-                        !nested ? nested = {"nested":{"_scope":parts[0],"path":parts[0],"query":{"bool":{"must":[obj]}}}} : nested.nested.query.bool.must.push(obj)
+                        if (logic == 'AND') {
+                            !nested ? nested = {"nested":{"_scope":parts[0],"path":parts[0],"query":{"bool":{"must":[obj]}}}} : nested.nested.query.bool.must.push(obj)
+                        } else {
+                            !nested ? nested = {"nested":{"_scope":parts[0],"path":parts[0],"query":{"bool":{"should":[obj]}}}} : nested.nested.query.bool.should.push(obj)
+                        }
                     } else {
-                        bool['must'].push(obj)
+                        logic == 'AND' ? bool['must'].push(obj) : bool['should'].push(obj)
                     }
                 }
             })
@@ -870,7 +883,6 @@ jQuery.extend({
                 var parts = obj['field'].split('.')
                 qs['facets'][obj['field']] = {"terms":obj}
                 if ( options.nested.indexOf(parts[0]) != -1 ) {
-                    //qs['facets'][obj['field']]["nested"] = parts[0]
                     nested ? qs['facets'][obj['field']]["scope"] = parts[0] : qs['facets'][obj['field']]["nested"] = parts[0]
                 }
             }
@@ -904,14 +916,44 @@ jQuery.extend({
         // trigger a search when a filter choice is clicked
         var clickfilterchoice = function(event) {
             event.preventDefault()
-            var newobj = '<a class="facetview_filterselected facetview_clear ' + 
+            /*var newobj = '<a class="facetview_filterselected facetview_clear ' + 
                 'btn btn-info" rel="' + $(this).attr("rel") + 
                 '" alt="remove" title="remove"' +
                 ' href="' + $(this).attr("href") + '">' +
-                $(this).html().replace(/\(.*\)/,'') + ' <i class="icon-remove"></i></a>'
-            $('#facetview_selectedfilters').append(newobj)
+                $(this).html().replace(/\(.*\)/,'') + ' <i class="icon-remove"></i></a>'*/
+                
+                
+            if ( $('#facetview_facetlogicgroup_' + $(this).attr("rel").replace('.','_')).length ) {
+                var newbutton = '<a class="facetview_filterselected facetview_clear ' + 
+                    'btn btn-info" rel="' + $(this).attr("rel") + 
+                    '" alt="remove" title="remove"' +
+                    ' href="' + $(this).attr("href") + '">' +
+                    $(this).html().replace(/\(.*\)/,'') + ' <i class="icon-white icon-remove" style="margin-top:1px;"></i></a>'
+                $('#facetview_facetlogicgroup_' + $(this).attr("rel").replace('.','_')).append(newbutton)
+            } else {
+                var newobj = '<div id="facetview_facetlogicgroup_' + $(this).attr("rel").replace('.','_') + '" class="btn-group">'
+                if ( options.allow_facet_logic_choice ) {
+                    newobj += '<a class="btn facetview_facetlogic facetview_facetlogic_' + $(this).attr("rel").replace('.','_') +
+                    '" alt="switch logic" rel="' + $(this).attr("rel") + '" href="">'
+                    if ( $('.facetview_facetlogic_' + $(this).attr('rel').replace('.','_')).length ) {
+                        newobj += $('.facetview_facetlogic_' + $(this).attr('rel').replace('.','_')).first().html()
+                    } else {
+                        newobj += options.default_facet_logic
+                    }
+                    newobj += '</a>'
+                }
+                newobj += '<a class="facetview_filterselected facetview_clear ' + 
+                    'btn btn-info" rel="' + $(this).attr("rel") + 
+                    '" alt="remove" title="remove"' +
+                    ' href="' + $(this).attr("href") + '">' +
+                    $(this).html().replace(/\(.*\)/,'') + ' <i class="icon-white icon-remove" style="margin-top:1px;"></i></a></div>'                
+                $('#facetview_selectedfilters').append(newobj)
+            }
+
             $('.facetview_filterselected').unbind('click',clearfilter)
             $('.facetview_filterselected').bind('click',clearfilter)
+            $('.facetview_facetlogic').unbind('click',changelogic)
+            $('.facetview_facetlogic').bind('click',changelogic)
             options.paging.from = 0
             dosearch()
         }
@@ -919,7 +961,22 @@ jQuery.extend({
         // clear a filter when clear button is pressed, and re-do the search
         var clearfilter = function(event) {
             event.preventDefault()
-            $(this).remove()
+            if ( options.allow_facet_logic_choice && $(this).siblings().length > 1 ) {
+                $(this).remove()
+            } else {
+                $(this).parent().remove()
+            }
+            dosearch()
+        }
+        
+        // change selected facet logic between AND and OR
+        var changelogic = function(event) {
+            event.preventDefault()
+            if ( $(this).html() == 'AND' ) {
+                $('.facetview_facetlogic_' + $(this).attr('rel').replace('.','_')).html('&nbsp;OR&nbsp;')
+            } else {
+                $('.facetview_facetlogic_' + $(this).attr('rel').replace('.','_')).html('AND')
+            }
             dosearch()
         }
 
@@ -1032,7 +1089,7 @@ jQuery.extend({
                </div> \
             '
         }
-        thefacetview += '<div style="clear:both;" id="facetview_selectedfilters"></div>'
+        thefacetview += '<div style="clear:both;" class="btn-toolbar" id="facetview_selectedfilters"></div>'
         thefacetview += options.searchwrap_start + options.searchwrap_end
         thefacetview += '<div id="facetview_metadata"></div></div></div></div>'
 

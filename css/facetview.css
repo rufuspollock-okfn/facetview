@@ -44,7 +44,8 @@
     color:#373737;
 }
 .facetview_filterselected{
-    margin:5px;
+}
+.facetview_facetlogic{
 }
 .facetview_freetext_filterdiv{
     float:left;
