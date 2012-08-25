@@ -131,7 +131,8 @@ jQuery.extend({
             "config_file": false,                   // a remote config file URL
             "facets":[],                            // facet objects: {"field":"blah", "display":"arg",...}
                                                     // be sure if you expect to define any of these as nested that you use their full scope eg. nestedobj.nestedfield
-            "allow_facet_logic_choice": false,       // whether or not users can change facet logic from default - say from AND to OR
+            "extra_facets": {},                     // any extra facet queries, so results can be retrieved - NOT used for frontend buttons. define as per elasticsearch facets
+            "allow_facet_logic_choice": false,      // whether or not users can change facet logic from default - say from AND to OR
             "default_facet_logic": "AND",           // how facet choices should be applied to the query by default
             "addremovefacets": false,               // false if no facets can be added at front end, otherwise list of facet names
             "result_display": resdisplay,           // display template for search results
@@ -140,17 +141,17 @@ jQuery.extend({
             "description":"",                       // a description of the current search to embed in the display
             "search_url":"",                        // the URL against which to submit searches
             "datatype":"jsonp",                     // the datatype for the search url - json for local, jsonp for remote
-            "initialsearch":true,                   // whether or not to search on first load or not
-            "search_index":"elasticsearch",         // elasticsearch or SOLR
+            "initialsearch":true,                   // whether or not to search on first load
+            "search_index":"elasticsearch",         // elasticsearch or SOLR - SOLR does not actually work at the moment though...
             "fields": false,                        // a list of the fields for the query to return, if not just wanting the default all
             "partial_fields": false,                // a definition of which fields to return, as per elasticsearch docs http://www.elasticsearch.org/guide/reference/api/search/fields.html
-            "nested": [],                           // a list of keys for which the content should be considered nested for query and facet purposes. 
-                                                    // NOTE this requires you refer to such keys with their full scope e.g. nestedobj.nestedfield
+            "nested": [],                           // a list of keys for which the content should be considered nested for query and facet purposes
+                                                    // NOTE this requires you refer to such keys with their full scope e.g. nestedobj.nestedfield. only works on top-level keys so far
             "default_url_params":{},                // any params that the search URL needs by default
             "freetext_submit_delay":"500",          // delay for auto-update of search results
             "query_parameter":"q",                  // the query parameter if required for setting to the search URL
             "q":"",                                 // default query value
-            "predefined_filters":{},                // predefined filters to apply to all searches
+            "predefined_filters":{},                // predefined filters - query values to apply to all searches
             "paging":{
                 "from":0,                           // where to start the results from
                 "size":10                           // how many results to get
@@ -266,11 +267,11 @@ jQuery.extend({
             event.preventDefault()
             var rel = $('#facetview_rangerel').html()
             var range = $('#facetview_rangechoices').html()
-            var newobj = '<a class="facetview_filterselected facetview_facetrange facetview_clear ' + 
+            var newobj = '<div class="btn-group"><a class="facetview_filterselected facetview_facetrange facetview_clear ' + 
                 'btn btn-info" rel="' + rel + 
                 '" alt="remove" title="remove"' +
                 ' href="' + $(this).attr("href") + '">' +
-                range + ' <i class="icon-remove"></i></a>'
+                range + ' <i class="icon-white icon-remove"></i></a></div>'
             $('#facetview_selectedfilters').append(newobj)
             $('.facetview_filterselected').unbind('click',clearfilter)
             $('.facetview_filterselected').bind('click',clearfilter)
@@ -886,7 +887,8 @@ jQuery.extend({
                     nested ? qs['facets'][obj['field']]["scope"] = parts[0] : qs['facets'][obj['field']]["nested"] = parts[0]
                 }
             }
-            //alert(JSON.stringify(qs,"","    "))
+            jQuery.extend(true, qs['facets'], options.extra_facets )
+            alert(JSON.stringify(qs,"","    "))
             return JSON.stringify(qs)
         }
 
