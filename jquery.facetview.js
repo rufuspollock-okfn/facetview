@@ -263,76 +263,75 @@ jQuery.extend({
         }
 
         // insert a facet range once selected
-        var dofacetrange = function(event) {
-            event.preventDefault()
-            var rel = $('#facetview_rangerel').html()
-            var range = $('#facetview_rangechoices').html()
-            var newobj = '<div class="btn-group"><a class="facetview_filterselected facetview_facetrange facetview_clear ' + 
-                'btn btn-info" rel="' + rel + 
+        var dofacetrange = function(rel) {
+            $('#facetview_rangeresults_' + rel).remove()
+            var range = $('#facetview_rangechoices_' + rel).html()
+            var newobj = '<div style="display:none;" class="btn-group" id="facetview_rangeresults_' + rel + '"> \
+                <a class="facetview_filterselected facetview_facetrange facetview_clear \
+                btn btn-info" rel="' + rel + 
                 '" alt="remove" title="remove"' +
                 ' href="' + $(this).attr("href") + '">' +
                 range + ' <i class="icon-white icon-remove"></i></a></div>'
             $('#facetview_selectedfilters').append(newobj)
             $('.facetview_filterselected').unbind('click',clearfilter)
             $('.facetview_filterselected').bind('click',clearfilter)
-            $('#facetview_rangemodal').modal('hide')
-            $('#facetview_rangemodal').remove()
             options.paging.from = 0
             dosearch()
         }
-        // remove the range modal from page altogether on close (rebuilt for each filter)
-        var removerange = function(event) {
+        // clear a facet range
+        var clearfacetrange = function(event) {
             event.preventDefault()
-            $('#facetview_rangemodal').modal('hide')
-            $('#facetview_rangemodal').remove()
+            $('#facetview_rangeresults_' + $(this).attr('rel')).remove()
+            $('#facetview_rangeplaceholder_' + $(this).attr('rel')).remove()
+            dosearch()
         }
         // build a facet range selector
         var facetrange = function(event) {
+            // TODO: when a facet range is requested, should hide the facet list from the menu
+            // should perhaps also remove any selections already made on that facet
             event.preventDefault()
-            var modal = '<div class="modal" id="facetview_rangemodal"> \
-                <div class="modal-header"> \
-                <a class="facetview_removerange close">×</a> \
-                <h3>Set a filter range</h3> \
-                </div> \
-                <div class="modal-body"> \
-                <div style=" margin:20px;" id="facetview_slider"></div> \
-                <h3 id="facetview_rangechoices" style="text-align:center; margin:10px;"> \
-                <span class="facetview_lowrangeval">...</span> \
+            var rel = $(this).attr('rel')
+            var rangeselect = '<div id="facetview_rangeplaceholder_' + rel + '" class="facetview_rangecontainer clearfix"> \
+                <div class="clearfix"> \
+                <h3 id="facetview_rangechoices_' + rel + '" style="margin-left:10px; margin-right:10px; float:left; clear:none;" class="clearfix"> \
+                <span class="facetview_lowrangeval_' + rel + '">...</span> \
                 <small>to</small> \
-                <span class="facetview_highrangeval">...</span></h3> \
-                <p>(NOTE: ranges must be selected based on the current content of \
-                the filter. If you require more options than are currently available, \
-                cancel and return to the filter options; select sort by term, and set \
-                the number of values you require)</p> \
-                </div> \
-                <div class="modal-footer"> \
-                <a id="facetview_dofacetrange" href="#" class="btn btn-primary">Apply</a> \
-                <a class="facetview_removerange btn close">Cancel</a> \
-                </div> \
+                <span class="facetview_highrangeval_' + rel + '">...</span></h3> \
+                <div style="float:right;" class="btn-group">'
+            if ( options.allow_facet_logic_choice ) {
+                rangeselect += '<a class="btn facetview_facetlogic" rel="' + options.facets[rel]['field'].replace('.','_') + 
+                    '" id="facetview_facetlogic_' + options.facets[rel]['field'].replace('.','_') + '" href="">' +
+                    options.default_facet_logic + '</a>'
+            }
+            rangeselect += '<a class="facetview_facetrange_remove btn" rel="' + rel + '" alt="remove" title="remove" \
+                 href="#"><i class="icon-remove"></i></a> \
+                </div></div> \
+                <div class="clearfix" style="margin:20px;" id="facetview_slider_' + rel + '"></div> \
                 </div>'
-            $('#facetview').append(modal)
-            $('#facetview_rangemodal').append('<div id="facetview_rangerel" style="display:none;">' + $(this).attr('rel') + '</div>')
-            $('#facetview_rangemodal').modal('show')
-            $('#facetview_dofacetrange').bind('click',dofacetrange)
-            $('.facetview_removerange').bind('click',removerange)
+            $('#facetview_selectedfilters').after(rangeselect)
+            $('.facetview_facetrange_remove').unbind('click',clearfacetrange)
+            $('.facetview_facetrange_remove').bind('click',clearfacetrange)
+            $('.facetview_facetlogic').unbind('click',changelogic)
+            $('.facetview_facetlogic').bind('click',changelogic)
             var values = []
             var valsobj = $( '#facetview_' + $(this).attr('href').replace(/\./gi,'_') )
             valsobj.children('li').children('a').each(function() {
                 values.push( $(this).attr('href') )
             })
             values = values.sort()
-            $( "#facetview_slider" ).slider({
+            $( "#facetview_slider_" + rel ).slider({
 	            range: true,
 	            min: 0,
 	            max: values.length-1,
 	            values: [0,values.length-1],
 	            slide: function( event, ui ) {
-		            $('#facetview_rangechoices .facetview_lowrangeval').html( values[ ui.values[0] ] )
-		            $('#facetview_rangechoices .facetview_highrangeval').html( values[ ui.values[1] ] )
+		            $('#facetview_rangechoices_' + rel + ' .facetview_lowrangeval_' + rel).html( values[ ui.values[0] ] )
+		            $('#facetview_rangechoices_' + rel + ' .facetview_highrangeval_' + rel).html( values[ ui.values[1] ] )
+		            dofacetrange( rel )
 	            }
             })
-            $('#facetview_rangechoices .facetview_lowrangeval').html( values[0] )
-            $('#facetview_rangechoices .facetview_highrangeval').html( values[ values.length-1] )
+            $('#facetview_rangechoices_' + rel + ' .facetview_lowrangeval_' + rel).html( values[0] )
+            $('#facetview_rangechoices_' + rel + ' .facetview_highrangeval_' + rel).html( values[ values.length-1] )
         }
 
 
@@ -462,6 +461,8 @@ jQuery.extend({
         // ===============================================
         // functions to do with filter visualisations
         // ===============================================
+        
+        // TODO: update so that multiple filters can be added to the same visualisation panel
 
         var show_vis = function(event) {
             event.preventDefault()
@@ -722,6 +723,7 @@ jQuery.extend({
         }
 
         // put the results on the page
+        // TODO: if a filter visualisation is on the page, update it
         showresults = function(sdata) {
             // get the data and parse from the solr / es layout
             var data = parseresults(sdata)
@@ -805,17 +807,19 @@ jQuery.extend({
             var qs = {}
             var bool = false
             var nested = false
+            // TODO: add a check to see if this is an OR query with only one val - 
+            // in which case ensure the search query is at least *
             $('.facetview_filterselected',obj).each(function() {
                 !bool ? bool = {'must': [] } : ""
                 var logic = options.default_facet_logic
-                options.allow_facet_logic_choice && $('.facetview_facetlogic_' + $(this).attr('rel').replace('.','_')).first().html() != 'AND' ? logic = 'OR' : ""
-                logic != 'AND' && bool['should'] == undefined ? bool['should'] = [] : ""
                 if ( $(this).hasClass('facetview_facetrange') ) {
-                    var rel = options.facets[ $(this).attr('rel') ]['field']
                     var rngs = {
-                        'from': $('.facetview_lowrangeval', this).html(),
-                        'to': $('.facetview_highrangeval', this).html()
+                        'from': $('.facetview_lowrangeval_' + $(this).attr('rel'), this).html(),
+                        'to': $('.facetview_highrangeval_' + $(this).attr('rel'), this).html()
                     }
+                    var rel = options.facets[ $(this).attr('rel') ]['field']
+                    options.allow_facet_logic_choice && $('#facetview_facetlogic_' + rel.replace('.','_')).html() != 'AND' ? logic = 'OR' : ""
+                    logic != 'AND' && bool['should'] == undefined ? bool['should'] = [] : ""
                     var obj = {'range': {}}
                     obj['range'][ rel ] = rngs
                     // check if this should be a nested query
@@ -832,6 +836,8 @@ jQuery.extend({
                 } else {
                     var obj = {'term':{}}
                     obj['term'][ $(this).attr('rel') ] = $(this).attr('href')
+                    options.allow_facet_logic_choice && $('#facetview_facetlogic_' + $(this).attr('rel').replace('.','_')).html() != 'AND' ? logic = 'OR' : ""
+                    logic != 'AND' && bool['should'] == undefined ? bool['should'] = [] : ""
                     // check if this should be a nested query
                     var parts = $(this).attr('rel').split('.')
                     if ( options.nested.indexOf(parts[0]) != -1 ) {
@@ -888,7 +894,7 @@ jQuery.extend({
                 }
             }
             jQuery.extend(true, qs['facets'], options.extra_facets )
-            alert(JSON.stringify(qs,"","    "))
+            //alert(JSON.stringify(qs,"","    "))
             return JSON.stringify(qs)
         }
 
@@ -918,37 +924,24 @@ jQuery.extend({
         // trigger a search when a filter choice is clicked
         var clickfilterchoice = function(event) {
             event.preventDefault()
-            /*var newobj = '<a class="facetview_filterselected facetview_clear ' + 
+                
+            var newobj = '<a class="facetview_filterselected facetview_clear ' + 
                 'btn btn-info" rel="' + $(this).attr("rel") + 
                 '" alt="remove" title="remove"' +
                 ' href="' + $(this).attr("href") + '">' +
-                $(this).html().replace(/\(.*\)/,'') + ' <i class="icon-remove"></i></a>'*/
-                
-                
+                $(this).html().replace(/\(.*\)/,'') + ' <i class="icon-white icon-remove" style="margin-top:1px;"></i></a>'
+
             if ( $('#facetview_facetlogicgroup_' + $(this).attr("rel").replace('.','_')).length ) {
-                var newbutton = '<a class="facetview_filterselected facetview_clear ' + 
-                    'btn btn-info" rel="' + $(this).attr("rel") + 
-                    '" alt="remove" title="remove"' +
-                    ' href="' + $(this).attr("href") + '">' +
-                    $(this).html().replace(/\(.*\)/,'') + ' <i class="icon-white icon-remove" style="margin-top:1px;"></i></a>'
-                $('#facetview_facetlogicgroup_' + $(this).attr("rel").replace('.','_')).append(newbutton)
+                $('#facetview_facetlogicgroup_' + $(this).attr("rel").replace('.','_')).append(newobj)
             } else {
-                var newobj = '<div id="facetview_facetlogicgroup_' + $(this).attr("rel").replace('.','_') + '" class="btn-group">'
+                var preobj = '<div id="facetview_facetlogicgroup_' + $(this).attr("rel").replace('.','_') + '" class="btn-group">'
                 if ( options.allow_facet_logic_choice ) {
-                    newobj += '<a class="btn facetview_facetlogic facetview_facetlogic_' + $(this).attr("rel").replace('.','_') +
+                    preobj += '<a class="btn facetview_facetlogic" id="facetview_facetlogic_' + $(this).attr("rel").replace('.','_') +
                     '" alt="switch logic" rel="' + $(this).attr("rel") + '" href="">'
-                    if ( $('.facetview_facetlogic_' + $(this).attr('rel').replace('.','_')).length ) {
-                        newobj += $('.facetview_facetlogic_' + $(this).attr('rel').replace('.','_')).first().html()
-                    } else {
-                        newobj += options.default_facet_logic
-                    }
-                    newobj += '</a>'
+                    preobj += options.default_facet_logic
+                    preobj += '</a>'
+                    newobj = preobj + newobj + '</div>'
                 }
-                newobj += '<a class="facetview_filterselected facetview_clear ' + 
-                    'btn btn-info" rel="' + $(this).attr("rel") + 
-                    '" alt="remove" title="remove"' +
-                    ' href="' + $(this).attr("href") + '">' +
-                    $(this).html().replace(/\(.*\)/,'') + ' <i class="icon-white icon-remove" style="margin-top:1px;"></i></a></div>'                
                 $('#facetview_selectedfilters').append(newobj)
             }
 
@@ -975,9 +968,9 @@ jQuery.extend({
         var changelogic = function(event) {
             event.preventDefault()
             if ( $(this).html() == 'AND' ) {
-                $('.facetview_facetlogic_' + $(this).attr('rel').replace('.','_')).html('&nbsp;OR&nbsp;')
+                $('#facetview_facetlogic_' + $(this).attr('rel').replace('.','_')).html('&nbsp;OR&nbsp;')
             } else {
-                $('.facetview_facetlogic_' + $(this).attr('rel').replace('.','_')).html('AND')
+                $('#facetview_facetlogic_' + $(this).attr('rel').replace('.','_')).html('AND')
             }
             dosearch()
         }
