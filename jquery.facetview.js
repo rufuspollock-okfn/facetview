@@ -162,7 +162,8 @@ jQuery.extend({
             "resultwrap_start":"<tr><td>",          // wrap a given result in this
             "resultwrap_end":"</td></tr>",          // wrap a given result in this
             "result_box_colours":[],                // apply random bg color from the list to each .result_colour element
-            "fadein":1000                           // fadein effect on results in ms   
+            "fadein":1000,                           // fadein effect on results in ms   
+            "post_search_callback": false           // if this is defined as a function, it will be called any time new results are retrieved and drawn on the page
         }
 
 
@@ -569,9 +570,9 @@ jQuery.extend({
                     } else {
                         resultobj["records"].push(dataobj.hits.hits[item]._source)
                     }
-                    resultobj["start"] = ""
-                    resultobj["found"] = dataobj.hits.total
                 }
+                resultobj["start"] = ""
+                resultobj["found"] = dataobj.hits.total
                 for (var item in dataobj.facets) {
                     var facetsobj = new Object()
                     for (var thing in dataobj.facets[item]["terms"]) {
@@ -725,6 +726,7 @@ jQuery.extend({
         // put the results on the page
         // TODO: if a filter visualisation is on the page, update it
         showresults = function(sdata) {
+            options.rawdata = sdata
             // get the data and parse from the solr / es layout
             var data = parseresults(sdata)
             options.data = data
@@ -754,6 +756,10 @@ jQuery.extend({
             $('#facetview_results').children().hide().fadeIn(options.fadein)
             $('.facetview_viewrecord').bind('click',viewrecord)
             jQuery('.notify_loading').hide()
+            // if a post search callback is provided, run it
+            if (typeof options.post_search_callback == 'function') {
+                options.post_search_callback.call(this)
+            }
         }
 
         // ===============================================
