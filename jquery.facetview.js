@@ -10,60 +10,62 @@
  *
  * http://facetview.cottagelabs.com
  *
+ * 2012-09-06: MW added semicolons to the end of statements for better compatibility with Rails asset pipeline
 */
 
 // first define the bind with delay function from (saves loading it separately) 
 // https://github.com/bgrins/bindWithDelay/blob/master/bindWithDelay.js
+
 (function($) {
     $.fn.bindWithDelay = function( type, data, fn, timeout, throttle ) {
-        var wait = null
-        var that = this
+        var wait = null;
+        var that = this;
 
         if ( $.isFunction( data ) ) {
-            throttle = timeout
-            timeout = fn
-            fn = data
-            data = undefined
+            throttle = timeout;
+            timeout = fn;
+            fn = data;
+            data = undefined;
         }
 
         function cb() {
-            var e = $.extend(true, { }, arguments[0])
+            var e = $.extend(true, { }, arguments[0]);
             var throttler = function() {
-                wait = null
-                fn.apply(that, [e])
-            }
+                wait = null;
+                fn.apply(that, [e]);
+            };
 
             if (!throttle) { clearTimeout(wait); }
             if (!throttle || !wait) { wait = setTimeout(throttler, timeout); }
         }
 
-        return this.bind(type, data, cb)
-    }
-})(jQuery)
+        return this.bind(type, data, cb);
+    };
+})(jQuery);
 
 // add extension to jQuery with a function to get URL parameters
 jQuery.extend({
     getUrlVars: function() {
-        var params = new Object
-        var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&')
+        var params = new Object;
+        var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
         for ( var i = 0; i < hashes.length; i++ ) {
-            hash = hashes[i].split('=')
+            hash = hashes[i].split('=');
             if ( hash.length > 1 ) {
                 if ( hash[1].replace(/%22/gi,"")[0] == "[" || hash[1].replace(/%22/gi,"")[0] == "{" ) {
-                    hash[1] = hash[1].replace(/^%22/,"").replace(/%22$/,"")
-                    var newval = JSON.parse(unescape(hash[1].replace(/%22/gi,'"')))
+                    hash[1] = hash[1].replace(/^%22/,"").replace(/%22$/,"");
+                    var newval = JSON.parse(unescape(hash[1].replace(/%22/gi,'"')));
                 } else {
-                    var newval = unescape(hash[1].replace(/%22/gi,'"'))
+                    var newval = unescape(hash[1].replace(/%22/gi,'"'));
                 }
-                params[hash[0]] = newval
+                params[hash[0]] = newval;
             }
         }
-        return params
+        return params;
     },
     getUrlVar: function(name){
-        return jQuery.getUrlVars()[name]
+        return jQuery.getUrlVars()[name];
     }
-})
+});
 
 
 // now the facetview function
@@ -121,7 +123,9 @@ jQuery.extend({
                         "field": "link.url"
                     }
                 ]
-            ]
+            ];
+
+
 
 
         // specify the defaults
@@ -164,17 +168,18 @@ jQuery.extend({
             "result_box_colours":[],                // apply random bg color from the list to each .result_colour element
             "fadein":1000,                           // fadein effect on results in ms   
             "post_search_callback": false           // if this is defined as a function, it will be called any time new results are retrieved and drawn on the page
-        }
+        };
 
 
         // and add in any overrides from the call
         // these options are also overridable by URL parameters
         // facetview options are declared as a function so they are available externally
         // (see bottom of this file)
-        var provided_options = $.extend(defaults, options)
-        var url_options = $.getUrlVars()
-        $.fn.facetview.options = $.extend(provided_options,url_options)
-        var options = $.fn.facetview.options
+
+        var provided_options = $.extend(defaults, options);
+        var url_options = $.getUrlVars();
+        $.fn.facetview.options = $.extend(provided_options,url_options);
+        var options = $.fn.facetview.options;
 
 
         // ===============================================
@@ -183,164 +188,167 @@ jQuery.extend({
         
         // show the filter values
         var showfiltervals = function(event) {
-            event.preventDefault()
+            event.preventDefault();
             if ( $(this).hasClass('facetview_open') ) {
-                $(this).children('i').replaceWith('<i class="icon-plus"></i>')
-                $(this).removeClass('facetview_open')
-                $('#facetview_' + $(this).attr('rel') ).children().hide()
+                $(this).children('i').replaceWith('<i class="icon-plus"></i>');
+                $(this).removeClass('facetview_open');
+                $('#facetview_' + $(this).attr('rel') ).children().hide();
             } else {
-                $(this).children('i').replaceWith('<i class="icon-minus"></i>')
-                $(this).addClass('facetview_open')
-                $('#facetview_' + $(this).attr('rel') ).children().show()
+                $(this).children('i').replaceWith('<i class="icon-minus"></i>');
+                $(this).addClass('facetview_open');
+                $('#facetview_' + $(this).attr('rel') ).children().show();
             }
-        }
+        };
 
         // function to perform for sorting of filters
         var sortfilters = function(event) {
-            event.preventDefault()
-            var sortwhat = $(this).attr('href')
-            var which = 0
+            event.preventDefault();
+            var sortwhat = $(this).attr('href');
+            var which = 0;
             for (item in options.facets) {
                 if ('field' in options.facets[item]) {
                     if ( options.facets[item]['field'] == sortwhat) {
-                        which = item
+                        which = item;
                     }
                 }
             }
             if ( $(this).hasClass('facetview_count') ) {
-                options.facets[which]['order'] = 'count'
+                options.facets[which]['order'] = 'count';
             } else if ( $(this).hasClass('facetview_term') ) {
-                options.facets[which]['order'] = 'term'
+                options.facets[which]['order'] = 'term';
             } else if ( $(this).hasClass('facetview_rcount') ) {
-                options.facets[which]['order'] = 'reverse_count'
+                options.facets[which]['order'] = 'reverse_count';
             } else if ( $(this).hasClass('facetview_rterm') ) {
-                options.facets[which]['order'] = 'reverse_term'
+                options.facets[which]['order'] = 'reverse_term';
             }
-            dosearch()
+            dosearch();
             if ( !$(this).parent().parent().siblings('.facetview_filtershow').hasClass('facetview_open') ) {
-                $(this).parent().parent().siblings('.facetview_filtershow').trigger('click')
+                $(this).parent().parent().siblings('.facetview_filtershow').trigger('click');
             }
-        }
+        };
         
         var renamefilter = function(event) {
-            event.preventDefault()
-            var renamewhat = $(this).attr('href')
-            var which = 0
+            event.preventDefault();
+            var renamewhat = $(this).attr('href');
+            var which = 0;
             for (item in options.facets) {
                 if ('field' in options.facets[item]) {
                     if ( options.facets[item]['field'] == renamewhat) {
-                        which = item
+                        which = item;
                     }
                 }
             }
-            var newname = prompt('What would you like to call this filter?')
-            options.facets[which]['display'] = newname
-            buildfilters()
-            dosearch()
+            var newname = prompt('What would you like to call this filter?');
+            options.facets[which]['display'] = newname;
+            buildfilters();
+            dosearch();
             if ( !$(this).parent().parent().siblings('.facetview_filtershow').hasClass('facetview_open') ) {
-                $(this).parent().parent().siblings('.facetview_filtershow').trigger('click')
+                $(this).parent().parent().siblings('.facetview_filtershow').trigger('click');
             }
-        }
+        };
 
         // adjust how many results are shown
         var morefacetvals = function(event) {
-            event.preventDefault()
-            var morewhat = options.facets[ $(this).attr('rel') ]
+            event.preventDefault();
+            var morewhat = options.facets[ $(this).attr('rel') ];
             if ('size' in morewhat ) {
-                var currentval = morewhat['size']
+                var currentval = morewhat['size'];
             } else {
-                var currentval = 10
+                var currentval = 10;
             }
             var newmore = prompt('Currently showing ' + currentval + 
-                '. How many would you like instead?')
+                '. How many would you like instead?');
             if (newmore) {
-                options.facets[ $(this).attr('rel') ]['size'] = parseInt(newmore)
-                $(this).html('show up to (' + newmore + ')')
-                dosearch()
+                options.facets[ $(this).attr('rel') ]['size'] = parseInt(newmore);
+                $(this).html('show up to (' + newmore + ')');
+                dosearch();
                 if ( !$(this).parent().parent().siblings('.facetview_filtershow').hasClass('facetview_open') ) {
-                    $(this).parent().parent().siblings('.facetview_filtershow').trigger('click')
+                    $(this).parent().parent().siblings('.facetview_filtershow').trigger('click');
                 }
             }
-        }
+        };
+
+
+
 
         // insert a facet range once selected
         var dofacetrange = function(rel) {
-            $('#facetview_rangeresults_' + rel).remove()
-            var range = $('#facetview_rangechoices_' + rel).html()
+            $('#facetview_rangeresults_' + rel).remove();
+            var range = $('#facetview_rangechoices_' + rel).html();
             var newobj = '<div style="display:none;" class="btn-group" id="facetview_rangeresults_' + rel + '"> \
                 <a class="facetview_filterselected facetview_facetrange facetview_clear \
                 btn btn-info" rel="' + rel + 
                 '" alt="remove" title="remove"' +
                 ' href="' + $(this).attr("href") + '">' +
-                range + ' <i class="icon-white icon-remove"></i></a></div>'
-            $('#facetview_selectedfilters').append(newobj)
-            $('.facetview_filterselected').unbind('click',clearfilter)
-            $('.facetview_filterselected').bind('click',clearfilter)
-            options.paging.from = 0
-            dosearch()
-        }
+                range + ' <i class="icon-white icon-remove"></i></a></div>';
+            $('#facetview_selectedfilters').append(newobj);
+            $('.facetview_filterselected').unbind('click',clearfilter);
+            $('.facetview_filterselected').bind('click',clearfilter);
+            options.paging.from = 0;
+            dosearch();
+        };
         // clear a facet range
         var clearfacetrange = function(event) {
-            event.preventDefault()
-            $('#facetview_rangeresults_' + $(this).attr('rel')).remove()
-            $('#facetview_rangeplaceholder_' + $(this).attr('rel')).remove()
-            dosearch()
-        }
+            event.preventDefault();
+            $('#facetview_rangeresults_' + $(this).attr('rel')).remove();
+            $('#facetview_rangeplaceholder_' + $(this).attr('rel')).remove();
+            dosearch();
+        };
         // build a facet range selector
         var facetrange = function(event) {
             // TODO: when a facet range is requested, should hide the facet list from the menu
             // should perhaps also remove any selections already made on that facet
-            event.preventDefault()
-            var rel = $(this).attr('rel')
+            event.preventDefault();
+            var rel = $(this).attr('rel');
             var rangeselect = '<div id="facetview_rangeplaceholder_' + rel + '" class="facetview_rangecontainer clearfix"> \
                 <div class="clearfix"> \
                 <h3 id="facetview_rangechoices_' + rel + '" style="margin-left:10px; margin-right:10px; float:left; clear:none;" class="clearfix"> \
                 <span class="facetview_lowrangeval_' + rel + '">...</span> \
                 <small>to</small> \
                 <span class="facetview_highrangeval_' + rel + '">...</span></h3> \
-                <div style="float:right;" class="btn-group">'
+                <div style="float:right;" class="btn-group">';
             if ( options.allow_facet_logic_choice ) {
                 rangeselect += '<a class="btn facetview_facetlogic" rel="' + options.facets[rel]['field'].replace('.','_') + 
                     '" id="facetview_facetlogic_' + options.facets[rel]['field'].replace('.','_') + '" href="">' +
-                    options.default_facet_logic + '</a>'
+                    options.default_facet_logic + '</a>';
             }
             rangeselect += '<a class="facetview_facetrange_remove btn" rel="' + rel + '" alt="remove" title="remove" \
                  href="#"><i class="icon-remove"></i></a> \
                 </div></div> \
                 <div class="clearfix" style="margin:20px;" id="facetview_slider_' + rel + '"></div> \
-                </div>'
-            $('#facetview_selectedfilters').after(rangeselect)
-            $('.facetview_facetrange_remove').unbind('click',clearfacetrange)
-            $('.facetview_facetrange_remove').bind('click',clearfacetrange)
-            $('.facetview_facetlogic').unbind('click',changelogic)
-            $('.facetview_facetlogic').bind('click',changelogic)
-            var values = []
-            var valsobj = $( '#facetview_' + $(this).attr('href').replace(/\./gi,'_') )
+                </div>';
+            $('#facetview_selectedfilters').after(rangeselect);
+            $('.facetview_facetrange_remove').unbind('click',clearfacetrange);
+            $('.facetview_facetrange_remove').bind('click',clearfacetrange);
+            $('.facetview_facetlogic').unbind('click',changelogic);
+            $('.facetview_facetlogic').bind('click',changelogic);
+            var values = [];
+            var valsobj = $( '#facetview_' + $(this).attr('href').replace(/\./gi,'_') );
             valsobj.children('li').children('a').each(function() {
-                values.push( $(this).attr('href') )
-            })
-            values = values.sort()
+                values.push( $(this).attr('href') );
+            });
+            values = values.sort();
             $( "#facetview_slider_" + rel ).slider({
-	            range: true,
-	            min: 0,
-	            max: values.length-1,
-	            values: [0,values.length-1],
-	            slide: function( event, ui ) {
-		            $('#facetview_rangechoices_' + rel + ' .facetview_lowrangeval_' + rel).html( values[ ui.values[0] ] )
-		            $('#facetview_rangechoices_' + rel + ' .facetview_highrangeval_' + rel).html( values[ ui.values[1] ] )
-		            dofacetrange( rel )
-	            }
-            })
-            $('#facetview_rangechoices_' + rel + ' .facetview_lowrangeval_' + rel).html( values[0] )
-            $('#facetview_rangechoices_' + rel + ' .facetview_highrangeval_' + rel).html( values[ values.length-1] )
-        }
+                range: true,
+                min: 0,
+                max: values.length-1,
+                values: [0,values.length-1],
+                slide: function( event, ui ) {
+                    $('#facetview_rangechoices_' + rel + ' .facetview_lowrangeval_' + rel).html( values[ ui.values[0] ] );
+                    $('#facetview_rangechoices_' + rel + ' .facetview_highrangeval_' + rel).html( values[ ui.values[1] ] );
+                    dofacetrange( rel );
+                }
+            });
+            $('#facetview_rangechoices_' + rel + ' .facetview_lowrangeval_' + rel).html( values[0] );
+            $('#facetview_rangechoices_' + rel + ' .facetview_highrangeval_' + rel).html( values[ values.length-1] );
+        };
 
 
         // pass a list of filters to be displayed
         var buildfilters = function() {
             if ( options.facets.length > 0 ) {
-                var filters = options.facets
-                var thefilters = "<h3>Filter by</h3>"
+                var filters = options.facets;
+                var thefilters = "<h3>Filter by</h3>";
                 for ( var idx in filters ) {
                     var _filterTmpl = '<div id="facetview_filterbuttons" class="btn-group"> \
                         <a style="text-align:left; min-width:70%;" class="facetview_filtershow btn" \
@@ -361,36 +369,36 @@ jQuery.extend({
                             <li><a class="facetview_renamefilter" rel="{{FACET_IDX}}" href="{{FILTER_EXACT}}">rename this filter</a></li> \
                             </ul></div> \
                       <ul id="facetview_{{FILTER_NAME}}" \
-                        class="facetview_filters"></ul>'
+                        class="facetview_filters"></ul>';
                     if (options.visualise_filters) {
-                        var vis = '<li><a class="facetview_visualise" rel="{{FACET_IDX}}" href="{{FILTER_DISPLAY}}">visualise this filter</a></li>'
-                        thefilters += _filterTmpl.replace(/{{FACET_VIS}}/g, vis)
+                        var vis = '<li><a class="facetview_visualise" rel="{{FACET_IDX}}" href="{{FILTER_DISPLAY}}">visualise this filter</a></li>';
+                        thefilters += _filterTmpl.replace(/{{FACET_VIS}}/g, vis);
                     } else {
-                        thefilters += _filterTmpl.replace(/{{FACET_VIS}}/g, '')
+                        thefilters += _filterTmpl.replace(/{{FACET_VIS}}/g, '');
                     }
-                    thefilters = thefilters.replace(/{{FILTER_NAME}}/g, filters[idx]['field'].replace(/\./gi,'_')).replace(/{{FILTER_EXACT}}/g, filters[idx]['field'])
+                    thefilters = thefilters.replace(/{{FILTER_NAME}}/g, filters[idx]['field'].replace(/\./gi,'_')).replace(/{{FILTER_EXACT}}/g, filters[idx]['field']);
                     if ('size' in filters[idx] ) {
-                        thefilters = thefilters.replace(/{{FILTER_HOWMANY}}/gi, filters[idx]['size'])
+                        thefilters = thefilters.replace(/{{FILTER_HOWMANY}}/gi, filters[idx]['size']);
                     } else {
-                        thefilters = thefilters.replace(/{{FILTER_HOWMANY}}/gi, 10)
+                        thefilters = thefilters.replace(/{{FILTER_HOWMANY}}/gi, 10);
                     }
-                    thefilters = thefilters.replace(/{{FACET_IDX}}/gi,idx)
+                    thefilters = thefilters.replace(/{{FACET_IDX}}/gi,idx);
                     if ('display' in filters[idx]) {
-                        thefilters = thefilters.replace(/{{FILTER_DISPLAY}}/g, filters[idx]['display'])
+                        thefilters = thefilters.replace(/{{FILTER_DISPLAY}}/g, filters[idx]['display']);
                     } else {
-                        thefilters = thefilters.replace(/{{FILTER_DISPLAY}}/g, filters[idx]['field'])
+                        thefilters = thefilters.replace(/{{FILTER_DISPLAY}}/g, filters[idx]['field']);
                     }
                 }
-                $('#facetview_filters').html("").append(thefilters)
-                options.visualise_filters ? $('.facetview_visualise').bind('click',show_vis) : ""
-                $('.facetview_morefacetvals').bind('click',morefacetvals)
-                $('.facetview_facetrange').bind('click',facetrange)
-                $('.facetview_sort').bind('click',sortfilters)
-                $('.facetview_renamefilter').bind('click',renamefilter)
-                $('.facetview_filtershow').bind('click',showfiltervals)
-                options.addremovefacets ? addremovefacets() : ""
+                $('#facetview_filters').html("").append(thefilters);
+                options.visualise_filters ? $('.facetview_visualise').bind('click',show_vis) : "";
+                $('.facetview_morefacetvals').bind('click',morefacetvals);
+                $('.facetview_facetrange').bind('click',facetrange);
+                $('.facetview_sort').bind('click',sortfilters);
+                $('.facetview_renamefilter').bind('click',renamefilter);
+                $('.facetview_filtershow').bind('click',showfiltervals);
+                options.addremovefacets ? addremovefacets() : "";
                 if (options.description) {
-                    $('#facetview_filters').append('<div><h3>Meta</h3>' + options.description + '</div>')
+                    $('#facetview_filters').append('<div><h3>Meta</h3>' + options.description + '</div>');
                 }
             }
         }
@@ -399,65 +407,66 @@ jQuery.extend({
         var putvalsinfilters = function(data) {
             // for each filter setup, find the results for it and append them to the relevant filter
             for ( var each in options.facets ) {
-                $('#facetview_' + options.facets[each]['field'].replace(/\./gi,'_')).children().remove()
-                var records = data["facets"][ options.facets[each]['field'] ]
+                $('#facetview_' + options.facets[each]['field'].replace(/\./gi,'_')).children().remove();
+                var records = data["facets"][ options.facets[each]['field'] ];
                 for ( var item in records ) {
                     var append = '<li><a class="facetview_filterchoice' +
                         '" rel="' + options.facets[each]['field'] + '" href="' + item + '">' + item +
-                        ' (' + records[item] + ')</a></li>'
-                    $('#facetview_' + options.facets[each]['field'].replace(/\./gi,'_')).append(append)
+                        ' (' + records[item] + ')</a></li>';
+                    $('#facetview_' + options.facets[each]['field'].replace(/\./gi,'_')).append(append);
                 }
                 if ( !$('.facetview_filtershow[rel="' + options.facets[each]['field'].replace(/\./gi,'_') + '"]').hasClass('facetview_open') ) {
-                    $('#facetview_' + options.facets[each]['field'].replace(/\./gi,'_') ).children().hide()
+                    $('#facetview_' + options.facets[each]['field'].replace(/\./gi,'_') ).children().hide();
                 }
             }
-            $('.facetview_filterchoice').bind('click',clickfilterchoice)
-        }
+            $('.facetview_filterchoice').bind('click',clickfilterchoice);
+        };
 
         // show the add/remove filters options
         var addremovefacet = function(event) {
-            event.preventDefault()
+            event.preventDefault();
             if ( $(this).hasClass('facetview_filterexists') ) {
-                $(this).removeClass('facetview_filterexists')
-                delete options.facets[$(this).attr('href')]
+                $(this).removeClass('facetview_filterexists');
+                delete options.facets[$(this).attr('href')];
             } else {
-                $(this).addClass('facetview_filterexists')
-                options.facets.push({'field':$(this).attr('title')})
+                $(this).addClass('facetview_filterexists');
+                options.facets.push({'field':$(this).attr('title')});
             }
-            buildfilters()
-            dosearch()
-        }
+            buildfilters();
+            dosearch();
+        };
         var showarf = function(event) {
-            event.preventDefault()
-            $('#facetview_addremovefilters').toggle()
-        }
+            event.preventDefault();
+            $('#facetview_addremovefilters').toggle();
+        };
         var addremovefacets = function() {
             $('#facetview_filters').append('<a id="facetview_showarf" href="">' + 
-                'add or remove filters</a><div id="facetview_addremovefilters"></div>')
+                'add or remove filters</a><div id="facetview_addremovefilters"></div>');
             for (var idx in options.facets) {
                 if ( options.addremovefacets.indexOf(options.facets[idx].field) == -1 ) {
-                    options.addremovefacets.push(options.facets[idx].field)
+                    options.addremovefacets.push(options.facets[idx].field);
                 }
             }
             for (var facet in options.addremovefacets) {
-                var thisfacet = options.addremovefacets[facet]
-                var filter = '<a class="btn '
-                var index = 0
-                var icon = '<i class="icon-plus"></i>' 
+                var thisfacet = options.addremovefacets[facet];
+                var filter = '<a class="btn ';
+                var index = 0;
+                var icon = '<i class="icon-plus"></i>';
                 for (var idx in options.facets) {
                     if ( options.facets[idx].field == thisfacet ) {
-                        filter += 'btn-info facetview_filterexists'
-                        index = idx
-                        icon = '<i class="icon-remove icon-white"></i> '
+                        filter += 'btn-info facetview_filterexists';
+                        index = idx;
+                        icon = '<i class="icon-remove icon-white"></i> ';
                     }
                 }
-                filter += ' facetview_filterchoose" style="margin-top:5px;" href="' + index + '" title="' + thisfacet + '">' + icon + thisfacet + '</a><br />'
-                $('#facetview_addremovefilters').append(filter)
+                filter += ' facetview_filterchoose" style="margin-top:5px;" href="' + index + '" title="' + thisfacet + '">' + icon + thisfacet + '</a><br />';
+                $('#facetview_addremovefilters').append(filter);
             }
-            $('#facetview_addremovefilters').hide()
-            $('#facetview_showarf').bind('click',showarf)
-            $('.facetview_filterchoose').bind('click',addremovefacet)
-        }
+            $('#facetview_addremovefilters').hide();
+            $('#facetview_showarf').bind('click',showarf);
+            $('.facetview_filterchoose').bind('click',addremovefacet);
+        };
+
 
         // ===============================================
         // functions to do with filter visualisations
@@ -466,9 +475,9 @@ jQuery.extend({
         // TODO: update so that multiple filters can be added to the same visualisation panel
 
         var show_vis = function(event) {
-            event.preventDefault()
+            event.preventDefault();
             if ($('#facetview_visualisation').length) {
-                $('#facetview_visualisation').remove()
+                $('#facetview_visualisation').remove();
             } else {
                 var vis = '<div id="facetview_visualisation"> \
                     <div class="modal-header"> \
@@ -480,70 +489,72 @@ jQuery.extend({
                     <div class="modal-footer"> \
                     <a class="facetview_removevis btn close">Close</a> \
                     </div> \
-                    </div>'
-                vis = vis.replace(/{{VIS_TITLE}}/gi,$(this).attr('href'))
-                $('#facetview_rightcol').prepend(vis)
-                $('.facetview_removevis').bind('click',show_vis)
-                bubble($(this).attr('rel'),$('#facetview_rightcol').css('width').replace(/px/,'')-20)
+                    </div>';
+                vis = vis.replace(/{{VIS_TITLE}}/gi,$(this).attr('href'));
+                $('#facetview_rightcol').prepend(vis);
+                $('.facetview_removevis').bind('click',show_vis);
+                bubble($(this).attr('rel'),$('#facetview_rightcol').css('width').replace(/px/,'')-20);
             }
-        }
+        };
+
 
         var bubble = function(facetidx,width) {
-            var facetkey = options.facets[facetidx]['field']
-            var facets = options.data.facets[facetkey]
-            data = {"children":[]}
-            var count = 0
+            var facetkey = options.facets[facetidx]['field'];
+            var facets = options.data.facets[facetkey];
+            data = {"children":[]};
+            var count = 0;
             for (var fct in facets) {
                 var arr = {
                     "className": fct,
                     "packageName": count++,
                     "value": facets[fct]
-                }
-                data["children"].push(arr)
+                };
+                data["children"].push(arr);
             }
             var r = width,
                 format = d3.format(",d"),
-                fill = d3.scale.category20c()
+                fill = d3.scale.category20c();
             var bubble = d3.layout.pack()
                 .sort(null)
-                .size([r, r])
+                .size([r, r]);
             var vis = d3.select("#facetview_visualisation > .modal-body").append("svg:svg")
                 .attr("width", r)
                 .attr("height", r)
-                .attr("class", "bubble")
+                .attr("class", "bubble");
             var node = vis.selectAll("g.node")
                 .data(bubble(data)
                 .filter(function(d) { return !d.children; }))
                 .enter().append("svg:g")
                 .attr("class", "node")
-                .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
+                .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
             node.append("svg:title")
-                .text(function(d) { return d.data.className + ": " + format(d.value); })
+                .text(function(d) { return d.data.className + ": " + format(d.value); });
             node.append("svg:circle")
                 .attr("r", function(d) { return d.r; })
-                .style("fill", function(d) { return fill(d.data.packageName); })
+                .style("fill", function(d) { return fill(d.data.packageName); });
             node.append("svg:text")
                 .attr("text-anchor", "middle")
                 .attr("dy", ".3em")
-                .text(function(d) { return d.data.className.substr(0,10) + ".. (" + d.data.value + ")"; })
+                .text(function(d) { return d.data.className.substr(0,10) + ".. (" + d.data.value + ")"; });
             node.on('click',function(d) {
-                clickbubble(facetkey,d.data.className)
-            })
-        }
+                clickbubble(facetkey,d.data.className);
+            });
+        };
+
 
         var clickbubble = function(facetkey,facetvalue) {
             var newobj = '<a class="facetview_filterselected facetview_clear ' + 
                 'btn btn-info" rel="' + facetkey + 
                 '" alt="remove" title="remove"' +
                 ' href="' + facetvalue + '">' +
-                facetvalue + ' <i class="icon-remove"></i></a>'
-            $('#facetview_selectedfilters').append(newobj)
-            $('.facetview_filterselected').unbind('click',clearfilter)
-            $('.facetview_filterselected').bind('click',clearfilter)
-            options.paging.from = 0
-            dosearch()
-            $('#facetview_visualisation').remove()
-        }
+                facetvalue + ' <i class="icon-remove"></i></a>';
+            $('#facetview_selectedfilters').append(newobj);
+            $('.facetview_filterselected').unbind('click',clearfilter);
+            $('.facetview_filterselected').bind('click',clearfilter);
+            options.paging.from = 0;
+            dosearch();
+            $('#facetview_visualisation').remove();
+        };
         
         // ===============================================
         // functions to do with building results
@@ -552,81 +563,83 @@ jQuery.extend({
         // read the result object and return useful vals depending on if ES or SOLR
         // returns an object that contains things like ["data"] and ["facets"]
         var parseresults = function(dataobj) {
-            var resultobj = new Object()
-            resultobj["records"] = new Array()
-            resultobj["start"] = ""
-            resultobj["found"] = ""
-            resultobj["facets"] = new Object()
+            var resultobj = new Object();
+            resultobj["records"] = new Array();
+            resultobj["start"] = "";
+            resultobj["found"] = "";
+            resultobj["facets"] = new Object();
             if ( options.search_index == "elasticsearch" ) {
                 for (var item in dataobj.hits.hits) {
                     if ( options.fields ) {
-                        resultobj["records"].push(dataobj.hits.hits[item].fields)                    
+                        resultobj["records"].push(dataobj.hits.hits[item].fields);
                     } else if ( options.partial_fields ) {
-                        var keys = []
+                        var keys = [];
                         for(var key in options.partial_fields){
-                            keys.push(key)
+                            keys.push(key);
                         }
-                        resultobj["records"].push(dataobj.hits.hits[item].fields[keys[0]])
+                        resultobj["records"].push(dataobj.hits.hits[item].fields[keys[0]]);
                     } else {
-                        resultobj["records"].push(dataobj.hits.hits[item]._source)
+                        resultobj["records"].push(dataobj.hits.hits[item]._source);
                     }
                 }
-                resultobj["start"] = ""
-                resultobj["found"] = dataobj.hits.total
+                resultobj["start"] = "";
+                resultobj["found"] = dataobj.hits.total;
                 for (var item in dataobj.facets) {
-                    var facetsobj = new Object()
+                    var facetsobj = new Object();
                     for (var thing in dataobj.facets[item]["terms"]) {
-                        facetsobj[ dataobj.facets[item]["terms"][thing]["term"] ] = dataobj.facets[item]["terms"][thing]["count"]
+                        facetsobj[ dataobj.facets[item]["terms"][thing]["term"] ] = dataobj.facets[item]["terms"][thing]["count"];
                     }
-                    resultobj["facets"][item] = facetsobj
+                    resultobj["facets"][item] = facetsobj;
                 }
             } else {
-                resultobj["records"] = dataobj.response.docs
-                resultobj["start"] = dataobj.response.start
-                resultobj["found"] = dataobj.response.numFound
+                resultobj["records"] = dataobj.response.docs;
+                resultobj["start"] = dataobj.response.start;
+                resultobj["found"] = dataobj.response.numFound;
                 if (dataobj.facet_counts) {
                   for (var item in dataobj.facet_counts.facet_fields) {
-                      var facetsobj = new Object()
-                      var count = 0
+                      var facetsobj = new Object();
+                      var count = 0;
                       for ( var each in dataobj.facet_counts.facet_fields[item]) {
                           if ( count % 2 == 0 ) {
-                              facetsobj[ dataobj.facet_counts.facet_fields[item][each] ] = dataobj.facet_counts.facet_fields[item][count + 1]
+                              facetsobj[ dataobj.facet_counts.facet_fields[item][each] ] = dataobj.facet_counts.facet_fields[item][count + 1];
                           }
-                          count += 1
+                          count += 1;
                       }
-                      resultobj["facets"][item] = facetsobj
+                      resultobj["facets"][item] = facetsobj;
                   }
               }
             }
-            return resultobj
-        }
+            return resultobj;
+        };
 
         // decrement result set
         var decrement = function(event) {
-            event.preventDefault()
+            event.preventDefault();
             if ( $(this).html() != '..' ) {
-                options.paging.from = options.paging.from - options.paging.size
-                options.paging.from < 0 ? options.paging.from = 0 : ""
-                dosearch()
+                options.paging.from = options.paging.from - options.paging.size;
+                options.paging.from < 0 ? options.paging.from = 0 : "";
+                dosearch();
             }
-        }
+        };
 
         // increment result set
         var increment = function(event) {
-            event.preventDefault()
+            event.preventDefault();
             if ( $(this).html() != '..' ) {
-                options.paging.from = parseInt($(this).attr('href'))
-                dosearch()
+                options.paging.from = parseInt($(this).attr('href'));
+                dosearch();
             }
-        }
+        };
+
+
 
         // write the metadata to the page
         var putmetadata = function(data) {
             if ( typeof(options.paging.from) != 'number' ) {
-                options.paging.from = parseInt(options.paging.from)
+                options.paging.from = parseInt(options.paging.from);
             }
             if ( typeof(options.paging.size) != 'number' ) {
-                options.paging.size = parseInt(options.paging.size)
+                options.paging.size = parseInt(options.paging.size);
             }
             var metaTmpl = '<div class="pagination"> \
                 <ul> \
@@ -634,133 +647,133 @@ jQuery.extend({
                   <li class="active"><a>{{from}} &ndash; {{to}} of {{total}}</a></li> \
                   <li class="next"><a id="facetview_increment" href="{{to}}">next &raquo;</a></li> \
                 </ul> \
-              </div>'
-            $('#facetview_metadata').html("Not found...")
+              </div>';
+            $('#facetview_metadata').html("Not found...");
             if (data.found) {
-                var from = options.paging.from + 1
-                var size = options.paging.size
-                !size ? size = 10 : ""
-                var to = options.paging.from+size
-                data.found < to ? to = data.found : ""
-                var meta = metaTmpl.replace(/{{from}}/g, from)
-                meta = meta.replace(/{{to}}/g, to)
-                meta = meta.replace(/{{total}}/g, data.found)
-                $('#facetview_metadata').html("").append(meta)
-                $('#facetview_decrement').bind('click',decrement)
-                from < size ? $('#facetview_decrement').html('..') : ""
-                $('#facetview_increment').bind('click',increment)
-                data.found <= to ? $('#facetview_increment').html('..') : ""
+                var from = options.paging.from + 1;
+                var size = options.paging.size;
+                !size ? size = 10 : "";
+                var to = options.paging.from+size;
+                data.found < to ? to = data.found : "";
+                var meta = metaTmpl.replace(/{{from}}/g, from);
+                meta = meta.replace(/{{to}}/g, to);
+                meta = meta.replace(/{{total}}/g, data.found);
+                $('#facetview_metadata').html("").append(meta);
+                $('#facetview_decrement').bind('click',decrement);
+                from < size ? $('#facetview_decrement').html('..') : "";
+                $('#facetview_increment').bind('click',increment);
+                data.found <= to ? $('#facetview_increment').html('..') : "";
             }
-        }
+        };
 
         // given a result record, build how it should look on the page
         var buildrecord = function(index) {
-            var record = options.data['records'][index]
-            var result = options.resultwrap_start
+            var record = options.data['records'][index];
+            var result = options.resultwrap_start;
             // add first image where available
             if (options.display_images) {
-                var recstr = JSON.stringify(record)
-                var regex = /(http:\/\/\S+?\.(jpg|png|gif|jpeg))/
-                var img = regex.exec(recstr)
+                var recstr = JSON.stringify(record);
+                var regex = /(http:\/\/\S+?\.(jpg|png|gif|jpeg))/;
+                var img = regex.exec(recstr);
                 if (img) {
-                    result += '<img class="thumbnail" style="float:left; width:100px; margin:0 5px 10px 0; max-height:150px;" src="' + img[0] + '" />'
+                    result += '<img class="thumbnail" style="float:left; width:100px; margin:0 5px 10px 0; max-height:150px;" src="' + img[0] + '" />';
                 }
             }
             // add the record based on display template if available
-            var display = options.result_display
-            var lines = ''
+            var display = options.result_display;
+            var lines = '';
             for (var lineitem in display) {
-                line = ""
+                line = "";
                 for (object in display[lineitem]) {
-                    var thekey = display[lineitem][object]['field']
-                    parts = thekey.split('.')
+                    var thekey = display[lineitem][object]['field'];
+                    parts = thekey.split('.');
                     // TODO: this should perhaps recurse..
                     if (parts.length == 1) {
-                        var res = record
+                        var res = record;
                     } else if (parts.length == 2) {
-                        var res = record[parts[0]]
+                        var res = record[parts[0]];
                     } else if (parts.length == 3) {
-                        var res = record[parts[0]][parts[1]]
+                        var res = record[parts[0]][parts[1]];
                     }
-                    var counter = parts.length - 1
+                    var counter = parts.length - 1;
                     if (res && res.constructor.toString().indexOf("Array") == -1) {
-                        var thevalue = res[parts[counter]]  // if this is a dict
+                        var thevalue = res[parts[counter]];  // if this is a dict
                     } else {
-                        var thevalue = []
+                        var thevalue = [];
                         for (var row in res) {
-                            thevalue.push(res[row][parts[counter]])
+                            thevalue.push(res[row][parts[counter]]);
                         }
                     }
                     if (thevalue && thevalue.length) {
-                        display[lineitem][object]['pre'] 
-                            ? line += display[lineitem][object]['pre'] : false
+                        display[lineitem][object]['pre']
+                            ? line += display[lineitem][object]['pre'] : false;
                         if ( typeof(thevalue) == 'object' ) {
                             for (var val in thevalue) {
-                                val != 0 ? line += ', ' : false
-                                line += thevalue[val]
+                                val != 0 ? line += ', ' : false;
+                                line += thevalue[val];
                             }
                         } else {
-                            line += thevalue
+                            line += thevalue;
                         }
                         display[lineitem][object]['post'] 
-                            ? line += display[lineitem][object]['post'] : line += ' '
+                            ? line += display[lineitem][object]['post'] : line += ' ';
                     }
                 }
                 if (line) {
-                    lines += line.replace(/^\s/,'').replace(/\s$/,'').replace(/\,$/,'') + "<br />"
+                    lines += line.replace(/^\s/,'').replace(/\s$/,'').replace(/\,$/,'') + "<br />";
                 }
             }
-            lines ? result += lines : result += JSON.stringify(record,"","    ")
-            result += options.resultwrap_end
-            return result
-        }
+            lines ? result += lines : result += JSON.stringify(record,"","    ");
+            result += options.resultwrap_end;
+            return result;
+        };
 
         // view a full record when selected
         var viewrecord = function(event) {
-            event.preventDefault()
-            var record = options.data['records'][$(this).attr('href')]
-            alert(JSON.stringify(record,"","    "))
+            event.preventDefault();
+            var record = options.data['records'][$(this).attr('href')];
+            alert(JSON.stringify(record,"","    "));
             
         }
 
         // put the results on the page
         // TODO: if a filter visualisation is on the page, update it
         showresults = function(sdata) {
-            options.rawdata = sdata
+            options.rawdata = sdata;
             // get the data and parse from the solr / es layout
-            var data = parseresults(sdata)
-            options.data = data
+            var data = parseresults(sdata);
+            options.data = data;
             // change filter options
-            putvalsinfilters(data)
+            putvalsinfilters(data);
             // put result metadata on the page
-            putmetadata(data)
+            putmetadata(data);
             // put the filtered results on the page
-            $('#facetview_results').html("")
-            var infofiltervals = new Array()
+            $('#facetview_results').html("");
+            var infofiltervals = new Array();
             $.each(data.records, function(index, value) {
                 // write them out to the results div
-            	 if (options.renderer) {
-            		 $('#facetview_results').append("<tr><td></td></tr>")
-            		 options.renderer(value, $('#facetview_results tr:last-child td'))
-            	 } else {
-            		 $('#facetview_results').append( buildrecord(index) )
-            		 $('#facetview_results tr:last-child').linkify()
-            	 }
+                 if (options.renderer) {
+                     $('#facetview_results').append("<tr><td></td></tr>");
+                     options.renderer(value, $('#facetview_results tr:last-child td'));
+                 } else {
+                     $('#facetview_results').append( buildrecord(index) );
+                     $('#facetview_results tr:last-child').linkify();
+                 }
             })
             if ( options.result_box_colours.length > 0 ) {
                 jQuery('.result_box').each(function () {
-                    var colour = options.result_box_colours[Math.floor(Math.random()*options.result_box_colours.length)] 
-                jQuery(this).css("background-color", colour)
-                })                
+                    var colour = options.result_box_colours[Math.floor(Math.random()*options.result_box_colours.length)] ;
+                jQuery(this).css("background-color", colour);
+                });
             }
-            $('#facetview_results').children().hide().fadeIn(options.fadein)
-            $('.facetview_viewrecord').bind('click',viewrecord)
-            jQuery('.notify_loading').hide()
+            $('#facetview_results').children().hide().fadeIn(options.fadein);
+            $('.facetview_viewrecord').bind('click',viewrecord);
+            jQuery('.notify_loading').hide();
             // if a post search callback is provided, run it
             if (typeof options.post_search_callback == 'function') {
-                options.post_search_callback.call(this)
+                options.post_search_callback.call(this);
             }
-        }
+        };
 
         // ===============================================
         // functions to do with searching
@@ -769,149 +782,149 @@ jQuery.extend({
         // build the search query URL based on current params
         var solrsearchquery = function() {
             // set default URL params
-            var urlparams = ""
+            var urlparams = "";
             for (var item in options.default_url_params) {
-                urlparams += item + "=" + options.default_url_params[item] + "&"
+                urlparams += item + "=" + options.default_url_params[item] + "&";
             }
             // do paging params
-            var pageparams = ""
+            var pageparams = "";
             for (var item in options.paging) {
-                pageparams += item + "=" + options.paging[item] + "&"
+                pageparams += item + "=" + options.paging[item] + "&";
             }
             // set facet params
-            var urlfilters = ""
+            var urlfilters = "";
             for (var item in options.facets) {
-                urlfilters += "facet.field=" + options.facets[item]['field'] + "&"
+                urlfilters += "facet.field=" + options.facets[item]['field'] + "&";
             }
             // build starting URL
-            var theurl = options.search_url + urlparams + pageparams + urlfilters + options.query_parameter + "="
+            var theurl = options.search_url + urlparams + pageparams + urlfilters + options.query_parameter + "=";
             // add default query values
             // build the query, starting with default values
-            var query = ""
+            var query = "";
             for (var item in options.predefined_filters) {
-                query += item + ":" + options.predefined_filters[item] + " AND "
+                query += item + ":" + options.predefined_filters[item] + " AND ";
             }
             $('.facetview_filterselected',obj).each(function() {
                 query += $(this).attr('rel') + ':"' + 
-                    $(this).attr('href') + '" AND '
-            })
+                    $(this).attr('href') + '" AND ';
+            });
             // add any freetext filter
             if (options.q != "") {
-                query += options.q + '*'
+                query += options.q + '*';
             }
-            query = query.replace(/ AND $/,"")
+            query = query.replace(/ AND $/,"");
             // set a default for blank search
             if (query == "") {
-                query = "*:*"
+                query = "*:*";
             }
-            theurl += query
-            return theurl
-        }
+            theurl += query;
+            return theurl;
+        };
 
         // build the search query URL based on current params
         var elasticsearchquery = function() {
-            var qs = {}
-            var bool = false
-            var nested = false
+            var qs = {};
+            var bool = false;
+            var nested = false;
             // TODO: add a check to see if this is an OR query with only one val - 
             // in which case ensure the search query is at least *
             $('.facetview_filterselected',obj).each(function() {
-                !bool ? bool = {'must': [] } : ""
-                var logic = options.default_facet_logic
+                !bool ? bool = {'must': [] } : "";
+                var logic = options.default_facet_logic;
                 if ( $(this).hasClass('facetview_facetrange') ) {
                     var rngs = {
                         'from': $('.facetview_lowrangeval_' + $(this).attr('rel'), this).html(),
                         'to': $('.facetview_highrangeval_' + $(this).attr('rel'), this).html()
-                    }
-                    var rel = options.facets[ $(this).attr('rel') ]['field']
-                    options.allow_facet_logic_choice && $('#facetview_facetlogic_' + rel.replace('.','_')).html() != 'AND' ? logic = 'OR' : ""
-                    logic != 'AND' && bool['should'] == undefined ? bool['should'] = [] : ""
-                    var obj = {'range': {}}
-                    obj['range'][ rel ] = rngs
+                    };
+                    var rel = options.facets[ $(this).attr('rel') ]['field'];
+                    options.allow_facet_logic_choice && $('#facetview_facetlogic_' + rel.replace('.','_')).html() != 'AND' ? logic = 'OR' : "";
+                    logic != 'AND' && bool['should'] == undefined ? bool['should'] = [] : "";
+                    var obj = {'range': {}};
+                    obj['range'][ rel ] = rngs;
                     // check if this should be a nested query
-                    var parts = rel.split('.')
+                    var parts = rel.split('.');
                     if ( options.nested.indexOf(parts[0]) != -1 ) {
                         if (logic == 'AND') {
-                            !nested ? nested = {"nested":{"_scope":parts[0],"path":parts[0],"query":{"bool":{"must":[obj]}}}} : nested.nested.query.bool.must.push(obj)
+                            !nested ? nested = {"nested":{"_scope":parts[0],"path":parts[0],"query":{"bool":{"must":[obj]}}}} : nested.nested.query.bool.must.push(obj);
                         } else {
-                            !nested ? nested = {"nested":{"_scope":parts[0],"path":parts[0],"query":{"bool":{"should":[obj]}}}} : nested.nested.query.bool.should.push(obj)
+                            !nested ? nested = {"nested":{"_scope":parts[0],"path":parts[0],"query":{"bool":{"should":[obj]}}}} : nested.nested.query.bool.should.push(obj);
                         }
                     } else {
-                        logic == 'AND' ? bool['must'].push(obj) : bool['should'].push(obj)
+                        logic == 'AND' ? bool['must'].push(obj) : bool['should'].push(obj);
                     }
                 } else {
-                    var obj = {'term':{}}
-                    obj['term'][ $(this).attr('rel') ] = $(this).attr('href')
-                    options.allow_facet_logic_choice && $('#facetview_facetlogic_' + $(this).attr('rel').replace('.','_')).html() != 'AND' ? logic = 'OR' : ""
-                    logic != 'AND' && bool['should'] == undefined ? bool['should'] = [] : ""
+                    var obj = {'term':{}};
+                    obj['term'][ $(this).attr('rel') ] = $(this).attr('href');
+                    options.allow_facet_logic_choice && $('#facetview_facetlogic_' + $(this).attr('rel').replace('.','_')).html() != 'AND' ? logic = 'OR' : "";
+                    logic != 'AND' && bool['should'] == undefined ? bool['should'] = [] : "";
                     // check if this should be a nested query
-                    var parts = $(this).attr('rel').split('.')
+                    var parts = $(this).attr('rel').split('.');
                     if ( options.nested.indexOf(parts[0]) != -1 ) {
                         if (logic == 'AND') {
-                            !nested ? nested = {"nested":{"_scope":parts[0],"path":parts[0],"query":{"bool":{"must":[obj]}}}} : nested.nested.query.bool.must.push(obj)
+                            !nested ? nested = {"nested":{"_scope":parts[0],"path":parts[0],"query":{"bool":{"must":[obj]}}}} : nested.nested.query.bool.must.push(obj);
                         } else {
-                            !nested ? nested = {"nested":{"_scope":parts[0],"path":parts[0],"query":{"bool":{"should":[obj]}}}} : nested.nested.query.bool.should.push(obj)
+                            !nested ? nested = {"nested":{"_scope":parts[0],"path":parts[0],"query":{"bool":{"should":[obj]}}}} : nested.nested.query.bool.should.push(obj);
                         }
                     } else {
-                        logic == 'AND' ? bool['must'].push(obj) : bool['should'].push(obj)
+                        logic == 'AND' ? bool['must'].push(obj) : bool['should'].push(obj);
                     }
                 }
-            })
+            });
             for (var item in options.predefined_filters) {
-                !bool ? bool = {'must': [] } : ""
-                var obj = {'term': {}}
-                obj['term'][ item ] = options.predefined_filters[item]
+                !bool ? bool = {'must': [] } : "";
+                var obj = {'term': {}};
+                obj['term'][ item ] = options.predefined_filters[item];
                 // check if this should be a nested query
-                var parts = item.split('.')
+                var parts = item.split('.');
                 if ( options.nested.indexOf(parts[0]) != -1 ) {
-                    !nested ? nested = {"nested":{"_scope":parts[0],"path":parts[0],"query":{"bool":{"must":[obj]}}}} : nested.nested.query.bool.must.push(obj)
+                    !nested ? nested = {"nested":{"_scope":parts[0],"path":parts[0],"query":{"bool":{"must":[obj]}}}} : nested.nested.query.bool.must.push(obj);
                 } else {
-                    bool['must'].push(obj)
+                    bool['must'].push(obj);
                 }
-                bool['must'].push(obj)
+                bool['must'].push(obj);
             }
             if (bool) {
                 options.q != ""
                     ? bool['must'].push( {'query_string': { 'query': options.q } } )
-                    : ""
-                nested ? bool['must'].push(nested) : ""
-                qs['query'] = {'bool': bool}
+                    : "";
+                nested ? bool['must'].push(nested) : "";
+                qs['query'] = {'bool': bool};
             } else {
                 options.q != ""
                     ? qs['query'] = {'query_string': { 'query': options.q } }
-                    : qs['query'] = {'match_all': {}}
+                    : qs['query'] = {'match_all': {}};
             }
             // set any paging
-            options.paging.from != 0 ? qs['from'] = options.paging.from : ""
-            options.paging.size != 10 ? qs['size'] = options.paging.size : ""
+            options.paging.from != 0 ? qs['from'] = options.paging.from : "";
+            options.paging.size != 10 ? qs['size'] = options.paging.size : "";
             // set any sort or fields options
-            options.sort ? qs['sort'] = options.sort : ""
-            options.fields ? qs['fields'] = options.fields : ""
-            options.partial_fields ? qs['partial_fields'] = options.partial_fields : ""
+            options.sort ? qs['sort'] = options.sort : "";
+            options.fields ? qs['fields'] = options.fields : "";
+            options.partial_fields ? qs['partial_fields'] = options.partial_fields : "";
             // set any facets
-            qs['facets'] = {}
+            qs['facets'] = {};
             for (var item in options.facets) {
-                var obj = jQuery.extend(true, {}, options.facets[item] )
-                delete obj['display']
-                var parts = obj['field'].split('.')
-                qs['facets'][obj['field']] = {"terms":obj}
+                var obj = jQuery.extend(true, {}, options.facets[item] );
+                delete obj['display'];
+                var parts = obj['field'].split('.');
+                qs['facets'][obj['field']] = {"terms":obj};
                 if ( options.nested.indexOf(parts[0]) != -1 ) {
-                    nested ? qs['facets'][obj['field']]["scope"] = parts[0] : qs['facets'][obj['field']]["nested"] = parts[0]
+                    nested ? qs['facets'][obj['field']]["scope"] = parts[0] : qs['facets'][obj['field']]["nested"] = parts[0];
                 }
             }
-            jQuery.extend(true, qs['facets'], options.extra_facets )
-            //alert(JSON.stringify(qs,"","    "))
-            return JSON.stringify(qs)
-        }
+            jQuery.extend(true, qs['facets'], options.extra_facets );
+            //alert(JSON.stringify(qs,"","    "));
+            return JSON.stringify(qs);
+        };
 
         // execute a search
         var dosearch = function() {
-            jQuery('.notify_loading').show()
+            jQuery('.notify_loading').show();
             // update the options with the latest q value
             // TODO: should add a check and perhaps a clear of other searchboxes
             $(options.searchbox_class).each(function() {
-                $(this).val().length != 0 ? options.q = $(this).val() : ""
-            })
+                $(this).val().length != 0 ? options.q = $(this).val() : "";
+            });
             // make the search query
             if ( options.search_index == "elasticsearch" ) {
               $.ajax({
@@ -921,147 +934,150 @@ jQuery.extend({
                 // processData: false,
                 dataType: options.datatype,
                 success: showresults
-              })
+              });
             } else {
-                $.ajax( { type: "get", url: solrsearchquery(), dataType:options.datatype, jsonp:"json.wrf", success: function(data) { showresults(data) } } )
+                $.ajax( { type: "get", url: solrsearchquery(), dataType:options.datatype, jsonp:"json.wrf", success: function(data) { showresults(data) } } );
             }
-        }
+        };
 
         // trigger a search when a filter choice is clicked
         var clickfilterchoice = function(event) {
-            event.preventDefault()
+            event.preventDefault();
                 
             var newobj = '<a class="facetview_filterselected facetview_clear ' + 
                 'btn btn-info" rel="' + $(this).attr("rel") + 
                 '" alt="remove" title="remove"' +
                 ' href="' + $(this).attr("href") + '">' +
-                $(this).html().replace(/\(.*\)/,'') + ' <i class="icon-white icon-remove" style="margin-top:1px;"></i></a>'
+                $(this).html().replace(/\(.*\)/,'') + ' <i class="icon-white icon-remove" style="margin-top:1px;"></i></a>';
 
             if ( $('#facetview_facetlogicgroup_' + $(this).attr("rel").replace('.','_')).length ) {
-                $('#facetview_facetlogicgroup_' + $(this).attr("rel").replace('.','_')).append(newobj)
+                $('#facetview_facetlogicgroup_' + $(this).attr("rel").replace('.','_')).append(newobj);
             } else {
-                var preobj = '<div id="facetview_facetlogicgroup_' + $(this).attr("rel").replace('.','_') + '" class="btn-group">'
+                var preobj = '<div id="facetview_facetlogicgroup_' + $(this).attr("rel").replace('.','_') + '" class="btn-group">';
                 if ( options.allow_facet_logic_choice ) {
                     preobj += '<a class="btn facetview_facetlogic" id="facetview_facetlogic_' + $(this).attr("rel").replace('.','_') +
-                    '" alt="switch logic" rel="' + $(this).attr("rel") + '" href="">'
-                    preobj += options.default_facet_logic
-                    preobj += '</a>'
-                    newobj = preobj + newobj + '</div>'
+                    '" alt="switch logic" rel="' + $(this).attr("rel") + '" href="">';
+                    preobj += options.default_facet_logic;
+                    preobj += '</a>';
+                    newobj = preobj + newobj + '</div>';
                 }
-                $('#facetview_selectedfilters').append(newobj)
+                $('#facetview_selectedfilters').append(newobj);
             }
 
-            $('.facetview_filterselected').unbind('click',clearfilter)
-            $('.facetview_filterselected').bind('click',clearfilter)
-            $('.facetview_facetlogic').unbind('click',changelogic)
-            $('.facetview_facetlogic').bind('click',changelogic)
-            options.paging.from = 0
-            dosearch()
-        }
+            $('.facetview_filterselected').unbind('click',clearfilter);
+            $('.facetview_filterselected').bind('click',clearfilter);
+            $('.facetview_facetlogic').unbind('click',changelogic);
+            $('.facetview_facetlogic').bind('click',changelogic);
+            options.paging.from = 0;
+            dosearch();
+        };
 
         // clear a filter when clear button is pressed, and re-do the search
         var clearfilter = function(event) {
-            event.preventDefault()
+            event.preventDefault();
             if ( options.allow_facet_logic_choice && $(this).siblings().length > 1 ) {
-                $(this).remove()
+                $(this).remove();
             } else {
-                $(this).parent().remove()
+                $(this).parent().remove();
             }
-            dosearch()
-        }
+            dosearch();
+        };
         
         // change selected facet logic between AND and OR
         var changelogic = function(event) {
-            event.preventDefault()
+            event.preventDefault();
             if ( $(this).html() == 'AND' ) {
-                $('#facetview_facetlogic_' + $(this).attr('rel').replace('.','_')).html('&nbsp;OR&nbsp;')
+                $('#facetview_facetlogic_' + $(this).attr('rel').replace('.','_')).html('&nbsp;OR&nbsp;');
             } else {
-                $('#facetview_facetlogic_' + $(this).attr('rel').replace('.','_')).html('AND')
+                $('#facetview_facetlogic_' + $(this).attr('rel').replace('.','_')).html('AND');
             }
-            dosearch()
-        }
+            dosearch();
+        };
+
+
+//----------- NEED TO ENABLE BELOW FUNCTION -----------
 
         // do search options
         var fixmatch = function(event) {
-            event.preventDefault()
-            var fixtype = $(this).attr('id')
+            event.preventDefault();
+            var fixtype = $(this).attr('id');
             $(options.searchbox_class).each(function() {
                 if ( fixtype == "facetview_partial_match" && $(this).val().length != 0 ) {
-                    var newvals = $(this).val().replace(/"/gi,'').replace(/\*/gi,'').replace(/\~/gi,'').split(' ')
-                    var newstring = ""
+                    var newvals = $(this).val().replace(/"/gi,'').replace(/\*/gi,'').replace(/\~/gi,'').split(' ');
+                    var newstring = "";
                     for (item in newvals) {
                         if (newvals[item].length > 0 && newvals[item] != ' ') {
                             if (newvals[item] == 'OR' || newvals[item] == 'AND') {
-                                newstring += newvals[item] + ' '
+                                newstring += newvals[item] + ' ';
                             } else {
-                                newstring += '*' + newvals[item] + '* '
+                                newstring += '*' + newvals[item] + '* ';
                             }
                         }
                     }
-                    $(this).val(newstring)
-                    $(this).focus().trigger('keyup')
+                    $(this).val(newstring);
+                    $(this).focus().trigger('keyup');
                 } else if ( fixtype == "facetview_fuzzy_match" && $(this).val().length != 0 ) {
-                    var newvals = $(this).val().replace(/"/gi,'').replace(/\*/gi,'').replace(/\~/gi,'').split(' ')
-                    var newstring = ""
+                    var newvals = $(this).val().replace(/"/gi,'').replace(/\*/gi,'').replace(/\~/gi,'').split(' ');
+                    var newstring = "";
                     for (item in newvals) {
                         if (newvals[item].length > 0 && newvals[item] != ' ') {
                             if (newvals[item] == 'OR' || newvals[item] == 'AND') {
-                                newstring += newvals[item] + ' '
+                                newstring += newvals[item] + ' ';
                             } else {
-                                newstring += newvals[item] + '~ '
+                                newstring += newvals[item] + '~ ';
                             }
                         }
                     }
-                    $(this).val(newstring)
-                    $(this).focus().trigger('keyup')
+                    $(this).val(newstring);
+                    $(this).focus().trigger('keyup');
                 } else if ( fixtype == "facetview_exact_match" && $(this).val().length != 0 ) {
-                    var newvals = $(this).val().replace(/"/gi,'').replace(/\*/gi,'').replace(/\~/gi,'').split(' ')
-                    var newstring = ""
+                    var newvals = $(this).val().replace(/"/gi,'').replace(/\*/gi,'').replace(/\~/gi,'').split(' ');
+                    var newstring = "";
                     for (item in newvals) {
                         if (newvals[item].length > 0 && newvals[item] != ' ') {
                             if (newvals[item] == 'OR' || newvals[item] == 'AND') {
-                                newstring += newvals[item] + ' '
+                                newstring += newvals[item] + ' ';
                             } else {
-                                newstring += '"' + newvals[item] + '" '
+                                newstring += '"' + newvals[item] + '" ';
                             }
                         }
                     }
-                    $.trim(newstring,' ')
-                    $(this).val(newstring)
-                    $(this).focus().trigger('keyup')
+                    $.trim(newstring,' ');
+                    $(this).val(newstring);
+                    $(this).focus().trigger('keyup');
                 } else if ( fixtype == "facetview_match_all" && $(this).val().length != 0 ) {
-                    $(this).val($.trim($(this).val().replace(/ OR /gi,' ')))
-                    $(this).val($(this).val().replace(/ /gi,' AND '))
-                    $(this).focus().trigger('keyup')
+                    $(this).val($.trim($(this).val().replace(/ OR /gi,' ')));
+                    $(this).val($(this).val().replace(/ /gi,' AND '));
+                    $(this).focus().trigger('keyup');
                 } else if ( fixtype == "facetview_match_any" && $(this).val().length != 0 ) {
-                    $(this).val($.trim($(this).val().replace(/ AND /gi,' ')))
-                    $(this).val($(this).val().replace(/ /gi,' OR '))
-                    $(this).focus().trigger('keyup')
+                    $(this).val($.trim($(this).val().replace(/ AND /gi,' ')));
+                    $(this).val($(this).val().replace(/ /gi,' OR '));
+                    $(this).focus().trigger('keyup');
                 }
-            })
-        }
+            });
+        };
 
 
         // adjust how many results are shown
         var howmany = function(event) {
-            event.preventDefault()
+            event.preventDefault();
             var newhowmany = prompt('Currently displaying ' + options.paging.size + 
-                ' results per page. How many would you like instead?')
+                ' results per page. How many would you like instead?');
             if (newhowmany) {
-                options.paging.size = parseInt(newhowmany)
-                options.paging.from = 0
-                $('#facetview_howmany').html('results per page (' + options.paging.size + ')')
-                dosearch()
+                options.paging.size = parseInt(newhowmany);
+                options.paging.from = 0;
+                $('#facetview_howmany').html('results per page (' + options.paging.size + ')');
+                dosearch();
             }
-        }
+        };
 
         // the facet view object to be appended to the page
-        var thefacetview = '<div id="facetview"><div class="row-fluid">'
+        var thefacetview = '<div id="facetview"><div class="row-fluid">';
         if ( options.facets.length > 0 ) {
-            thefacetview += '<div class="span3"><div id="facetview_filters"></div></div>'
-            thefacetview += '<div class="span9" id="facetview_rightcol">'
+            thefacetview += '<div class="span3"><div id="facetview_filters"></div></div>';
+            thefacetview += '<div class="span9" id="facetview_rightcol">';
         } else {
-            thefacetview += '<div class="span12" id="facetview_rightcol">'
+            thefacetview += '<div class="span12" id="facetview_rightcol">';
         }
         if ( options.embedded_search == true ) {
             thefacetview += '<div id="facetview_searchbar" style="display:inline; float:left;" class="input-prepend"> \
@@ -1088,57 +1104,57 @@ jQuery.extend({
                 <li><a id="facetview_howmany" href="#">results per page ({{HOW_MANY}})</a></li> \
                 </ul> \
                </div> \
-            '
+            ';
         }
-        thefacetview += '<div style="clear:both;" class="btn-toolbar" id="facetview_selectedfilters"></div>'
-        thefacetview += options.searchwrap_start + options.searchwrap_end
-        thefacetview += '<div id="facetview_metadata"></div></div></div></div>'
+        thefacetview += '<div style="clear:both;" class="btn-toolbar" id="facetview_selectedfilters"></div>';
+        thefacetview += options.searchwrap_start + options.searchwrap_end;
+        thefacetview += '<div id="facetview_metadata"></div></div></div></div>';
 
         // what to do when ready to go
         var whenready = function() {
             // append the facetview object to this object
-            thefacetview = thefacetview.replace(/{{HOW_MANY}}/gi,options.paging.size)
-            $(obj).append(thefacetview)
+            thefacetview = thefacetview.replace(/{{HOW_MANY}}/gi,options.paging.size);
+            $(obj).append(thefacetview);
 
             if ( options.embedded_search == true ) {
                 // setup search option triggers
-                $('#facetview_partial_match').bind('click',fixmatch)
-                $('#facetview_exact_match').bind('click',fixmatch)
-                $('#facetview_fuzzy_match').bind('click',fixmatch)
-                $('#facetview_match_any').bind('click',fixmatch)
-                $('#facetview_match_all').bind('click',fixmatch)
-                $('#facetview_howmany').bind('click',howmany)
+                $('#facetview_partial_match').bind('click',fixmatch);
+                $('#facetview_exact_match').bind('click',fixmatch);
+                $('#facetview_fuzzy_match').bind('click',fixmatch);
+                $('#facetview_match_any').bind('click',fixmatch);
+                $('#facetview_match_all').bind('click',fixmatch);
+                $('#facetview_howmany').bind('click',howmany);
                 // resize the searchbar
-                var thewidth = $('#facetview_searchbar').parent().width()
-                $('#facetview_searchbar').css('width',thewidth - 50 + 'px')
-                $(options.searchbox_class).css('width', thewidth - 88 + 'px')
+                var thewidth = $('#facetview_searchbar').parent().width();
+                $('#facetview_searchbar').css('width',thewidth - 50 + 'px');
+                $(options.searchbox_class).css('width', thewidth - 88 + 'px');
             }
 
 
             // check paging info is available
-            !options.paging.size ? options.paging.size = 10 : ""
-            !options.paging.from ? options.paging.from = 0 : ""
+            !options.paging.size ? options.paging.size = 10 : "";
+            !options.paging.from ? options.paging.from = 0 : "";
 
             // set any default search values into the last search bar
-            var allempty = true
+            var allempty = true;
             $(options.searchbox_class).each(function() {
-                $(this).val().length != 0 ? allempty = false : ""
-            })
-            allempty && options.q != "" ? $(options.searchbox_class).last().val(options.q) : ""
+                $(this).val().length != 0 ? allempty = false : "";
+            });
+            allempty && options.q != "" ? $(options.searchbox_class).last().val(options.q) : "";
 
             // append the filters to the facetview object
-            buildfilters()
-            $(options.searchbox_class).bindWithDelay('keyup',dosearch,options.freetext_submit_delay)
+            buildfilters();
+            $(options.searchbox_class).bindWithDelay('keyup',dosearch,options.freetext_submit_delay);
 
             // trigger the search once on load, to get all results
-            options.initialsearch ? dosearch() : ""
-        }
+            options.initialsearch ? dosearch() : "";
+        };
 
         // ===============================================
         // now create the plugin on the page
         return this.each(function() {
             // get this object
-            obj = $(this)
+            obj = $(this);
             
             // check for remote config options, then do first search
             if (options.config_file) {
@@ -1147,33 +1163,34 @@ jQuery.extend({
                     url: options.config_file,
                     dataType: "jsonp",
                     success: function(data) {
-                        options = $.extend(options, data)
-                        whenready()
+                        options = $.extend(options, data);
+                        whenready();
                     },
                     error: function() {
                         $.ajax({
                             type: "get",
                             url: options.config_file,
                             success: function(data) {
-                                options = $.extend(options, $.parseJSON(data))
-                                whenready()
+                                options = $.extend(options, $.parseJSON(data));
+                                whenready();
                             },
                             error: function() {
-                                whenready()
+                                whenready();
                             }
-                        })
+                        });
                     }
-                })
+                });
             } else {
-                whenready()
+                whenready();
             }
 
-        }) // end of the function  
+        }); // end of the function  
 
-    }
+
+    };
+
 
     // facetview options are declared as a function so that they can be retrieved
     // externally (which allows for saving them remotely etc)
-    $.fn.facetview.options = {}
-
-})(jQuery)
+    $.fn.facetview.options = {};
+})(jQuery);
