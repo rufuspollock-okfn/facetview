@@ -155,11 +155,14 @@ jQuery.extend({
             "freetext_submit_delay":"500",          // delay for auto-update of search results
             "query_parameter":"q",                  // the query parameter if required for setting to the search URL
             "q":"",                                 // default query value
-            "predefined_filters":{},                // predefined filters - query values to apply to all searches
+            "predefined_filters":{},                // queries to apply to all searches. give each one a reference key, then inside define it as per an ES query for appending to the "must" 
+                                                    // if these filters should be applied at the nested level, then prefix the name with the relevant nesting prefix. e.g. if your nested object
+                                                    // is called stats, call your filter stats.MYFILTER
             "paging":{
                 "from":0,                           // where to start the results from
                 "size":10                           // how many results to get
             },
+            "pager_on_top": false,                  // set to true to show pager (less, more, total) on top as well as bottom of search results
             "sort":[],                              // sort parameters for result set, as per elasticsearch
             "searchwrap_start":'<table class="table table-striped" id="facetview_results">',                  // wrap the search result set in these tags
             "searchwrap_end":"</table>",            // wrap the search result set in these tags
@@ -643,12 +646,12 @@ jQuery.extend({
             }
             var metaTmpl = '<div class="pagination"> \
                 <ul> \
-                  <li class="prev"><a id="facetview_decrement" href="{{from}}">&laquo; back</a></li> \
+                  <li class="prev"><a class="facetview_decrement" href="{{from}}">&laquo; back</a></li> \
                   <li class="active"><a>{{from}} &ndash; {{to}} of {{total}}</a></li> \
-                  <li class="next"><a id="facetview_increment" href="{{to}}">next &raquo;</a></li> \
+                  <li class="next"><a class="facetview_increment" href="{{to}}">next &raquo;</a></li> \
                 </ul> \
               </div>';
-            $('#facetview_metadata').html("Not found...");
+            $('.facetview_metadata').first().html("Not found...");
             if (data.found) {
                 var from = options.paging.from + 1;
                 var size = options.paging.size;
@@ -658,11 +661,11 @@ jQuery.extend({
                 var meta = metaTmpl.replace(/{{from}}/g, from);
                 meta = meta.replace(/{{to}}/g, to);
                 meta = meta.replace(/{{total}}/g, data.found);
-                $('#facetview_metadata').html("").append(meta);
-                $('#facetview_decrement').bind('click',decrement);
-                from < size ? $('#facetview_decrement').html('..') : "";
-                $('#facetview_increment').bind('click',increment);
-                data.found <= to ? $('#facetview_increment').html('..') : "";
+                $('.facetview_metadata').html("").append(meta);
+                $('.facetview_decrement').bind('click',decrement);
+                from < size ? $('.facetview_decrement').html('..') : "";
+                $('.facetview_increment').bind('click',increment);
+                data.found <= to ? $('.facetview_increment').html('..') : "";
             }
         };
 
@@ -801,9 +804,9 @@ jQuery.extend({
             // add default query values
             // build the query, starting with default values
             var query = "";
-            for (var item in options.predefined_filters) {
-                query += item + ":" + options.predefined_filters[item] + " AND ";
-            }
+            //for (var item in options.predefined_filters) {
+            //    query += item + ":" + options.predefined_filters[item] + " AND ";
+            //}
             $('.facetview_filterselected',obj).each(function() {
                 query += $(this).attr('rel') + ':"' + 
                     $(this).attr('href') + '" AND ';
@@ -872,16 +875,13 @@ jQuery.extend({
             });
             for (var item in options.predefined_filters) {
                 !bool ? bool = {'must': [] } : "";
-                var obj = {'term': {}};
-                obj['term'][ item ] = options.predefined_filters[item];
-                // check if this should be a nested query
+                var obj = options.predefined_filters[item];
                 var parts = item.split('.');
                 if ( options.nested.indexOf(parts[0]) != -1 ) {
                     !nested ? nested = {"nested":{"_scope":parts[0],"path":parts[0],"query":{"bool":{"must":[obj]}}}} : nested.nested.query.bool.must.push(obj);
                 } else {
                     bool['must'].push(obj);
                 }
-                bool['must'].push(obj);
             }
             if (bool) {
                 options.q != ""
@@ -1107,8 +1107,9 @@ jQuery.extend({
             ';
         }
         thefacetview += '<div style="clear:both;" class="btn-toolbar" id="facetview_selectedfilters"></div>';
+        options.pager_on_top ? thefacetview += '<div class="facetview_metadata" style="margin-top:20px;"></div>' : "";
         thefacetview += options.searchwrap_start + options.searchwrap_end;
-        thefacetview += '<div id="facetview_metadata"></div></div></div></div>';
+        thefacetview += '<div class="facetview_metadata"></div></div></div></div>';
 
         // what to do when ready to go
         var whenready = function() {
