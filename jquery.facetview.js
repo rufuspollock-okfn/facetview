@@ -138,8 +138,8 @@ jQuery.extend({
                                                     // be sure if you expect to define any of these as nested that you use their full scope eg. nestedobj.nestedfield
             "extra_facets": {},                     // any extra facet queries, so results can be retrieved - NOT used for filter buttons. define as per elasticsearch facets
             "allow_facet_logic_choice": false,      // whether or not users can change facet logic from default - say from AND to OR
-            "searchbox_fieldselect": ['author.name'],            // a list of field names to which search terms can be restricted
-            "search_sortby": ['year'],                    // a list of field names by which to sort search results
+            "searchbox_fieldselect": [{'field':'author.name','display':'author name'}],            // a list of objects describing fields to which search terms can be restricted. each object requires 'display' for nice human-readable display option, and 'field' for field to actually search on
+            "search_sortby": [{'display':'year','field':'year'}],                    // a list of objects describing sort option dropdowns. each object requires 'display' for a nice huma-readable display option, and 'field' for the field that sorting will actually occur on. NOTE sort fields must be unique on your ES index, not lists. Otherwise it will fail silently. Choose wisely.
             "enable_rangeselect": false,            // enable or disable the ability to select a range across a filter - RANGES NEED SOME WORK AFTER RECENT UPDATE, KEEP DISABLED FOR NOW
             "default_facet_logic": "AND",           // how facet choices should be applied to the query by default
             "result_display": resdisplay,           // display template for search results
@@ -747,7 +747,7 @@ jQuery.extend({
             options.paging.from != 0 ? qs['from'] = options.paging.from : "";
             options.paging.size != 10 ? qs['size'] = options.paging.size : "";
             // set any sort or fields options
-            options.sort ? qs['sort'] = options.sort : "";
+            options.sort.length > 0 ? qs['sort'] = options.sort : "";
             options.fields ? qs['fields'] = options.fields : "";
             options.partial_fields ? qs['partial_fields'] = options.partial_fields : "";
             // set any facets
@@ -763,6 +763,7 @@ jQuery.extend({
             }
             jQuery.extend(true, qs['facets'], options.extra_facets );
             //alert(JSON.stringify(qs,"","    "));
+            options.querystring = JSON.stringify(qs);
             return JSON.stringify(qs);
         };
 
@@ -885,9 +886,11 @@ jQuery.extend({
                 var sorton = sortchoice + '.exact';
                 sorting[sorton] = {'order': $('.facetview_order').attr('href')};
                 options.sort = [sorting];
-                options.paging.from = 0;
-                dosearch();
+            } else {
+                options.sort = [];
             }
+            options.paging.from = 0;
+            dosearch();
         };
         
         // adjust the search field focus
@@ -948,8 +951,9 @@ jQuery.extend({
                     padding-right:2px; padding-left:4px; border-right:0;" title="order descending" href="desc"><i class="icon-arrow-down"></i></a>';
                 thefacetview += '<select class="facetview_orderby" style="width:80px; background:#eee; border-left:0px; -moz-border-radius:0; -webkit-border-radius:0; border-radius:0;"> \
                     <option value="">order by</option>';
-                for ( var item in options.search_sortby ) {
-                    thefacetview += '<option>' + options.search_sortby[item] + '</option>';
+                for ( var each in options.search_sortby ) {
+                    var obj = options.search_sortby[each];
+                    thefacetview += '<option value="' + obj['field'] + '">' + obj['display'] + '</option>';
                 };
                 thefacetview += '</select>';
             };
@@ -957,8 +961,9 @@ jQuery.extend({
                 thefacetview += '<select class="facetview_searchfield" style="width:100px; background:' + options.searchbox_shade;
                 thefacetview += '; border-left:0px; -moz-border-radius:0; -webkit-border-radius:0; border-radius:0;">';
                 thefacetview += '<option value="">search all</option>';
-                for ( var item in options.searchbox_fieldselect ) {
-                    thefacetview += '<option>' + options.searchbox_fieldselect[item] + '</option>';
+                for ( var each in options.searchbox_fieldselect ) {
+                    var obj = options.searchbox_fieldselect[each];
+                    thefacetview += '<option value="' + obj['field'] + '">' + obj['display'] + '</option>';
                 };
                 thefacetview += '</select>';
             };
