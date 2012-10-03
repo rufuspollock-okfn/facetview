@@ -824,10 +824,12 @@ jQuery.extend({
         // clear a filter when clear button is pressed, and re-do the search
         var clearfilter = function(event) {
             event.preventDefault();
-            if ( options.allow_facet_logic_choice && $(this).siblings().length > 1 ) {
-                $(this).remove();
-            } else {
+            if ( options.allow_facet_logic_choice && $(this).siblings().length == 1 ) {
+                // when AND/OR choice is allowed, but there is only one val, clear the whole thing
                 $(this).parent().remove();
+            } else {
+                // otherwise only clear the item itself
+                $(this).remove();
             }
             dosearch();
         };
@@ -967,7 +969,7 @@ jQuery.extend({
                 };
                 thefacetview += '</select>';
             };
-            thefacetview += '<input class="facetview_freetext span4" style="-moz-border-radius:0 5px 5px 0; \
+            thefacetview += '<input type="text" class="facetview_freetext span4" style="-moz-border-radius:0 5px 5px 0; \
                 -webkit-border-radius:0 5px 5px 0; border-radius:0 5px 5px 0; margin-left:-1px; background:' + options.searchbox_shade + ';" name="q" \
                 value="" placeholder="search term" autofocus /> \
             </div>';
