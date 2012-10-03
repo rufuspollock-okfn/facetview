@@ -887,7 +887,7 @@ jQuery.extend({
             var sortchoice = $('.facetview_orderby').val();
             if ( sortchoice.length != 0 ) {
                 var sorting = {};
-                var sorton = sortchoice + '.exact';
+                var sorton = sortchoice;
                 sorting[sorton] = {'order': $('.facetview_order').attr('href')};
                 options.sort = [sorting];
             } else {
