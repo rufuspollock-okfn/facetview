@@ -954,7 +954,8 @@ jQuery.extend({
                 thefacetview += '<a class="btn btn-small facetview_order" title="current order descending. Click to change to ascending" \
                     href="desc"><i class="icon-arrow-down"></i></a>';
                 thefacetview += '</div>';
-                thefacetview += '<select class="facetview_orderby" style="width:100px; background:#eee; margin:0 5px 21px 0;"> \
+                thefacetview += '<select class="facetview_orderby" style="border-radius:5px; \
+                    -moz-border-radius:5px; -webkit-border-radius:5px; width:100px; background:#eee; margin:0 5px 21px 0;"> \
                     <option value="">order by</option>';
                 for ( var each in options.search_sortby ) {
                     var obj = options.search_sortby[each];
@@ -974,7 +975,7 @@ jQuery.extend({
                 };
                 thefacetview += '</select>';
             };
-            thefacetview += '<input type="text" class="facetview_freetext span4" style="margin:0 0 21px 0; background:' + options.searchbox_shade + ';" name="q" \
+            thefacetview += '<input type="text" class="facetview_freetext span4" style="display:inline-block; margin:0 0 21px 0; background:' + options.searchbox_shade + ';" name="q" \
                 value="" placeholder="search term" autofocus />';
         };
         thefacetview += thehelp;
