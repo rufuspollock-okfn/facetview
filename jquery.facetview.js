@@ -138,8 +138,8 @@ jQuery.extend({
                                                     // be sure if you expect to define any of these as nested that you use their full scope eg. nestedobj.nestedfield
             "extra_facets": {},                     // any extra facet queries, so results can be retrieved - NOT used for filter buttons. define as per elasticsearch facets
             "allow_facet_logic_choice": false,      // whether or not users can change facet logic from default - say from AND to OR
-            "searchbox_fieldselect": [{'field':'author.name','display':'author name'}],            // a list of objects describing fields to which search terms can be restricted. each object requires 'display' for nice human-readable display option, and 'field' for field to actually search on
-            "search_sortby": [{'display':'year','field':'year'}],                    // a list of objects describing sort option dropdowns. each object requires 'display' for a nice huma-readable display option, and 'field' for the field that sorting will actually occur on. NOTE sort fields must be unique on your ES index, not lists. Otherwise it will fail silently. Choose wisely.
+            "searchbox_fieldselect": [],            // a list of objects describing fields to which search terms can be restricted. each object requires 'display' for nice human-readable display option, and 'field' for field to actually search on
+            "search_sortby": [],                    // a list of objects describing sort option dropdowns. each object requires 'display' for a nice huma-readable display option, and 'field' for the field that sorting will actually occur on. NOTE sort fields must be unique on your ES index, not lists. Otherwise it will fail silently. Choose wisely.
             "enable_rangeselect": false,            // enable or disable the ability to select a range across a filter - RANGES NEED SOME WORK AFTER RECENT UPDATE, KEEP DISABLED FOR NOW
             "default_facet_logic": "AND",           // how facet choices should be applied to the query by default
             "result_display": resdisplay,           // display template for search results
@@ -874,9 +874,11 @@ jQuery.extend({
             if ( $(this).attr('href') == 'desc' ) {
                 $(this).html('<i class="icon-arrow-up"></i>');
                 $(this).attr('href','asc');
+                $(this).attr('title','current order ascending. Click to change to descending');
             } else {
                 $(this).html('<i class="icon-arrow-down"></i>');
                 $(this).attr('href','desc');
+                $(this).attr('title','current order descending. Click to change to ascending');
             };
             orderby();
         };
@@ -944,24 +946,27 @@ jQuery.extend({
             thefacetview += '<div class="span12" id="facetview_rightcol">';
         }
         if ( options.embedded_search == true ) {
-            thefacetview += '<div class="btn-group"> \
+            thefacetview += '<div class="btn-group" style="display:inline-block; margin-right:5px;"> \
                 <a class="btn btn-small" title="clear all search settings and start again" href=""><i class="icon-remove"></i></a> \
                 <a class="btn btn-small facetview_learnmore" title="click to view search help information" href="#"><b>?</b></a> \
                 <a class="btn btn-small facetview_howmany" title="change result set size" href="#">{{HOW_MANY}}</a>';
             if ( options.search_sortby.length > 0 ) {
-                thefacetview += '<a class="btn btn-small facetview_order" style="background:#eee; \
-                    padding-right:2px; padding-left:4px; border-right:0;" title="order descending" href="desc"><i class="icon-arrow-down"></i></a>';
-                thefacetview += '<select class="facetview_orderby" style="width:80px; background:#eee; border-left:0px; -moz-border-radius:0; -webkit-border-radius:0; border-radius:0;"> \
+                thefacetview += '<a class="btn btn-small facetview_order" title="current order descending. Click to change to ascending" \
+                    href="desc"><i class="icon-arrow-down"></i></a>';
+                thefacetview += '</div>';
+                thefacetview += '<select class="facetview_orderby" style="width:100px; background:#eee; margin:0 5px 21px 0;"> \
                     <option value="">order by</option>';
                 for ( var each in options.search_sortby ) {
                     var obj = options.search_sortby[each];
                     thefacetview += '<option value="' + obj['field'] + '">' + obj['display'] + '</option>';
                 };
                 thefacetview += '</select>';
+            } else {
+                thefacetview += '</div>';
             };
             if ( options.searchbox_fieldselect.length > 0 ) {
-                thefacetview += '<select class="facetview_searchfield" style="width:100px; background:' + options.searchbox_shade;
-                thefacetview += '; border-left:0px; -moz-border-radius:0; -webkit-border-radius:0; border-radius:0;">';
+                thefacetview += '<select class="facetview_searchfield" style="border-radius:5px 0px 0px 5px; \
+                    -moz-border-radius:5px 0px 0px 5px; -webkit-border-radius:5px 0px 0px 5px; width:100px; margin:0 -2px 21px 0; background:' + options.searchbox_shade + ';">';
                 thefacetview += '<option value="">search all</option>';
                 for ( var each in options.searchbox_fieldselect ) {
                     var obj = options.searchbox_fieldselect[each];
@@ -969,10 +974,8 @@ jQuery.extend({
                 };
                 thefacetview += '</select>';
             };
-            thefacetview += '<input type="text" class="facetview_freetext span4" style="-moz-border-radius:0 5px 5px 0; \
-                -webkit-border-radius:0 5px 5px 0; border-radius:0 5px 5px 0; margin-left:-1px; background:' + options.searchbox_shade + ';" name="q" \
-                value="" placeholder="search term" autofocus /> \
-            </div>';
+            thefacetview += '<input type="text" class="facetview_freetext span4" style="margin:0 0 21px 0; background:' + options.searchbox_shade + ';" name="q" \
+                value="" placeholder="search term" autofocus />';
         };
         thefacetview += thehelp;
         thefacetview += '<div style="clear:both;" class="btn-toolbar" id="facetview_selectedfilters"></div>';
@@ -993,7 +996,7 @@ jQuery.extend({
             $('.facetview_orderby').bind('change',orderby);
             $('.facetview_order').bind('click',order);
 
-            if ( options.embedded_search == true ) {
+           /* if ( options.embedded_search == true ) {
                 // resize the searchbar
                 var thewidth = $(options.searchbox_class).parent().parent().width();
                 var subtract = 102;
@@ -1001,7 +1004,7 @@ jQuery.extend({
                 options.search_sortby.length > 0 ? subtract = 202 : "";
                 options.searchbox_fieldselect.length > 0 && options.search_sortby.length > 0 ? subtract = 302 : "";
                 $(options.searchbox_class).css('width',thewidth - subtract + 'px');
-            }
+            }*/
 
 
             // check paging info is available
