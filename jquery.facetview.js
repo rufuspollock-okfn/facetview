@@ -133,6 +133,7 @@ jQuery.extend({
             "searchbox_class": ".facetview_freetext",// the class of the search boxes - only the value in the last found box will count
             "searchbox_shade": "#ecf4ff",           // the colour of the search box background
             "embedded_search": true,                // whether or not to put a search bar on the page (if not, another must be identified manually)
+            "sharesave_link": true,                 // if true, a share/save button will be shown next to the search bar that gives a link to the current result set
             "config_file": false,                   // a remote config file URL
             "facets":[],                            // facet objects: {"field":"blah", "display":"arg",...}
                                                     // be sure if you expect to define any of these as nested that you use their full scope eg. nestedobj.nestedfield
@@ -626,6 +627,7 @@ jQuery.extend({
         // ===============================================
 
         // build the search query URL based on current params
+        // NOTE: SOLR SEARCH QUERY IS NOW WOEFULLY INADEQUATE - MANY NEW FEATURES WILL JUST NOT WORK, IF THE QUERY ITSELF EVEN WORKS AT ALL
         var solrsearchquery = function() {
             // set default URL params
             var urlparams = "";
@@ -764,6 +766,7 @@ jQuery.extend({
             jQuery.extend(true, qs['facets'], options.extra_facets );
             //alert(JSON.stringify(qs,"","    "));
             options.querystring = JSON.stringify(qs);
+            options.sharesave_link ? $('.facetview_sharesaveurl').val('http://' + window.location.host + window.location.pathname + '?source=' + options.querystring) : "";
             return JSON.stringify(qs);
         };
 
@@ -776,10 +779,18 @@ jQuery.extend({
             });
             // make the search query
             if ( options.search_index == "elasticsearch" ) {
+              // check for provision of a source url param, and if so use it then wipe it
+              // TODO: update showresults so that query from source are built into display
+              if ( options.source ) {
+                var qrystr = JSON.stringify(options.source);
+                options.source = false;
+              } else {
+                var qrystr = elasticsearchquery();
+              }
               $.ajax({
                 type: "get",
                 url: options.search_url,
-                data: {source: elasticsearchquery()},
+                data: {source: qrystr},
                 // processData: false,
                 dataType: options.datatype,
                 success: showresults
@@ -897,6 +908,12 @@ jQuery.extend({
             dosearch();
         };
         
+        // show the current url with the result set as the source param
+        var sharesave = function(event) {
+            event.preventDefault();
+            $('.facetview_sharesavebox').toggle();
+        };
+        
         // adjust the search field focus
         var searchfield = function(event) {
             event.preventDefault();
@@ -905,8 +922,9 @@ jQuery.extend({
         };
 
         // a help box for embed in the facet view object below
-        var thehelp = '<div id="facetview_learnmore" class="well" style="margin-top:10px; display:none;"> \
-            <p><b>Partial matches with wildcard</b> can be performed by using the asterisk <b>*</b> wildcard. For example, <b>einste*</b>, <b>*nstei*</b>.</p> \
+        var thehelp = '<div id="facetview_learnmore" class="well" style="margin-top:10px; display:none;">'
+        options.sharesave_link ? thehelp += '<p>Share or save the current search by clicking the share/save arrow button on the right.</p>' : "";
+        thehelp += '<p><b>Partial matches with wildcard</b> can be performed by using the asterisk <b>*</b> wildcard. For example, <b>einste*</b>, <b>*nstei*</b>.</p> \
             <p><b>Fuzzy matches</b> can be performed using tilde <b>~</b>. For example, <b>einsten~</b> may help find <b>einstein</b>.</p> \
             <p><b>Exact matches</b> can be performed with <b>"</b> double quotes. For example <b>"einstein"</b> or <b>"albert einstein"</b>.</p> \
             <p>Match all search terms by concatenating them with <b>AND</b>. For example <b>albert AND einstein</b>.</p> \
@@ -977,6 +995,15 @@ jQuery.extend({
             };
             thefacetview += '<input type="text" class="facetview_freetext span4" style="display:inline-block; margin:0 0 21px 0; background:' + options.searchbox_shade + ';" name="q" \
                 value="" placeholder="search term" autofocus />';
+            if ( options.sharesave_link ) {
+                thefacetview += '<a class="btn facetview_sharesave" title="share or save this search" style="margin:0 0 21px 5px;" href=""><i class="icon-share-alt"></i></a>';
+                thefacetview += '<div class="facetview_sharesavebox alert alert-info" style="display:none;"> \
+                    <button type="button" class="facetview_sharesave close">×</button> \
+                    <p>Share or save this search:</p> \
+                    <textarea class="facetview_sharesaveurl" style="width:100%;height:100px;">http://' + window.location.host + 
+                    window.location.pathname + '?source=' + options.querystring + '</textarea> \
+                    </div>';
+            }
         };
         thefacetview += thehelp;
         thefacetview += '<div style="clear:both;" class="btn-toolbar" id="facetview_selectedfilters"></div>';
@@ -996,20 +1023,10 @@ jQuery.extend({
             $('.facetview_searchfield').bind('change',searchfield);
             $('.facetview_orderby').bind('change',orderby);
             $('.facetview_order').bind('click',order);
-
-           /* if ( options.embedded_search == true ) {
-                // resize the searchbar
-                var thewidth = $(options.searchbox_class).parent().parent().width();
-                var subtract = 102;
-                options.searchbox_fieldselect.length > 0 ? subtract = 202 : "";
-                options.search_sortby.length > 0 ? subtract = 202 : "";
-                options.searchbox_fieldselect.length > 0 && options.search_sortby.length > 0 ? subtract = 302 : "";
-                $(options.searchbox_class).css('width',thewidth - subtract + 'px');
-            }*/
-
+            $('.facetview_sharesave').bind('click',sharesave);
 
             // check paging info is available
-            !options.paging.size ? options.paging.size = 10 : "";
+            !options.paging.size && options.paging.size != 0 ? options.paging.size = 10 : "";
             !options.paging.from ? options.paging.from = 0 : "";
 
             // set any default search values into the last search bar
@@ -1023,8 +1040,8 @@ jQuery.extend({
             buildfilters();
             $(options.searchbox_class).bindWithDelay('keyup',dosearch,options.freetext_submit_delay);
 
-            // trigger the search once on load, to get all results
-            options.initialsearch ? dosearch() : "";
+            // trigger the search once on load if enabled, or if source param provided
+            options.initialsearch || options.source ? dosearch() : "";
         };
 
         // ===============================================
