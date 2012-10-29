@@ -138,11 +138,10 @@ jQuery.extend({
             "facets":[],                            // facet objects: {"field":"blah", "display":"arg",...}
                                                     // be sure if you expect to define any of these as nested that you use their full scope eg. nestedobj.nestedfield
             "extra_facets": {},                     // any extra facet queries, so results can be retrieved - NOT used for filter buttons. define as per elasticsearch facets
-            "allow_facet_logic_choice": false,      // whether or not users can change facet logic from default - say from AND to OR
             "searchbox_fieldselect": [],            // a list of objects describing fields to which search terms can be restricted. each object requires 'display' for nice human-readable display option, and 'field' for field to actually search on
             "search_sortby": [],                    // a list of objects describing sort option dropdowns. each object requires 'display' for a nice huma-readable display option, and 'field' for the field that sorting will actually occur on. NOTE sort fields must be unique on your ES index, not lists. Otherwise it will fail silently. Choose wisely.
             "enable_rangeselect": false,            // enable or disable the ability to select a range across a filter - RANGES NEED SOME WORK AFTER RECENT UPDATE, KEEP DISABLED FOR NOW
-            "default_facet_logic": "AND",           // how facet choices should be applied to the query by default
+            "include_facets_in_querystring": false, // the full query string can be found in options.querystring. If this value is false, the facets part will be stripped out
             "result_display": resdisplay,           // display template for search results
             "display_images": true,                 // whether or not to display images found in links in search results
             "description":"",                       // a description of the current search to embed in the display
@@ -208,7 +207,23 @@ jQuery.extend({
             }
         };
 
+        // function to switch filters to OR instead of AND
+        var orfilters = function(event) {
+            event.preventDefault();
+            if ( $(this).attr('rel') == 'AND' ) {
+                $(this).attr('rel','OR');
+                $(this).css({'color':'#333'});
+                $('.facetview_filterselected[rel="' + $(this).attr('href') + '"]').addClass('facetview_logic_or');
+            } else {
+                $(this).attr('rel','AND');
+                $(this).css({'color':'#aaa'});
+                $('.facetview_filterselected[rel="' + $(this).attr('href') + '"]').removeClass('facetview_logic_or');
+            }
+            dosearch();
+        }
+
         // function to perform for sorting of filters
+        // TODO: UPDATE - need to switch starting display to match sort type
         var sortfilters = function(event) {
             event.preventDefault();
             var sortwhat = $(this).attr('href');
@@ -260,6 +275,7 @@ jQuery.extend({
         };
 
         // insert a facet range once selected
+        // TODO: UPDATE
         var dofacetrange = function(rel) {
             $('#facetview_rangeresults_' + rel).remove();
             var range = $('#facetview_rangechoices_' + rel).html();
@@ -295,11 +311,6 @@ jQuery.extend({
                 <small>to</small> \
                 <span class="facetview_highrangeval_' + rel + '">...</span></h3> \
                 <div style="float:right;" class="btn-group">';
-            if ( options.allow_facet_logic_choice ) {
-                rangeselect += '<a class="btn facetview_facetlogic" rel="' + options.facets[rel]['field'].replace('.','_') + 
-                    '" id="facetview_facetlogic_' + options.facets[rel]['field'].replace('.','_') + '" href="">' +
-                    options.default_facet_logic + '</a>';
-            }
             rangeselect += '<a class="facetview_facetrange_remove btn" rel="' + rel + '" alt="remove" title="remove" \
                  href="#"><i class="icon-remove"></i></a> \
                 </div></div> \
@@ -308,8 +319,6 @@ jQuery.extend({
             $('#facetview_selectedfilters').after(rangeselect);
             $('.facetview_facetrange_remove').unbind('click',clearfacetrange);
             $('.facetview_facetrange_remove').bind('click',clearfacetrange);
-            $('.facetview_facetlogic').unbind('click',changelogic);
-            $('.facetview_facetlogic').bind('click',changelogic);
             var values = [];
             var valsobj = $( '#facetview_' + $(this).attr('href').replace(/\./gi,'_') );
             valsobj.find('.facetview_filterchoice').each(function() {
@@ -339,15 +348,17 @@ jQuery.extend({
                 var thefilters = '';
                 for ( var idx in filters ) {
                     var _filterTmpl = '<table id="facetview_{{FILTER_NAME}}" class="facetview_filters table table-bordered table-condensed table-striped" style="display:none;"> \
-                        <tr class="facetview_facetheader"><td><a class="facetview_filtershow" title="filter by {{FILTER_DISPLAY}}" rel="{{FILTER_NAME}}" \
+                        <tr><td><a class="facetview_filtershow" title="filter by {{FILTER_DISPLAY}}" rel="{{FILTER_NAME}}" \
                         style="color:#333; font-weight:bold;" href=""><i class="icon-plus"></i> {{FILTER_DISPLAY}} \
                         </a> \
                         <div class="btn-group facetview_filteroptions" style="display:none; margin-top:5px;"> \
                             <a class="btn btn-small facetview_learnmore" title="click to view search help information" href="#"><b>?</b></a> \
                             <a class="btn btn-small facetview_morefacetvals" title="filter list size" rel="{{FACET_IDX}}" href="{{FILTER_EXACT}}">{{FILTER_HOWMANY}}</a> \
-                            <a class="btn btn-small facetview_sort facetview_term" title="filter value order" href="{{FILTER_EXACT}}">a-z <i class="icon-arrow-down"></i></a>';
+                            <a class="btn btn-small facetview_sort facetview_term" title="filter value order" href="{{FILTER_EXACT}}">a-z <i class="icon-arrow-down"></i></a> \
+                            <a class="btn btn-small facetview_or" title="select another option from this filter" rel="AND" href="{{FILTER_EXACT}}" style="color:#aaa;">OR</a> \
+                            ';
                     if ( options.enable_rangeselect ) {
-                        _filterTmpl += '<a class="btn btn-small facetview_facetrange" title="make a range selection on this filter" rel="{{FACET_IDX}}" href="{{FILTER_EXACT}}">range</a>';
+                        _filterTmpl += '<a class="btn btn-small facetview_facetrange" title="make a range selection on this filter" rel="{{FACET_IDX}}" href="{{FILTER_EXACT}}" style="color:#aaa;">range</a>';
                     }
                     _filterTmpl +='</div> \
                         </td></tr> \
@@ -370,6 +381,7 @@ jQuery.extend({
                 $('.facetview_morefacetvals').bind('click',morefacetvals);
                 $('.facetview_facetrange').bind('click',facetrange);
                 $('.facetview_sort').bind('click',sortfilters);
+                $('.facetview_or').bind('click',orfilters);
                 $('.facetview_filtershow').bind('click',showfiltervals);
                 $('.facetview_learnmore').unbind('click',learnmore);
                 $('.facetview_learnmore').bind('click',learnmore);
@@ -403,6 +415,49 @@ jQuery.extend({
             });
         };
 
+        // trigger a search when a filter choice is clicked
+        // or when a source param is found and passed on page load
+        var clickfilterchoice = function(event,rel,href) {
+            if ( event ) {
+                event.preventDefault();
+                var rel = $(this).attr("rel");
+                var href = $(this).attr("href");
+            }
+            var newobj = '<a class="facetview_filterselected facetview_clear btn btn-info';
+            if ( $('.facetview_or[href="' + rel + '"]').attr('rel') == 'OR' ) {
+                newobj += ' facetview_logic_or';
+            }
+            newobj += '" rel="' + rel + 
+                '" alt="remove" title="remove"' +
+                ' href="' + href + '">' +
+                href + ' <i class="icon-white icon-remove" style="margin-top:1px;"></i></a>';
+
+            if ( $('#facetview_group_' + rel.replace(/\./gi,'_')).length ) {
+                $('#facetview_group_' + rel.replace(/\./gi,'_')).append(newobj);
+            } else {
+                var pobj = '<div id="facetview_group_' + rel.replace(/\./gi,'_') + '" class="btn-group">';
+                pobj += newobj + '</div>';
+                $('#facetview_selectedfilters').append(pobj);
+            };
+
+            $('.facetview_filterselected').unbind('click',clearfilter);
+            $('.facetview_filterselected').bind('click',clearfilter);
+            if ( event ) {
+                options.paging.from = 0;
+                dosearch();
+            };
+        };
+
+        // clear a filter when clear button is pressed, and re-do the search
+        var clearfilter = function(event) {
+            event.preventDefault();
+            if ( $(this).siblings().length == 0 ) {
+                $(this).parent().remove();
+            } else {
+                $(this).remove();
+            }
+            dosearch();
+        };
         
         // ===============================================
         // functions to do with building results
@@ -478,8 +533,6 @@ jQuery.extend({
                 dosearch();
             }
         };
-
-
 
         // write the metadata to the page
         var putmetadata = function(data) {
@@ -674,47 +727,54 @@ jQuery.extend({
             var qs = {};
             var bool = false;
             var nested = false;
-            // TODO: add a check to see if this is an OR query with only one val - 
-            // in which case ensure the search query is at least *
+            var seenor = []; // track when an or group are found and processed
             $('.facetview_filterselected',obj).each(function() {
                 !bool ? bool = {'must': [] } : "";
-                var logic = options.default_facet_logic;
                 if ( $(this).hasClass('facetview_facetrange') ) {
                     var rngs = {
                         'from': $('.facetview_lowrangeval_' + $(this).attr('rel'), this).html(),
                         'to': $('.facetview_highrangeval_' + $(this).attr('rel'), this).html()
                     };
                     var rel = options.facets[ $(this).attr('rel') ]['field'];
-                    options.allow_facet_logic_choice && $('#facetview_facetlogic_' + rel.replace('.','_')).html() != 'AND' ? logic = 'OR' : "";
-                    logic != 'AND' && bool['should'] == undefined ? bool['should'] = [] : "";
                     var obj = {'range': {}};
                     obj['range'][ rel ] = rngs;
                     // check if this should be a nested query
                     var parts = rel.split('.');
                     if ( options.nested.indexOf(parts[0]) != -1 ) {
-                        if (logic == 'AND') {
-                            !nested ? nested = {"nested":{"_scope":parts[0],"path":parts[0],"query":{"bool":{"must":[obj]}}}} : nested.nested.query.bool.must.push(obj);
-                        } else {
-                            !nested ? nested = {"nested":{"_scope":parts[0],"path":parts[0],"query":{"bool":{"should":[obj]}}}} : nested.nested.query.bool.should.push(obj);
-                        }
+                        !nested ? nested = {"nested":{"_scope":parts[0],"path":parts[0],"query":{"bool":{"must":[obj]}}}} : nested.nested.query.bool.must.push(obj);
                     } else {
-                        logic == 'AND' ? bool['must'].push(obj) : bool['should'].push(obj);
+                        bool['must'].push(obj);
                     }
                 } else {
-                    var obj = {'term':{}};
-                    obj['term'][ $(this).attr('rel') ] = $(this).attr('href');
-                    options.allow_facet_logic_choice && $('#facetview_facetlogic_' + $(this).attr('rel').replace('.','_')).html() != 'AND' ? logic = 'OR' : "";
-                    logic != 'AND' && bool['should'] == undefined ? bool['should'] = [] : "";
+                    // TODO: check if this has class facetview_logic_or
+                    // if so, need to build a should around it and its siblings
+                    if ( $(this).hasClass('facetview_logic_or') ) {
+                        if ( !($(this).attr('rel') in seenor) ) {
+                            seenor.push($(this).attr('rel'));
+                            var obj = {'bool':{'should':[]}};
+                            $('.facetview_filterselected[rel="' + $(this).attr('rel') + '"]').each(function() {
+                                if ( $(this).hasClass('facetview_logic_or') ) {
+                                    var ob = {'term':{}};
+                                    ob['term'][ $(this).attr('rel') ] = $(this).attr('href');
+                                    obj.bool.should.push(ob);
+                                };
+                            });
+                            if ( obj.bool.should.length == 1 ) {
+                                var spacer = {'match_all':{}};
+                                obj.bool.should.push(spacer);
+                            }
+                        }
+                    } else {
+                        var obj = {'term':{}};
+                        obj['term'][ $(this).attr('rel') ] = $(this).attr('href');
+                    }
+                    
                     // check if this should be a nested query
                     var parts = $(this).attr('rel').split('.');
                     if ( options.nested.indexOf(parts[0]) != -1 ) {
-                        if (logic == 'AND') {
-                            !nested ? nested = {"nested":{"_scope":parts[0],"path":parts[0],"query":{"bool":{"must":[obj]}}}} : nested.nested.query.bool.must.push(obj);
-                        } else {
-                            !nested ? nested = {"nested":{"_scope":parts[0],"path":parts[0],"query":{"bool":{"should":[obj]}}}} : nested.nested.query.bool.should.push(obj);
-                        }
+                        !nested ? nested = {"nested":{"_scope":parts[0],"path":parts[0],"query":{"bool":{"must":[obj]}}}} : nested.nested.query.bool.must.push(obj);
                     } else {
-                        logic == 'AND' ? bool['must'].push(obj) : bool['should'].push(obj);
+                        bool['must'].push(obj);
                     }
                 }
             });
@@ -765,95 +825,36 @@ jQuery.extend({
             }
             jQuery.extend(true, qs['facets'], options.extra_facets );
             //alert(JSON.stringify(qs,"","    "));
-            options.querystring = JSON.stringify(qs);
+            qy = JSON.stringify(qs);
+            if ( options.include_facets_in_querystring ) {
+                options.querystring = qy;
+            } else {
+                delete qs.facets;
+                options.querystring = JSON.stringify(qs)
+            }
             options.sharesave_link ? $('.facetview_sharesaveurl').val('http://' + window.location.host + window.location.pathname + '?source=' + options.querystring) : "";
-            return JSON.stringify(qs);
+            return qy;
         };
 
         // execute a search
         var dosearch = function() {
             jQuery('.notify_loading').show();
             // update the options with the latest q value
-            $(options.searchbox_class).each(function() {
-                options.q = $(this).val();
-            });
+            options.q = $(options.searchbox_class).last().val();
             // make the search query
             if ( options.search_index == "elasticsearch" ) {
-              // check for provision of a source url param, and if so use it then wipe it
-              // TODO: update showresults so that query from source are built into display
-              if ( options.source ) {
-                var qrystr = JSON.stringify(options.source);
-                options.source = false;
-              } else {
                 var qrystr = elasticsearchquery();
-              }
-              $.ajax({
-                type: "get",
-                url: options.search_url,
-                data: {source: qrystr},
-                // processData: false,
-                dataType: options.datatype,
-                success: showresults
-              });
+                $.ajax({
+                    type: "get",
+                    url: options.search_url,
+                    data: {source: qrystr},
+                    // processData: false,
+                    dataType: options.datatype,
+                    success: showresults
+                });
             } else {
                 $.ajax( { type: "get", url: solrsearchquery(), dataType:options.datatype, jsonp:"json.wrf", success: function(data) { showresults(data) } } );
             }
-        };
-
-        // trigger a search when a filter choice is clicked
-        var clickfilterchoice = function(event) {
-            event.preventDefault();
-                
-            var newobj = '<a class="facetview_filterselected facetview_clear ' + 
-                'btn btn-info" rel="' + $(this).attr("rel") + 
-                '" alt="remove" title="remove"' +
-                ' href="' + $(this).attr("href") + '">' +
-                $(this).html().replace(/\(.*\)/,'') + ' <i class="icon-white icon-remove" style="margin-top:1px;"></i></a>';
-
-            if ( $('#facetview_facetlogicgroup_' + $(this).attr("rel").replace('.','_')).length ) {
-                $('#facetview_facetlogicgroup_' + $(this).attr("rel").replace('.','_')).append(newobj);
-            } else {
-                var preobj = '<div id="facetview_facetlogicgroup_' + $(this).attr("rel").replace('.','_') + '" class="btn-group">';
-                if ( options.allow_facet_logic_choice ) {
-                    preobj += '<a class="btn facetview_facetlogic" id="facetview_facetlogic_' + $(this).attr("rel").replace('.','_') +
-                    '" alt="switch logic" rel="' + $(this).attr("rel") + '" href="">';
-                    preobj += options.default_facet_logic;
-                    preobj += '</a>';
-                    newobj = preobj + newobj + '</div>';
-                }
-                $('#facetview_selectedfilters').append(newobj);
-            }
-
-            $('.facetview_filterselected').unbind('click',clearfilter);
-            $('.facetview_filterselected').bind('click',clearfilter);
-            $('.facetview_facetlogic').unbind('click',changelogic);
-            $('.facetview_facetlogic').bind('click',changelogic);
-            options.paging.from = 0;
-            dosearch();
-        };
-
-        // clear a filter when clear button is pressed, and re-do the search
-        var clearfilter = function(event) {
-            event.preventDefault();
-            if ( options.allow_facet_logic_choice && $(this).siblings().length == 1 ) {
-                // when AND/OR choice is allowed, but there is only one val, clear the whole thing
-                $(this).parent().remove();
-            } else {
-                // otherwise only clear the item itself
-                $(this).remove();
-            }
-            dosearch();
-        };
-        
-        // change selected facet logic between AND and OR
-        var changelogic = function(event) {
-            event.preventDefault();
-            if ( $(this).html() == 'AND' ) {
-                $('#facetview_facetlogic_' + $(this).attr('rel').replace('.','_')).html('&nbsp;OR&nbsp;');
-            } else {
-                $('#facetview_facetlogic_' + $(this).attr('rel').replace('.','_')).html('AND');
-            }
-            dosearch();
         };
 
         // show search help
@@ -908,6 +909,37 @@ jQuery.extend({
             dosearch();
         };
         
+        // parse any source params out for an initial search
+        var parsesource = function() {
+            var qrystr = options.source.query;
+            if ( 'bool' in qrystr ) {
+                var qrys = [];
+                // TODO: check for nested
+                if ( 'must' in qrystr.bool ) {
+                    qrys = qrystr.bool.must;
+                } else if ( 'should' in qrystr.bool ) {
+                    qrys = qrystr.bool.should;
+                };
+                for ( var qry in qrys ) {
+                    for ( var key in qrys[qry] ) {
+                        if ( key == 'term' ) {
+                            for ( var t in qrys[qry][key] ) {
+                                if ( !(t in options.predefined_filters) ) {
+                                    clickfilterchoice(false,t,qrys[qry][key][t]);
+                                };
+                            };
+                        } else if ( key == 'query_string' ) {
+                            typeof(qrys[qry][key]['query']) == 'string' ? options.q = qrys[qry][key]['query'] : "";
+                        } else if ( key == 'bool' ) {
+                            // TODO: handle sub-bools
+                        };
+                    };
+                };
+            } else if ( 'query_string' in qrystr ) {
+                typeof(qrystr.query_string.query) == 'string' ? options.q = qrystr.query_string.query : "";
+            };
+        }
+        
         // show the current url with the result set as the source param
         var sharesave = function(event) {
             event.preventDefault();
@@ -923,15 +955,15 @@ jQuery.extend({
 
         // a help box for embed in the facet view object below
         var thehelp = '<div id="facetview_learnmore" class="well" style="margin-top:10px; display:none;">'
-        options.sharesave_link ? thehelp += '<p>Share or save the current search by clicking the share/save arrow button on the right.</p>' : "";
-        thehelp += '<p><b>Partial matches with wildcard</b> can be performed by using the asterisk <b>*</b> wildcard. For example, <b>einste*</b>, <b>*nstei*</b>.</p> \
+        options.sharesave_link ? thehelp += '<p><b>Share</b> or <b>save</b> the current search by clicking the share/save arrow button on the right.</p>' : "";
+        thehelp += '<p><b>Remove all</b> search values and settings by clicking the <b>X</b> icon at the left of the search box above.</p> \
+            <p><b>Partial matches with wildcard</b> can be performed by using the asterisk <b>*</b> wildcard. For example, <b>einste*</b>, <b>*nstei*</b>.</p> \
             <p><b>Fuzzy matches</b> can be performed using tilde <b>~</b>. For example, <b>einsten~</b> may help find <b>einstein</b>.</p> \
             <p><b>Exact matches</b> can be performed with <b>"</b> double quotes. For example <b>"einstein"</b> or <b>"albert einstein"</b>.</p> \
             <p>Match all search terms by concatenating them with <b>AND</b>. For example <b>albert AND einstein</b>.</p> \
             <p>Match any term by concatenating them with <b>OR</b>. For example <b>albert OR einstein</b>.</p> \
             <p><b>Combinations</b> will work too, like <b>albert OR einste~</b>, or <b>"albert" "einstein"</b>.</p> \
-            <p><b>Result set size</b> can be altered by clicking on the result size number preceding the search box above.</p> \
-            <p><b>Remove all</b> search values and settings by clicking the search icon at the left of the search box above.</p>';
+            <p><b>Result set size</b> can be altered by clicking on the result size number preceding the search box above.</p>';
         if ( options.searchbox_fieldselect.length > 0 ) {
             thehelp += '<p>By default, terms are searched for across entire record entries. \
                 This can be restricted to particular fields by selecting the field of interest from the <b>search field</b> dropdown</p>';
@@ -946,12 +978,16 @@ jQuery.extend({
                 <p><b>Filter list size</b> can be altered by clicking on the filter size number<./p> \
                 <p><b>Filter list order </b> can be adjusted by clicking the order options - \
                 from a-z ascending or descending, or by count ascending or descending.</p> \
+                <p>Filters search for unique values by default; to do an <b>OR</b> search - e.g. to look for more than one value \
+                for a particular filter - click the OR button for the relevant filter then choose your values.</p> \
                 <p>To further assist discovery of particular filter values, use in combination \
-                with the main search bar - search terms entered there will automatically adjust the available filter values.</p> \
-                <p><b>Apply a filter range</b> rather than just selecting a single value by clicking on the <b>range</b> button. \
-                This enables restriction of result sets to within a range of values - for example from year 1990 to 2012.</p> \
-                <p>Filter ranges are only available across filter values already in the filter list; \
-                so if a wider filter range is required, first increase the filter size then select the filter range.</p>';
+                with the main search bar - search terms entered there will automatically adjust the available filter values.</p>';
+            if ( options.enable_rangeselect ) {
+                thehelp += '<p><b>Apply a filter range</b> rather than just selecting a single value by clicking on the <b>range</b> button. \
+                    This enables restriction of result sets to within a range of values - for example from year 1990 to 2012.</p> \
+                    <p>Filter ranges are only available across filter values already in the filter list; \
+                    so if a wider filter range is required, first increase the filter size then select the filter range.</p>';
+            }
         };
         thehelp += '<p><a class="facetview_learnmore label" href="#">close the help</a></p></div>';
         
@@ -1030,18 +1066,24 @@ jQuery.extend({
             !options.paging.from ? options.paging.from = 0 : "";
 
             // set any default search values into the last search bar
-            var allempty = true;
-            $(options.searchbox_class).each(function() {
-                $(this).val().length != 0 ? allempty = false : "";
-            });
-            allempty && options.q != "" ? $(options.searchbox_class).last().val(options.q) : "";
+            options.q != "" ? $(options.searchbox_class).last().val(options.q) : "";
 
             // append the filters to the facetview object
             buildfilters();
             $(options.searchbox_class).bindWithDelay('keyup',dosearch,options.freetext_submit_delay);
 
+            // handle any source options
             // trigger the search once on load if enabled, or if source param provided
-            options.initialsearch || options.source ? dosearch() : "";
+            if ( options.source ) {
+                parsesource();
+                delete options.source;
+                options.q != "" ? $(options.searchbox_class).last().val(options.q) : "";
+                dosearch();
+            } else if ( options.initialsearch ) {
+                options.q != "" ? $(options.searchbox_class).last().val(options.q) : "";
+                dosearch();
+            }
+
         };
 
         // ===============================================
