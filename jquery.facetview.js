@@ -223,7 +223,6 @@ jQuery.extend({
         }
 
         // function to perform for sorting of filters
-        // TODO: UPDATE - need to switch starting display to match sort type
         var sortfilters = function(event) {
             event.preventDefault();
             var sortwhat = $(this).attr('href');
@@ -265,8 +264,7 @@ jQuery.extend({
             } else {
                 var currentval = 10;
             }
-            var newmore = prompt('Currently showing ' + currentval + 
-                '. There are ' + '' + 'in total. How many would you like instead?');
+            var newmore = prompt('Currently showing ' + currentval + '. How many would you like instead?');
             if (newmore) {
                 options.facets[ $(this).attr('rel') ]['size'] = parseInt(newmore);
                 $(this).html(newmore);
@@ -340,7 +338,6 @@ jQuery.extend({
             $('#facetview_rangechoices_' + rel + ' .facetview_highrangeval_' + rel).html( values[ values.length-1] );
         };
 
-
         // pass a list of filters to be displayed
         var buildfilters = function() {
             if ( options.facets.length > 0 ) {
@@ -354,7 +351,7 @@ jQuery.extend({
                         <div class="btn-group facetview_filteroptions" style="display:none; margin-top:5px;"> \
                             <a class="btn btn-small facetview_learnmore" title="click to view search help information" href="#"><b>?</b></a> \
                             <a class="btn btn-small facetview_morefacetvals" title="filter list size" rel="{{FACET_IDX}}" href="{{FILTER_EXACT}}">{{FILTER_HOWMANY}}</a> \
-                            <a class="btn btn-small facetview_sort facetview_term" title="filter value order" href="{{FILTER_EXACT}}">a-z <i class="icon-arrow-down"></i></a> \
+                            <a class="btn btn-small facetview_sort {{FILTER_SORTTERM}}" title="filter value order" href="{{FILTER_EXACT}}">{{FILTER_SORTCONTENT}}</a> \
                             <a class="btn btn-small facetview_or" title="select another option from this filter" rel="AND" href="{{FILTER_EXACT}}" style="color:#aaa;">OR</a> \
                             ';
                     if ( options.enable_rangeselect ) {
@@ -369,6 +366,24 @@ jQuery.extend({
                         thefilters = thefilters.replace(/{{FILTER_HOWMANY}}/gi, filters[idx]['size']);
                     } else {
                         thefilters = thefilters.replace(/{{FILTER_HOWMANY}}/gi, 10);
+                    };
+                    if ( 'order' in filters[idx] ) {
+                        if ( filters[idx]['order'] == 'term' ) {
+                            thefilters = thefilters.replace(/{{FILTER_SORTTERM}}/g, 'facetview_term');
+                            thefilters = thefilters.replace(/{{FILTER_SORTCONTENT}}/g, 'a-z <i class="icon-arrow-down"></i>');
+                        } else if ( filters[idx]['order'] == 'reverse_term' ) {
+                            thefilters = thefilters.replace(/{{FILTER_SORTTERM}}/g, 'facetview_rterm');
+                            thefilters = thefilters.replace(/{{FILTER_SORTCONTENT}}/g, 'a-z <i class="icon-arrow-up"></i>');
+                        } else if ( filters[idx]['order'] == 'count' ) {
+                            thefilters = thefilters.replace(/{{FILTER_SORTTERM}}/g, 'facetview_count');
+                            thefilters = thefilters.replace(/{{FILTER_SORTCONTENT}}/g, 'count <i class="icon-arrow-down"></i>');
+                        } else if ( filters[idx]['order'] == 'reverse_count' ) {
+                            thefilters = thefilters.replace(/{{FILTER_SORTTERM}}/g, 'facetview_rcount');
+                            thefilters = thefilters.replace(/{{FILTER_SORTCONTENT}}/g, 'count <i class="icon-arrow-up"></i>');
+                        };
+                    } else {
+                        thefilters = thefilters.replace(/{{FILTER_SORTTERM}}/g, 'facetview_count');
+                        thefilters = thefilters.replace(/{{FILTER_SORTCONTENT}}/g, 'count <i class="icon-arrow-down"></i>');
                     };
                     thefilters = thefilters.replace(/{{FACET_IDX}}/gi,idx);
                     if ('display' in filters[idx]) {
