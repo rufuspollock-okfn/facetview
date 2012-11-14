@@ -195,12 +195,14 @@ jQuery.extend({
         var showfiltervals = function(event) {
             event.preventDefault();
             if ( $(this).hasClass('facetview_open') ) {
-                $(this).children('i').replaceWith('<i class="icon-plus"></i>');
+                $(this).children('i').removeClass('icon-minus');
+                $(this).children('i').addClass('icon-plus');
                 $(this).removeClass('facetview_open');
                 $('#facetview_' + $(this).attr('rel') ).children().find('.facetview_filtervalue').hide();
                 $(this).siblings('.facetview_filteroptions').hide();
             } else {
-                $(this).children('i').replaceWith('<i class="icon-minus"></i>');
+                $(this).children('i').removeClass('icon-plus');
+                $(this).children('i').addClass('icon-minus');
                 $(this).addClass('facetview_open');
                 $('#facetview_' + $(this).attr('rel') ).children().find('.facetview_filtervalue').show();
                 $(this).siblings('.facetview_filteroptions').show();
@@ -422,10 +424,12 @@ jQuery.extend({
             }
             $('.facetview_filterchoice').bind('click',clickfilterchoice);
             $('.facetview_filters').each(function() {
+                $(this).find('.facetview_filtershow').css({'color':'#333','font-weight':'bold'}).children('i').show();
                 if ( $(this).children().find('.facetview_filtervalue').length > 1 ) {
                     $(this).show();
                 } else {
-                    $(this).hide();
+                    //$(this).hide();
+                    $(this).find('.facetview_filtershow').css({'color':'#ccc','font-weight':'normal'}).children('i').hide();
                 };
             });
         };
