@@ -8,10 +8,7 @@
  * 
  * created by Mark MacGillivray - mark@cottagelabs.com
  *
- * http://facetview.cottagelabs.com
- *
- * 2012-09-06: MW added semicolons to the end of statements for better compatibility with Rails asset pipeline
-*/
+ */
 
 // first define the bind with delay function from (saves loading it separately) 
 // https://github.com/bgrins/bindWithDelay/blob/master/bindWithDelay.js
@@ -180,7 +177,6 @@ jQuery.extend({
         // these options are also overridable by URL parameters
         // facetview options are declared as a function so they are available externally
         // (see bottom of this file)
-
         var provided_options = $.extend(defaults, options);
         var url_options = $.getUrlVars();
         $.fn.facetview.options = $.extend(provided_options,url_options);
@@ -1072,7 +1068,7 @@ jQuery.extend({
             thefacetview = thefacetview.replace(/{{HOW_MANY}}/gi,options.paging.size);
             $(obj).append(thefacetview);
 
-            // bind learn more and how many triggers
+            // bind button triggers
             $('.facetview_learnmore').bind('click',learnmore);
             $('.facetview_howmany').bind('click',howmany);
             $('.facetview_searchfield').bind('change',searchfield);
