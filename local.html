@@ -20,21 +20,26 @@
 
   <script type="text/javascript">
 jQuery(document).ready(function($) {
-  $('.facet-view-simple').facetview({
+  $('.facet-view-simple').each(function() {
+  $(this).facetview({
     search_url: 'http://localhost:9200/bibserver/record/_search?',
     search_index: 'elasticsearch',
+    datatype: 'json',
     facets: [
-        {'field': 'publisher.exact', 'size': 100, 'order':'term', 'display': 'publisher'},
+        {'field': 'journal.name.exact', 'display': 'journal'},
         {'field': 'author.name.exact', 'display': 'author'},
         {'field': 'year.exact', 'display': 'year'},
         {'field': 'collection.exact', 'display': 'collection'},
     ],
+    search_sortby: [{'display':'year', 'field':'year.exact'},{'display':'journal','field':'journal.name.exact'}],
+    searchbox_fieldselect: [{'display':'author','field':'author.name'},{'display':'journal','field':'journal.name'}],
     paging: {
       size: 10
     },
     predefined_filters: {
-        'owner.exact': 'test'
+        'owner.exact': {'term':{'owner.exact':'test'}}
     }
+  });
   });
 });
   </script>
@@ -49,6 +54,8 @@ jQuery(document).ready(function($) {
 
 </head>
 <body>
+
+    <div class="facet-view-simple"></div>
 
     <div class="facet-view-simple"></div>
 
