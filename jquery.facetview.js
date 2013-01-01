@@ -561,7 +561,7 @@ This can define or reference a function that will be executed any time new searc
                     _filterTmpl +='</div> \
                         </td></tr> \
                         </table>';
-                    _filterTmpl = _filterTmpl.replace(/{{FILTER_NAME}}/g, filters[idx]['field'].replace(/\./gi,'_')).replace(/{{FILTER_EXACT}}/g, filters[idx]['field']);
+                    _filterTmpl = _filterTmpl.replace(/{{FILTER_NAME}}/g, filters[idx]['field'].replace(/\./gi,'_').replace(/\:/gi,'_')).replace(/{{FILTER_EXACT}}/g, filters[idx]['field']);
                     thefilters += _filterTmpl;
                     if ('size' in filters[idx] ) {
                         thefilters = thefilters.replace(/{{FILTER_HOWMANY}}/gi, filters[idx]['size']);
@@ -613,6 +613,7 @@ This can define or reference a function that will be executed any time new searc
                 var rel = $(this).attr("rel");
                 var href = $(this).attr("href");
             }
+            var relclean = rel.replace(/\./gi,'_').replace(/\:/gi,'_');
             var newobj = '<a class="facetview_filterselected facetview_clear btn btn-info';
             if ( $('.facetview_or[href="' + rel + '"]', obj).attr('rel') == 'OR' ) {
                 newobj += ' facetview_logic_or';
@@ -622,10 +623,10 @@ This can define or reference a function that will be executed any time new searc
                 ' href="' + href + '">' +
                 href + ' <i class="icon-white icon-remove" style="margin-top:1px;"></i></a>';
 
-            if ( $('#facetview_group_' + rel.replace(/\./gi,'_'), obj).length ) {
-                $('#facetview_group_' + rel.replace(/\./gi,'_'), obj).append(newobj);
+            if ( $('#facetview_group_' + relclean, obj).length ) {
+                $('#facetview_group_' + relclean, obj).append(newobj);
             } else {
-                var pobj = '<div id="facetview_group_' + rel.replace(/\./gi,'_') + '" class="btn-group">';
+                var pobj = '<div id="facetview_group_' + relclean + '" class="btn-group">';
                 pobj += newobj + '</div>';
                 $('#facetview_selectedfilters', obj).append(pobj);
             };
@@ -783,16 +784,18 @@ This can define or reference a function that will be executed any time new searc
             
             // for each filter setup, find the results for it and append them to the relevant filter
             for ( var each in options.facets ) {
-                $('#facetview_' + options.facets[each]['field'].replace(/\./gi,'_'), obj).children().find('.facetview_filtervalue').remove();
-                var records = data["facets"][ options.facets[each]['field'] ];
+                var facet = options.facets[each]['field'];
+                var facetclean = options.facets[each]['field'].replace(/\./gi,'_').replace(/\:/gi,'_');
+                $('#facetview_' + facetclean, obj).children().find('.facetview_filtervalue').remove();
+                var records = data["facets"][ facet ];
                 for ( var item in records ) {
                     var append = '<tr class="facetview_filtervalue" style="display:none;"><td><a class="facetview_filterchoice' +
-                        '" rel="' + options.facets[each]['field'] + '" href="' + item + '">' + item +
+                        '" rel="' + facet + '" href="' + item + '">' + item +
                         ' (' + records[item] + ')</a></td></tr>';
-                    $('#facetview_' + options.facets[each]['field'].replace(/\./gi,'_'), obj).append(append);
+                    $('#facetview_' + facetclean, obj).append(append);
                 }
-                if ( $('.facetview_filtershow[rel="' + options.facets[each]['field'].replace(/\./gi,'_') + '"]', obj).hasClass('facetview_open') ) {
-                    $('#facetview_' + options.facets[each]['field'].replace(/\./gi,'_'), obj ).children().find('.facetview_filtervalue').show();
+                if ( $('.facetview_filtershow[rel="' + facetclean + '"]', obj).hasClass('facetview_open') ) {
+                    $('#facetview_' + facetclean, obj ).children().find('.facetview_filtervalue').show();
                 }
             }
             $('.facetview_filterchoice', obj).bind('click',clickfilterchoice);
