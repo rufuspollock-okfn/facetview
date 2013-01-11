@@ -1124,7 +1124,7 @@ This can define or reference a function that will be executed any time new searc
             thehelp += '<hr></hr>';
             thehelp += '<p>Use the <b>filters</b> on the left to directly select values of interest. \
                 Click the filter name to open the list of available terms and show further filter options.</p> \
-                <p><b>Filter list size</b> can be altered by clicking on the filter size number<./p> \
+                <p><b>Filter list size</b> can be altered by clicking on the filter size number.</p> \
                 <p><b>Filter list order </b> can be adjusted by clicking the order options - \
                 from a-z ascending or descending, or by count ascending or descending.</p> \
                 <p>Filters search for unique values by default; to do an <b>OR</b> search - e.g. to look for more than one value \
