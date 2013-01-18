@@ -1176,7 +1176,7 @@ This can define or reference a function that will be executed any time new searc
             thefacetview += '</select>';
         };
         thefacetview += '<input type="text" class="facetview_freetext span4" style="display:inline-block; margin:0 0 21px 0; background:' + options.searchbox_shade + ';" name="q" \
-            value="" placeholder="search term" autofocus />';
+            value="" placeholder="search term" />';
         if ( options.sharesave_link ) {
             thefacetview += '<a class="btn facetview_sharesave" title="share or save this search" style="margin:0 0 21px 5px;" href=""><i class="icon-share-alt"></i></a>';
             thefacetview += '<div class="facetview_sharesavebox alert alert-info" style="display:none;"> \
