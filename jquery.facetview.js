@@ -743,7 +743,7 @@ This can define or reference a function that will be executed any time new searc
                             thevalue.push(res[row][parts[counter]]);
                         }
                     }
-                    if (thevalue && thevalue.length) {
+                    if (thevalue && thevalue.toString().length) {
                         display[lineitem][object]['pre']
                             ? line += display[lineitem][object]['pre'] : false;
                         if ( typeof(thevalue) == 'object' ) {
