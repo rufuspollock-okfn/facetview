@@ -463,10 +463,11 @@ This can define or reference a function that will be executed any time new searc
             event.preventDefault();
             var sortwhat = $(this).attr('href');
             var which = 0;
-            for (item in options.facets) {
-                if ('field' in options.facets[item]) {
-                    if ( options.facets[item]['field'] == sortwhat) {
-                        which = item;
+            for ( var i = 0; i < options.facets.length; i++ ) {
+                var item = options.facets[i];
+                if ('field' in item) {
+                    if ( item['field'] == sortwhat) {
+                        which = i;
                     }
                 }
             }
@@ -579,7 +580,7 @@ This can define or reference a function that will be executed any time new searc
             if ( options.facets.length > 0 ) {
                 var filters = options.facets;
                 var thefilters = '';
-                for ( var idx in filters ) {
+                for ( var idx = 0; idx < filters.length; idx++ ) {
                     var _filterTmpl = '<table id="facetview_{{FILTER_NAME}}" class="facetview_filters table table-bordered table-condensed table-striped" style="display:none;"> \
                         <tr><td><a class="facetview_filtershow" title="filter by {{FILTER_DISPLAY}}" rel="{{FILTER_NAME}}" \
                         style="color:#333; font-weight:bold;" href=""><i class="icon-plus"></i> {{FILTER_DISPLAY}} \
@@ -697,7 +698,7 @@ This can define or reference a function that will be executed any time new searc
             resultobj["start"] = "";
             resultobj["found"] = "";
             resultobj["facets"] = new Object();
-            for (var item in dataobj.hits.hits) {
+            for ( var item = 0; item < dataobj.hits.hits.length; item++ ) {
                 if ( options.fields ) {
                     resultobj["records"].push(dataobj.hits.hits[item].fields);
                 } else if ( options.partial_fields ) {
@@ -756,9 +757,9 @@ This can define or reference a function that will be executed any time new searc
             // add the record based on display template if available
             var display = options.result_display;
             var lines = '';
-            for (var lineitem in display) {
+            for ( var lineitem = 0; lineitem < display.length; lineitem++ ) {
                 line = "";
-                for (object in display[lineitem]) {
+                for ( var object = 0; object < display[lineitem].length; object++ ) {
                     var thekey = display[lineitem][object]['field'];
                     parts = thekey.split('.');
                     // TODO: this should perhaps recurse..
@@ -774,15 +775,17 @@ This can define or reference a function that will be executed any time new searc
                         var thevalue = res[parts[counter]];  // if this is a dict
                     } else {
                         var thevalue = [];
-                        for (var row in res) {
-                            thevalue.push(res[row][parts[counter]]);
+                        if ( res !== undefined ) {
+                            for ( var row = 0; row < res.length; row++ ) {
+                                thevalue.push(res[row][parts[counter]]);
+                            }
                         }
                     }
                     if (thevalue && thevalue.toString().length) {
                         display[lineitem][object]['pre']
                             ? line += display[lineitem][object]['pre'] : false;
                         if ( typeof(thevalue) == 'object' ) {
-                            for (var val in thevalue) {
+                            for ( var val = 0; val < thevalue.length; val++ ) {
                                 val != 0 ? line += ', ' : false;
                                 line += thevalue[val];
                             }
@@ -818,7 +821,7 @@ This can define or reference a function that will be executed any time new searc
             options.data = data;
             
             // for each filter setup, find the results for it and append them to the relevant filter
-            for ( var each in options.facets ) {
+            for ( var each = 0; each < options.facets.length; each++ ) {
                 var facet = options.facets[each]['field'];
                 var facetclean = options.facets[each]['field'].replace(/\./gi,'_').replace(/\:/gi,'_');
                 $('#facetview_' + facetclean, obj).children().find('.facetview_filtervalue').remove();
@@ -1002,7 +1005,7 @@ This can define or reference a function that will be executed any time new searc
             options.partial_fields ? qs['partial_fields'] = options.partial_fields : "";
             // set any facets
             qs['facets'] = {};
-            for (var item in options.facets) {
+            for ( var item = 0; item < options.facets.length; item++ ) {
                 var fobj = jQuery.extend(true, {}, options.facets[item] );
                 delete fobj['display'];
                 var parts = fobj['field'].split('.');
@@ -1104,7 +1107,7 @@ This can define or reference a function that will be executed any time new searc
                 } else if ( 'should' in qrystr.bool ) {
                     qrys = qrystr.bool.should;
                 };
-                for ( var qry in qrys ) {
+                for ( var qry = 0; qry < qrys.length; qry++ ) {
                     for ( var key in qrys[qry] ) {
                         if ( key == 'term' ) {
                             for ( var t in qrys[qry][key] ) {
@@ -1195,7 +1198,7 @@ This can define or reference a function that will be executed any time new searc
             thefacetview += '<select class="facetview_orderby" style="border-radius:5px; \
                 -moz-border-radius:5px; -webkit-border-radius:5px; width:100px; background:#eee; margin:0 5px 21px 0;"> \
                 <option value="">order by</option>';
-            for ( var each in options.search_sortby ) {
+            for ( var each = 0; each < options.search_sortby.length; each++ ) {
                 var obj = options.search_sortby[each];
                 thefacetview += '<option value="' + obj['field'] + '">' + obj['display'] + '</option>';
             };
@@ -1207,7 +1210,7 @@ This can define or reference a function that will be executed any time new searc
             thefacetview += '<select class="facetview_searchfield" style="border-radius:5px 0px 0px 5px; \
                 -moz-border-radius:5px 0px 0px 5px; -webkit-border-radius:5px 0px 0px 5px; width:100px; margin:0 -2px 21px 0; background:' + options.searchbox_shade + ';">';
             thefacetview += '<option value="">search all</option>';
-            for ( var each in options.searchbox_fieldselect ) {
+            for ( var each = 0; each < options.searchbox_fieldselect.length; each++ ) {
                 var obj = options.searchbox_fieldselect[each];
                 thefacetview += '<option value="' + obj['field'] + '">' + obj['display'] + '</option>';
             };
