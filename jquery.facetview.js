@@ -305,6 +305,10 @@ post_search_callback
 --------------------
 This can define or reference a function that will be executed any time new search results are retrieved and presented on the page.
 
+pushstate
+---------
+Updates the URL string with the current query when the user changes the 
+
 */
 
 
@@ -407,7 +411,8 @@ This can define or reference a function that will be executed any time new searc
             "resultwrap_end":"</td></tr>",
             "result_box_colours":[],
             "fadein":800,
-            "post_search_callback": false
+            "post_search_callback": false,
+            "pushstate": true
         };
 
 
@@ -1038,6 +1043,11 @@ This can define or reference a function that will be executed any time new searc
             }
             // make the search query
             var qrystr = elasticsearchquery();
+            // augment the URL bar if possible
+            if ( options.pushstate ) {
+                var currurl = '?source=' + options.querystring;
+                window.history.pushState("","search",currurl);
+            };
             $.ajax({
                 type: "get",
                 url: options.search_url,
