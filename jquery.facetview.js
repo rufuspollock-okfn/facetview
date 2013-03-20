@@ -1023,8 +1023,14 @@ Updates the URL string with the current query when the user changes the
                 delete fobj['display'];
                 delete fobj['facet_filter'];
                 var facet = {'terms': fobj};
-                if (facet_filter) {
-                    facet['facet_filter'] = facet_filter;
+                if (facet_filter || qs['filter']) {
+                    facet['facet_filter'] = {'and': []};
+                    if (facet_filter) {
+                        facet['facet_filter']['and'].push(facet_filter);
+                    }
+                    if (qs['filter']) {
+                        facet['facet_filter']['and'].push(qs['filter']);
+                    }
                 }
                 var parts = fobj['field'].split('.');
                 qs['facets'][fobj['field']] = facet;
