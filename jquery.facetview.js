@@ -961,8 +961,15 @@ Updates the URL string with the current query when the user changes the
                             }
                         }
                     } else {
+                        var rel = $(this).attr('rel');
+                        var facet = options.facets.filter(function(f) {
+                            return f['field'] === rel && f['facet_filter'];
+                        })[0];
                         var bobj = {'term':{}};
-                        bobj['term'][ $(this).attr('rel') ] = $(this).attr('href');
+                        bobj['term'][rel] = $(this).attr('href');
+                        if (facet) {
+                            qs['filter'] = facet['facet_filter'];
+                        }
                     }
                     
                     // check if this should be a nested query
