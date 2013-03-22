@@ -309,6 +309,10 @@ pushstate
 ---------
 Updates the URL string with the current query when the user changes the 
 
+linkify
+---------
+Make links in the output clickable. Defaults to true
+
 */
 
 
@@ -412,7 +416,8 @@ Updates the URL string with the current query when the user changes the
             "result_box_colours":[],
             "fadein":800,
             "post_search_callback": false,
-            "pushstate": true
+            "pushstate": true,
+            "linkify": true
         };
 
 
@@ -897,7 +902,9 @@ Updates the URL string with the current query when the user changes the
             $.each(data.records, function(index, value) {
                 // write them out to the results div
                  $('#facetview_results', obj).append( buildrecord(index) );
-                 $('#facetview_results tr:last-child', obj).linkify();
+                 if (options.linkify) {
+                     $('#facetview_results tr:last-child', obj).linkify();
+                 }
             });
             if ( options.result_box_colours.length > 0 ) {
                 jQuery('.result_box', obj).each(function () {
