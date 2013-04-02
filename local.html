@@ -38,7 +38,9 @@ jQuery(document).ready(function($) {
     },
     predefined_filters: {
         'owner.exact': {'term':{'owner.exact':'test'}}
-    }
+    },
+    default_operator: "AND",
+    default_freetext_fuzzify: "*"
   });
   });
 });
@@ -54,8 +56,6 @@ jQuery(document).ready(function($) {
 
 </head>
 <body>
-
-    <div class="facet-view-simple"></div>
 
     <div class="facet-view-simple"></div>
 

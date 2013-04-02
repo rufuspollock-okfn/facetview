@@ -307,7 +307,23 @@ This can define or reference a function that will be executed any time new searc
 
 pushstate
 ---------
-Updates the URL string with the current query when the user changes the 
+Updates the URL string with the current query when the user changes the search terms
+
+linkify
+-------
+Makes any URLs in the result contents into clickable links
+
+default_operator
+----------------
+Sets the default operator in text search strings - elasticsearch uses OR by default, but can also be AND
+
+default_freetext_fuzzify
+------------------------
+If this exists and is not false, it should be either * or ~. If it is * then * will be prepended and appended
+to each string in the freetext search term, and if it is ~ then ~ will be appended to each string in the freetext 
+search term. If * or ~ or : are already in the freetext search term, it will be assumed the user is already trying 
+to do a complex search term so no action will be taken. NOTE these changes are not replicated into the freetext 
+search box - the end user will not know they are happening.
 
 */
 
@@ -412,7 +428,10 @@ Updates the URL string with the current query when the user changes the
             "result_box_colours":[],
             "fadein":800,
             "post_search_callback": false,
-            "pushstate": true
+            "pushstate": true,
+            "linkify": true,
+            "default_operator": "OR",
+            "default_freetext_fuzzify": false
         };
 
 
@@ -897,7 +916,7 @@ Updates the URL string with the current query when the user changes the
             $.each(data.records, function(index, value) {
                 // write them out to the results div
                  $('#facetview_results', obj).append( buildrecord(index) );
-                 $('#facetview_results tr:last-child', obj).linkify();
+                 options.linkify ? $('#facetview_results tr:last-child', obj).linkify() : false;
             });
             if ( options.result_box_colours.length > 0 ) {
                 jQuery('.result_box', obj).each(function () {
@@ -917,6 +936,30 @@ Updates the URL string with the current query when the user changes the
         // ===============================================
         // functions to do with searching
         // ===============================================
+
+        // fuzzify the freetext search query terms if required
+        var fuzzify = function(querystr) {
+            var rqs = querystr
+            if ( options.default_freetext_fuzzify !== undefined ) {
+                if ( options.default_freetext_fuzzify == "*" || options.default_freetext_fuzzify == "~" ) {
+                    if ( querystr.indexOf('*') == -1 && querystr.indexOf('~') == -1 && querystr.indexOf(':') == -1 ) {
+                        var optparts = querystr.split(' ');
+                        pq = "";
+                        for ( var oi = 0; oi < optparts.length; oi++ ) {
+                            var oip = optparts[oi];
+                            if ( oip.length > 0 ) {
+                                oip = oip + options.default_freetext_fuzzify;
+                                options.default_freetext_fuzzify == "*" ? oip = "*" + oip : false;
+                                pq += oip + " ";
+                            }
+                        };
+                        rqs = pq;
+                    };
+
+                };
+            };
+            return rqs;
+        };
 
         // build the search query URL based on current params
         var elasticsearchquery = function() {
@@ -986,16 +1029,18 @@ Updates the URL string with the current query when the user changes the
             }
             if (bool) {
                 if ( options.q != "" ) {
-                    var qryval = { 'query': options.q };
+                    var qryval = { 'query': fuzzify(options.q) };
                     $('.facetview_searchfield', obj).val() != "" ? qryval.default_field = $('.facetview_searchfield', obj).val() : "";
+                    options.default_operator !== undefined ? qryval.default_operator = options.default_operator : false;
                     bool['must'].push( {'query_string': qryval } );
                 };
                 nested ? bool['must'].push(nested) : "";
                 qs['query'] = {'bool': bool};
             } else {
                 if ( options.q != "" ) {
-                    var qryval = { 'query': options.q };
+                    var qryval = { 'query': fuzzify(options.q) };
                     $('.facetview_searchfield', obj).val() != "" ? qryval.default_field = $('.facetview_searchfield', obj).val() : "";
+                    options.default_operator !== undefined ? qryval.default_operator = options.default_operator : false;
                     qs['query'] = {'query_string': qryval };
                 } else {
                     qs['query'] = {'match_all': {}};
@@ -1040,7 +1085,7 @@ Updates the URL string with the current query when the user changes the
                 options.q = $('.facetview_freetext', obj).val();
             } else {
                 options.q = $(options.searchbox_class).last().val();
-            }
+            };
             // make the search query
             var qrystr = elasticsearchquery();
             // augment the URL bar if possible
