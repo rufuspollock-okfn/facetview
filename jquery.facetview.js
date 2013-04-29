@@ -456,6 +456,22 @@ search box - the end user will not know they are happening.
         var options = $.fn.facetview.options;
 
 
+        var getFieldFormatter = function(field){
+           for(var i =0; i < options.result_display.length; i++){
+               var row = options.result_display[i];
+               for(var j=0; j < row.length; j++){
+                  var fielddata = row[j];
+                   
+                  if (fielddata.field == field && fielddata.formatter){
+                      return fielddata.formatter;
+
+                 }
+               }
+           } 
+           return function(val) {return val;};
+        }
+
+
         // ===============================================
         // functions to do with filters
         // ===============================================
@@ -689,10 +705,11 @@ search box - the end user will not know they are happening.
             if ( $('.facetview_or[href="' + rel + '"]', obj).attr('rel') == 'OR' ) {
                 newobj += ' facetview_logic_or';
             }
+            var val = getFieldFormatter(rel)(href);
             newobj += '" rel="' + rel + 
                 '" alt="remove" title="remove"' +
                 ' href="' + href + '">' +
-                href + ' <i class="icon-white icon-remove" style="margin-top:1px;"></i></a>';
+                val + ' <i class="icon-white icon-remove" style="margin-top:1px;"></i></a>';
 
             if ( $('#facetview_group_' + relclean, obj).length ) {
                 $('#facetview_group_' + relclean, obj).append(newobj);
@@ -875,8 +892,10 @@ search box - the end user will not know they are happening.
                 $('#facetview_' + facetclean, obj).children().find('.facetview_filtervalue').remove();
                 var records = data["facets"][ facet ];
                 for ( var item in records ) {
+                    var formatter = getFieldFormatter(facet);
+                    var value = formatter(item);
                     var append = '<tr class="facetview_filtervalue" style="display:none;"><td><a class="facetview_filterchoice' +
-                        '" rel="' + facet + '" href="' + item + '">' + item +
+                        '" rel="' + facet + '" href="' + item + '">' + value +
                         ' (' + records[item] + ')</a></td></tr>';
                     $('#facetview_' + facetclean, obj).append(append);
                 }
