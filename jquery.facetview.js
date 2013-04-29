@@ -142,6 +142,14 @@ searchbox_shade
 ---------------
 The background colour to apply to the search box
 
+display_header
+--------------
+Show header on top of result view describing the fields should be used in combination of display_columns
+
+display_columns
+---------------
+Render facets as columns
+
 sharesave_link
 --------------
 Default to true, in which case the searchbox - if drawn by facetview - will be appended with a button that 
@@ -192,7 +200,8 @@ result_display
 A display template for search results. It is a list of lists.
 Each list specifies a line. Within each list, specify the contents of the line using objects to describe 
 them. Each content piece should pertain to a particular "field" of the result set, and should specify what 
-to show "pre" and "post" the given field
+to show "pre" and "post" the given field, its also possible to pass a "formatter" function which can be 
+used as a callback to transform the field data
 
 display_images
 --------------
@@ -400,6 +409,8 @@ search box - the end user will not know they are happening.
             "description":"",
             "facets":[],
             "extra_facets": {},
+            "display_columns": false,
+            "display_header": false,
             "enable_rangeselect": false,
             "include_facets_in_querystring": false,
             "result_display": resdisplay,
@@ -627,7 +638,7 @@ search box - the end user will not know they are happening.
                         thefilters = thefilters.replace(/{{FILTER_HOWMANY}}/gi, filters[idx]['size']);
                     } else {
                         thefilters = thefilters.replace(/{{FILTER_HOWMANY}}/gi, 10);
-                    };
+                    }
                     if ( 'order' in filters[idx] ) {
                         if ( filters[idx]['order'] == 'term' ) {
                             thefilters = thefilters.replace(/{{FILTER_SORTTERM}}/g, 'facetview_term');
@@ -645,13 +656,13 @@ search box - the end user will not know they are happening.
                     } else {
                         thefilters = thefilters.replace(/{{FILTER_SORTTERM}}/g, 'facetview_count');
                         thefilters = thefilters.replace(/{{FILTER_SORTCONTENT}}/g, 'count <i class="icon-arrow-down"></i>');
-                    };
+                    }
                     thefilters = thefilters.replace(/{{FACET_IDX}}/gi,idx);
                     if ('display' in filters[idx]) {
                         thefilters = thefilters.replace(/{{FILTER_DISPLAY}}/g, filters[idx]['display']);
                     } else {
                         thefilters = thefilters.replace(/{{FILTER_DISPLAY}}/g, filters[idx]['field']);
-                    };
+                    }
                 };
                 $('#facetview_filters', obj).html("").append(thefilters);
                 $('.facetview_morefacetvals', obj).bind('click',morefacetvals);
@@ -785,6 +796,7 @@ search box - the end user will not know they are happening.
                 line = "";
                 for ( var object = 0; object < display[lineitem].length; object++ ) {
                     var thekey = display[lineitem][object]['field'];
+                    var formatter = display[lineitem][object]['formatter'];
                     parts = thekey.split('.');
                     // TODO: this should perhaps recurse..
                     if (parts.length == 1) {
@@ -805,19 +817,31 @@ search box - the end user will not know they are happening.
                             }
                         }
                     }
-                    if (thevalue && thevalue.toString().length) {
-                        display[lineitem][object]['pre']
-                            ? line += display[lineitem][object]['pre'] : false;
-                        if ( typeof(thevalue) == 'object' ) {
-                            for ( var val = 0; val < thevalue.length; val++ ) {
-                                val != 0 ? line += ', ' : false;
-                                line += thevalue[val];
+                    if (thevalue || options.display_columns) { 
+                        if (options.display_columns) {
+                            line += "<td>";
+                        }
+                        if (formatter){
+                            line += formatter(thevalue);
+                        }
+                        else{
+                            display[lineitem][object]['pre']
+                                ? line += display[lineitem][object]['pre'] : false;
+                            if ( typeof(thevalue) == 'object' ) {
+                                for ( var val = 0; val < thevalue.length; val++ ) {
+                                    val != 0 ? line += ', ' : false;
+                                    line += thevalue[val];
+                                }
+                            } else {
+                                line += thevalue;
                             }
-                        } else {
-                            line += thevalue;
                         }
                         display[lineitem][object]['post'] 
                             ? line += display[lineitem][object]['post'] : line += ' ';
+
+                        if (options.display_columns) {
+                            line += "</td>";
+                        }
                     }
                 }
                 if (line) {
@@ -912,6 +936,13 @@ search box - the end user will not know they are happening.
 
             // put the filtered results on the page
             $('#facetview_results',obj).html("");
+            if (options.display_header){
+                var headerrow = $("<tr>");
+                $('#facetview_results',obj).append(headerrow);
+                $.each(options.facets, function(idx, val) {
+                    headerrow.append($("<td>").text(val.display));
+                });
+            }
             var infofiltervals = new Array();
             $.each(data.records, function(index, value) {
                 // write them out to the results div
