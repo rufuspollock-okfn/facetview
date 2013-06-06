@@ -674,6 +674,11 @@ search box - the end user will not know they are happening.
                 var href = $(this).attr("href");
             }
             var relclean = rel.replace(/\./gi,'_').replace(/\:/gi,'_');
+            // Do nothing if element already exists.
+            if( $('a.facetview_filterselected[href="'+href+'"][rel="'+rel+'"]').length ){
+                return null;
+            }
+
             var newobj = '<a class="facetview_filterselected facetview_clear btn btn-info';
             if ( $('.facetview_or[href="' + rel + '"]', obj).attr('rel') == 'OR' ) {
                 newobj += ' facetview_logic_or';
