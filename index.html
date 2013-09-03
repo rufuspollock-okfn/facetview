@@ -30,8 +30,24 @@ jQuery(document).ready(function($) {
         {'field':'http://cr.eionet.europa.eu/ontologies/contreg.rdf#tag', 'display': 'tag'}
     ],
     result_display: [
-	      [{'field': 'http://purl.org/dc/terms/title'}]
+	      [
+		{
+		'pre': '<h3><a href="',
+		'field': 'http://purl.org/dc/terms/isPartOf',
+		'post': '/'
+		},
+		{
+		'field': 'http://www.eea.europa.eu/portal_types/Highlight#id',
+		'post': '">'
+		},
+		{
+		'field': 'http://purl.org/dc/terms/title',
+		'post': '</a></h3>'
+		}
+		],
+	      [{'field': 'http://purl.org/dc/terms/description'}]
     ],
+    linkify: false,
     paging: {
       from: 0,
       size: 10
