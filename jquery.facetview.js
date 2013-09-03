@@ -456,13 +456,13 @@ search box - the end user will not know they are happening.
                 $(this).children('i').removeClass('icon-minus');
                 $(this).children('i').addClass('icon-plus');
                 $(this).removeClass('facetview_open');
-                $('#facetview_' + $(this).attr('rel'), obj ).children().find('.facetview_filtervalue').hide();
+                $('[id="facetview_' + $(this).attr('rel') +'"]', obj ).children().find('.facetview_filtervalue').hide();
                 $(this).siblings('.facetview_filteroptions').hide();
             } else {
                 $(this).children('i').removeClass('icon-plus');
                 $(this).children('i').addClass('icon-minus');
                 $(this).addClass('facetview_open');
-                $('#facetview_' + $(this).attr('rel'), obj ).children().find('.facetview_filtervalue').show();
+                $('[id="facetview_' + $(this).attr('rel') +'"]', obj ).children().find('.facetview_filtervalue').show();
                 $(this).siblings('.facetview_filteroptions').show();
             }
         };
@@ -790,7 +790,12 @@ search box - the end user will not know they are happening.
                 line = "";
                 for ( var object = 0; object < display[lineitem].length; object++ ) {
                     var thekey = display[lineitem][object]['field'];
-                    parts = thekey.split('.');
+                    // handle http namespaces in key (e.g. "http://purl.org/dc/terms/created")
+                    if(thekey.indexOf('http') === 0){
+                        parts = [thekey];
+                    }else{
+                        parts = thekey.split('.');
+                    }
                     // TODO: this should perhaps recurse..
                     if (parts.length == 1) {
                         var res = record;
@@ -853,16 +858,17 @@ search box - the end user will not know they are happening.
             for ( var each = 0; each < options.facets.length; each++ ) {
                 var facet = options.facets[each]['field'];
                 var facetclean = options.facets[each]['field'].replace(/\./gi,'_').replace(/\:/gi,'_');
-                $('#facetview_' + facetclean, obj).children().find('.facetview_filtervalue').remove();
+                var facet_filter = $('[id="facetview_'+facetclean+'"]', obj);
+                facet_filter.children().find('.facetview_filtervalue').remove();
                 var records = data["facets"][ facet ];
                 for ( var item in records ) {
                     var append = '<tr class="facetview_filtervalue" style="display:none;"><td><a class="facetview_filterchoice' +
                         '" rel="' + facet + '" href="' + item + '">' + item +
                         ' (' + records[item] + ')</a></td></tr>';
-                    $('#facetview_' + facetclean, obj).append(append);
+                    facet_filter.append(append);
                 }
                 if ( $('.facetview_filtershow[rel="' + facetclean + '"]', obj).hasClass('facetview_open') ) {
-                    $('#facetview_' + facetclean, obj ).children().find('.facetview_filtervalue').show();
+                    facet_filter.children().find('.facetview_filtervalue').show();
                 }
             }
             $('.facetview_filterchoice', obj).bind('click',clickfilterchoice);
@@ -1064,6 +1070,10 @@ search box - the end user will not know they are happening.
                 var fobj = jQuery.extend(true, {}, options.facets[item] );
                 delete fobj['display'];
                 var parts = fobj['field'].split('.');
+                // handle http namespaces in key (e.g. "http://purl.org/dc/terms/created") 
+                if(parts[0].indexOf('http') === 0){
+                    parts = [parts.join('.')];
+                }
                 qs['facets'][fobj['field']] = {"terms":fobj};
                 if ( options.nested.indexOf(parts[0]) != -1 ) {
                     nested ? qs['facets'][fobj['field']]["scope"] = parts[0] : qs['facets'][fobj['field']]["nested"] = parts[0];
