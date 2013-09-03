@@ -456,13 +456,13 @@ search box - the end user will not know they are happening.
                 $(this).children('i').removeClass('icon-minus');
                 $(this).children('i').addClass('icon-plus');
                 $(this).removeClass('facetview_open');
-                $('#facetview_' + $(this).attr('rel'), obj ).children().find('.facetview_filtervalue').hide();
+                $('[id="facetview_' + $(this).attr('rel') +'"]', obj ).children().find('.facetview_filtervalue').hide();
                 $(this).siblings('.facetview_filteroptions').hide();
             } else {
                 $(this).children('i').removeClass('icon-plus');
                 $(this).children('i').addClass('icon-minus');
                 $(this).addClass('facetview_open');
-                $('#facetview_' + $(this).attr('rel'), obj ).children().find('.facetview_filtervalue').show();
+                $('[id="facetview_' + $(this).attr('rel') +'"]', obj ).children().find('.facetview_filtervalue').show();
                 $(this).siblings('.facetview_filteroptions').show();
             }
         };
@@ -770,6 +770,35 @@ search box - the end user will not know they are happening.
             }
         };
 
+        // used to get value by dotted notation in result_display
+        var getvalue = function(obj, dotted_notation) {
+            var parts = dotted_notation.split('.');
+            parts.reverse();
+            var ref = [parts.pop()];
+            while (parts.length && !(ref.join(".") in obj)) {
+                ref.push(parts.pop());
+            }
+            var addressed_ob = obj[ref.join(".")];
+            var left = parts.reverse().join(".");
+
+            if (addressed_ob && addressed_ob.constructor.toString().indexOf("Array") == -1) {
+                if (parts.length)
+                    return getvalue(addressed_ob, left);
+                else
+                    return addressed_ob;
+            } else {
+                if ( addressed_ob !== undefined ) {
+                    var thevalue = [];
+                    for ( var row = 0; row < addressed_ob.length; row++ ) {
+                        thevalue.push(getvalue(addressed_ob[row], left));
+                    }
+                    return thevalue;
+                } else {
+                    return undefined;
+                }
+            }
+        };
+
         // given a result record, build how it should look on the page
         var buildrecord = function(index) {
             var record = options.data['records'][index];
@@ -790,26 +819,7 @@ search box - the end user will not know they are happening.
                 line = "";
                 for ( var object = 0; object < display[lineitem].length; object++ ) {
                     var thekey = display[lineitem][object]['field'];
-                    parts = thekey.split('.');
-                    // TODO: this should perhaps recurse..
-                    if (parts.length == 1) {
-                        var res = record;
-                    } else if (parts.length == 2) {
-                        var res = record[parts[0]];
-                    } else if (parts.length == 3) {
-                        var res = record[parts[0]][parts[1]];
-                    }
-                    var counter = parts.length - 1;
-                    if (res && res.constructor.toString().indexOf("Array") == -1) {
-                        var thevalue = res[parts[counter]];  // if this is a dict
-                    } else {
-                        var thevalue = [];
-                        if ( res !== undefined ) {
-                            for ( var row = 0; row < res.length; row++ ) {
-                                thevalue.push(res[row][parts[counter]]);
-                            }
-                        }
-                    }
+                    var thevalue = getvalue(record, thekey);
                     if (thevalue && thevalue.toString().length) {
                         display[lineitem][object]['pre']
                             ? line += display[lineitem][object]['pre'] : false;
@@ -853,16 +863,17 @@ search box - the end user will not know they are happening.
             for ( var each = 0; each < options.facets.length; each++ ) {
                 var facet = options.facets[each]['field'];
                 var facetclean = options.facets[each]['field'].replace(/\./gi,'_').replace(/\:/gi,'_');
-                $('#facetview_' + facetclean, obj).children().find('.facetview_filtervalue').remove();
+                var facet_filter = $('[id="facetview_'+facetclean+'"]', obj);
+                facet_filter.children().find('.facetview_filtervalue').remove();
                 var records = data["facets"][ facet ];
                 for ( var item in records ) {
                     var append = '<tr class="facetview_filtervalue" style="display:none;"><td><a class="facetview_filterchoice' +
                         '" rel="' + facet + '" href="' + item + '">' + item +
                         ' (' + records[item] + ')</a></td></tr>';
-                    $('#facetview_' + facetclean, obj).append(append);
+                    facet_filter.append(append);
                 }
                 if ( $('.facetview_filtershow[rel="' + facetclean + '"]', obj).hasClass('facetview_open') ) {
-                    $('#facetview_' + facetclean, obj ).children().find('.facetview_filtervalue').show();
+                    facet_filter.children().find('.facetview_filtervalue').show();
                 }
             }
             $('.facetview_filterchoice', obj).bind('click',clickfilterchoice);
@@ -1063,10 +1074,11 @@ search box - the end user will not know they are happening.
             for ( var item = 0; item < options.facets.length; item++ ) {
                 var fobj = jQuery.extend(true, {}, options.facets[item] );
                 delete fobj['display'];
-                var parts = fobj['field'].split('.');
                 qs['facets'][fobj['field']] = {"terms":fobj};
-                if ( options.nested.indexOf(parts[0]) != -1 ) {
-                    nested ? qs['facets'][fobj['field']]["scope"] = parts[0] : qs['facets'][fobj['field']]["nested"] = parts[0];
+                for (var ni; ni < options.nested.length; ni++ ) {
+                    if (fobj['field'].indexOf(options.nested[i]) == 0) {
+                         nested ? qs['facets'][fobj['field']]["scope"] = options.nested[i] : qs['facets'][fobj['field']]["nested"] = options.nested[i];
+                    }
                 }
             }
             jQuery.extend(true, qs['facets'], options.extra_facets );
