@@ -23,11 +23,14 @@
   <script type="text/javascript">
 jQuery(document).ready(function($) {
   $('.facet-view-simple').facetview({
-    search_url: 'http://bibsoup.net/query?',
+    search_url: 'http://centaurus.eea.europa.eu/elasticsearch/rdfdata/_search?',
     search_index: 'elasticsearch',
     facets: [
-        {'field':'year.exact', 'display': 'year'}, 
-        {'field':'publisher.exact', 'display': 'publisher'}
+        {'field':'http://purl.org/dc/terms/creator', 'display': 'creator'},
+        {'field':'http://cr.eionet.europa.eu/ontologies/contreg.rdf#tag', 'display': 'tag'}
+    ],
+    result_display: [
+	      [{'field': 'http://purl.org/dc/terms/title'}]
     ],
     paging: {
       from: 0,
