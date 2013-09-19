@@ -744,7 +744,7 @@ search box - the end user will not know they are happening.
             resultobj["found"] = dataobj.hits.total;
             for (var item in dataobj.facets) {
                 var facetsobj = new Object();
-                for (var thing in dataobj.facets[item]["terms"]) {
+                for (var thing = 0; thing < dataobj.facets[item]["terms"].length; thing++) {
                     facetsobj[ dataobj.facets[item]["terms"][thing]["term"] ] = dataobj.facets[item]["terms"][thing]["count"];
                 }
                 resultobj["facets"][item] = facetsobj;
