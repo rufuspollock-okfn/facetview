@@ -253,6 +253,10 @@ as per an elasticsearch query for appending to the bool must.
 If these filters should be applied at the nested level, then prefix the name with the relevant nesting prefix. 
 e.g. if the nested object is called stats, call the filter stats.MYFILTER.
 
+filter
+-------
+JSON document describing an `elasticsearch filter <http://www.elasticsearch.org/guide/reference/api/search/filter/>`_
+
 paging
 ------
 An object defining the paging settings:
@@ -1082,6 +1086,11 @@ search box - the end user will not know they are happening.
                 }
             }
             jQuery.extend(true, qs['facets'], options.extra_facets );
+            // set elasticsearch filter, if any
+            // set any filter
+            if (options.filter) {
+                qs['filter'] = options.filter;
+            }
             //alert(JSON.stringify(qs,"","    "));
             qy = JSON.stringify(qs);
             if ( options.include_facets_in_querystring ) {
