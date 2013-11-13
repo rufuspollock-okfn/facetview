@@ -1024,8 +1024,15 @@ search box - the end user will not know they are happening.
                             }
                         }
                     } else {
+                        var rel = $(this).attr('rel');
+                        var facet = options.facets.filter(function(f) {
+                            return f['field'] === rel && f['facet_filter'];
+                        })[0];
                         var bobj = {'term':{}};
-                        bobj['term'][ $(this).attr('rel') ] = $(this).attr('href');
+                        bobj['term'][rel] = $(this).attr('href');
+                        if (facet) {
+                            qs['filter'] = facet['facet_filter'];
+                        }
                     }
                     
                     // check if this should be a nested query
@@ -1077,8 +1084,21 @@ search box - the end user will not know they are happening.
             qs['facets'] = {};
             for ( var item = 0; item < options.facets.length; item++ ) {
                 var fobj = jQuery.extend(true, {}, options.facets[item] );
+                var facet_filter = fobj['facet_filter'];
                 delete fobj['display'];
-                qs['facets'][fobj['field']] = {"terms":fobj};
+                delete fobj['facet_filter'];
+                var facet = {'terms': fobj};
+                if (facet_filter || qs['filter']) {
+                    facet['facet_filter'] = {'and': []};
+                    if (facet_filter) {
+                        facet['facet_filter']['and'].push(facet_filter);
+                    }
+                    if (qs['filter']) {
+                        facet['facet_filter']['and'].push(qs['filter']);
+                    }
+                }
+                var parts = fobj['field'].split('.');
+                qs['facets'][fobj['field']] = facet;
                 for (var ni; ni < options.nested.length; ni++ ) {
                     if (fobj['field'].indexOf(options.nested[i]) == 0) {
                          nested ? qs['facets'][fobj['field']]["scope"] = options.nested[i] : qs['facets'][fobj['field']]["nested"] = options.nested[i];
