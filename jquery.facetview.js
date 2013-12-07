@@ -1208,9 +1208,15 @@ search box - the end user will not know they are happening.
             <p><b>Fuzzy matches</b> can be performed using tilde <b>~</b>. For example, <b>einsten~</b> may help find <b>einstein</b>.</p> \
             <p><b>Exact matches</b> can be performed with <b>"</b> double quotes. For example <b>"einstein"</b> or <b>"albert einstein"</b>.</p> \
             <p>Match all search terms by concatenating them with <b>AND</b>. For example <b>albert AND einstein</b>.</p> \
-            <p>Match any term by concatenating them with <b>OR</b>. For example <b>albert OR einstein</b>.</p> \
-            <p><b>Combinations</b> will work too, like <b>albert OR einste~</b>, or <b>"albert" "einstein"</b>.</p> \
+            <p>Match any term by concatenating them with <b>OR</b>. For example <b>albert OR einstein</b>.</p>';
+        if ( !options.default_freetext_fuzzify ) {
+            thehelp += '<p><b>Exclude</b> terms by prefixing them with <b>-</b> (minus sign). For example <b>albert -einstein</b>.</p> \
+                        <p><b>Require</b> terms by prefixing them with <b>+</b> (plus sign). For example <b>albert -physics +einstein</b> (albert is now optional but increases relevance). <a href="http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#_boolean_operators" target="_blank">Full details here</a>.</p>';
+        }
+
+        thehelp += '<p><b>Combinations</b> will work too, like <b>albert OR einste~</b>, or <b>"albert" "einstein"</b>.</p> \
             <p><b>Result set size</b> can be altered by clicking on the result size number preceding the search box above.</p>';
+
         if ( options.searchbox_fieldselect.length > 0 ) {
             thehelp += '<p>By default, terms are searched for across entire record entries. \
                 This can be restricted to particular fields by selecting the field of interest from the <b>search field</b> dropdown</p>';
