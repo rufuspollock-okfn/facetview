@@ -622,6 +622,7 @@ if it exists, will be disabled.
                 var filters = options.facets;
                 var thefilters = '';
                 for ( var idx = 0; idx < filters.length; idx++ ) {
+                    var current_filter = filters[idx];
                     var _filterTmpl = '<table id="facetview_{{FILTER_NAME}}" class="facetview_filters table table-bordered table-condensed table-striped" style="display:none;"> \
                         <tr><td><a class="facetview_filtershow" title="filter by {{FILTER_DISPLAY}}" rel="{{FILTER_NAME}}" \
                         style="color:#333; font-weight:bold;" href=""><i class="icon-plus"></i> {{FILTER_DISPLAY}} \
@@ -638,24 +639,24 @@ if it exists, will be disabled.
                     _filterTmpl +='</div> \
                         </td></tr> \
                         </table>';
-                    _filterTmpl = _filterTmpl.replace(/{{FILTER_NAME}}/g, filters[idx]['field'].replace(/\./gi,'_').replace(/\:/gi,'_')).replace(/{{FILTER_EXACT}}/g, filters[idx]['field']);
+                    _filterTmpl = _filterTmpl.replace(/{{FILTER_NAME}}/g, current_filter['field'].replace(/\./gi,'_').replace(/\:/gi,'_')).replace(/{{FILTER_EXACT}}/g, current_filter['field']);
                     thefilters += _filterTmpl;
-                    if ('size' in filters[idx] ) {
-                        thefilters = thefilters.replace(/{{FILTER_HOWMANY}}/gi, filters[idx]['size']);
+                    if ('size' in current_filter ) {
+                        thefilters = thefilters.replace(/{{FILTER_HOWMANY}}/gi, current_filter['size']);
                     } else {
                         thefilters = thefilters.replace(/{{FILTER_HOWMANY}}/gi, 10);
                     };
-                    if ( 'order' in filters[idx] ) {
-                        if ( filters[idx]['order'] == 'term' ) {
+                    if ( 'order' in current_filter ) {
+                        if ( current_filter['order'] == 'term' ) {
                             thefilters = thefilters.replace(/{{FILTER_SORTTERM}}/g, 'facetview_term');
                             thefilters = thefilters.replace(/{{FILTER_SORTCONTENT}}/g, 'a-z <i class="icon-arrow-down"></i>');
-                        } else if ( filters[idx]['order'] == 'reverse_term' ) {
+                        } else if ( current_filter['order'] == 'reverse_term' ) {
                             thefilters = thefilters.replace(/{{FILTER_SORTTERM}}/g, 'facetview_rterm');
                             thefilters = thefilters.replace(/{{FILTER_SORTCONTENT}}/g, 'a-z <i class="icon-arrow-up"></i>');
-                        } else if ( filters[idx]['order'] == 'count' ) {
+                        } else if ( current_filter['order'] == 'count' ) {
                             thefilters = thefilters.replace(/{{FILTER_SORTTERM}}/g, 'facetview_count');
                             thefilters = thefilters.replace(/{{FILTER_SORTCONTENT}}/g, 'count <i class="icon-arrow-down"></i>');
-                        } else if ( filters[idx]['order'] == 'reverse_count' ) {
+                        } else if ( current_filter['order'] == 'reverse_count' ) {
                             thefilters = thefilters.replace(/{{FILTER_SORTTERM}}/g, 'facetview_rcount');
                             thefilters = thefilters.replace(/{{FILTER_SORTCONTENT}}/g, 'count <i class="icon-arrow-up"></i>');
                         };
@@ -664,10 +665,10 @@ if it exists, will be disabled.
                         thefilters = thefilters.replace(/{{FILTER_SORTCONTENT}}/g, 'count <i class="icon-arrow-down"></i>');
                     };
                     thefilters = thefilters.replace(/{{FACET_IDX}}/gi,idx);
-                    if ('display' in filters[idx]) {
-                        thefilters = thefilters.replace(/{{FILTER_DISPLAY}}/g, filters[idx]['display']);
+                    if ('display' in current_filter) {
+                        thefilters = thefilters.replace(/{{FILTER_DISPLAY}}/g, current_filter['display']);
                     } else {
-                        thefilters = thefilters.replace(/{{FILTER_DISPLAY}}/g, filters[idx]['field']);
+                        thefilters = thefilters.replace(/{{FILTER_DISPLAY}}/g, current_filter['field']);
                     };
                 };
                 $('#facetview_filters', obj).html("").append(thefilters);
@@ -676,6 +677,7 @@ if it exists, will be disabled.
                 filters = options.static_filters;
                 staticfilters = '';
                 for ( var idx = 0; idx < filters.length; idx++ ) {
+                    var current_filter = filters[idx];
                      var _filterTmpl = '<table id="facetview_{{FILTER_NAME}}" class="facetview_s_filters table table-bordered table-condensed table-striped"> \
                         <tr><td><a class="facetview_filtershow" title="filter by {{FILTER_DISPLAY}}" rel="{{FILTER_NAME}}" \
                         style="color:#333; font-weight:bold;" href=""><i class="icon-plus"></i> {{FILTER_DISPLAY}} \
@@ -692,18 +694,20 @@ if it exists, will be disabled.
                     _filterTmpl +='</div> \
                         </td></tr> \
                         </table>';
-                    _filterTmpl = _filterTmpl.replace(/{{FILTER_NAME}}/g, filters[idx]['field'].replace(/\./gi,'_').replace(/\:/gi,'_')).replace(/{{FILTER_EXACT}}/g, filters[idx]['field']);
+                    _filterTmpl = _filterTmpl.replace(/{{FILTER_NAME}}/g, current_filter['field'].replace(/\./gi,'_').replace(/\:/gi,'_')).replace(/{{FILTER_EXACT}}/g, current_filter['field']);
                     staticfilters += _filterTmpl;
-                    staticfilters = staticfilters.replace(/{{FILTER_HOWMANY}}/gi, filters[idx].length);
+                    staticfilters = staticfilters.replace(/{{FILTER_HOWMANY}}/gi, current_filter.length);
 
                     staticfilters = staticfilters.replace(/{{FACET_IDX}}/gi,idx);
-                    if ('display' in filters[idx]) {
-                        staticfilters = staticfilters.replace(/{{FILTER_DISPLAY}}/g, filters[idx]['display']);
+                    if ('display' in current_filter) {
+                        staticfilters =
+                        staticfilters.replace(/{{FILTER_DISPLAY}}/g, current_filter['display']);
                     } else {
-                        staticfilters = staticfilters.replace(/{{FILTER_DISPLAY}}/g, filters[idx]['field']);
+                        staticfilters =
+                        staticfilters.replace(/{{FILTER_DISPLAY}}/g, current_filter['field']);
                     };
-                    if ( 'type' in filters[idx] ) {
-                        staticfilters = staticfilters.replace(/{{LIST_TYPE}}/g, filters[idx]['type']['value']);
+                    if ( 'type' in current_filter ) {
+                        staticfilters = staticfilters.replace(/{{LIST_TYPE}}/g, current_filter['type']['value']);
                     } else {
                         staticfilters = staticfilters.replace(/{{LIST_TYPE}}/g, 'multiple');
                     };
@@ -923,8 +927,9 @@ if it exists, will be disabled.
 
             // for each filter setup, find the results for it and append them to the relevant filter
             for ( var each = 0; each < options.facets.length; each++ ) {
-                var facet = options.facets[each]['field'];
-                var facetclean = options.facets[each]['field'].replace(/\./gi,'_').replace(/\:/gi,'_');
+                var current_filter = options.facets[each];
+                var facet = current_filter['field'];
+                var facetclean = current_filter['field'].replace(/\./gi,'_').replace(/\:/gi,'_');
                 var facet_filter = $('[id="facetview_'+facetclean+'"]', obj);
                 facet_filter.children().find('.facetview_filtervalue').remove();
                 var records = data["facets"][ facet ];
@@ -939,21 +944,23 @@ if it exists, will be disabled.
                 }
             }
             // for each static filter: apped the values
+
             for (var each = 0; each < options.static_filters.length; each++ ) {
-              var facet= options.static_filters[each]['field'];
-              var facetclean = options.static_filters[each]['field'].replace(/\./gi,'_').replace(/\:/gi,'_');
-              var facet_filter = $('[id="facetview_'+facetclean+'"]', obj);
-              facet_filter.children().find('.facetview_filtervalue').remove();
-              var records = options.static_filters[each]['values'];
-              for ( var item = 0; item < records.length; item ++ ) {
-                  var append = '<tr class="facetview_filtervalue" style="display:none;"><td><a class="facetview_filterchoice' +
-                      '" rel="' + facet + '" href="' + records[item]['value'] + '">' +
-                      records[item]['display'] + '</a></td></tr>';
-                  facet_filter.append(append);
-              }
-              if ( $('.facetview_filtershow[rel="' + facetclean + '"]', obj).hasClass('facetview_open') ) {
-                  facet_filter.children().find('.facetview_filtervalue').show();
-              }
+                var current_filter = options.static_filters[each];
+                var facet= current_filter['field'];
+                var facetclean = current_filter['field'].replace(/\./gi,'_').replace(/\:/gi,'_');
+                var facet_filter = $('[id="facetview_'+facetclean+'"]', obj);
+                facet_filter.children().find('.facetview_filtervalue').remove();
+                var records = current_filter['values'];
+                for ( var item = 0; item < records.length; item ++ ) {
+                    var append = '<tr class="facetview_filtervalue" style="display:none;"><td><a class="facetview_filterchoice' +
+                        '" rel="' + facet + '" href="' + records[item]['value'] + '">' +
+                        records[item]['display'] + '</a></td></tr>';
+                    facet_filter.append(append);
+                }
+                if ( $('.facetview_filtershow[rel="' + facetclean + '"]', obj).hasClass('facetview_open') ) {
+                    facet_filter.children().find('.facetview_filtervalue').show();
+                }
             }
 
             $('.facetview_filterchoice', obj).bind('click',clickfilterchoice);
