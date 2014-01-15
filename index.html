@@ -23,31 +23,12 @@
   <script type="text/javascript">
 jQuery(document).ready(function($) {
   $('.facet-view-simple').facetview({
-    search_url: 'http://centaurus.eea.europa.eu/elasticsearch/rdfdata/_search?',
+    search_url: 'http://bibsoup.net/query?',
     search_index: 'elasticsearch',
     facets: [
-        {'field':'http://purl.org/dc/terms/creator', 'display': 'creator'},
-        {'field':'http://cr.eionet.europa.eu/ontologies/contreg.rdf#tag', 'display': 'tag'}
+        {'field':'year.exact', 'display': 'year'}, 
+        {'field':'publisher.exact', 'display': 'publisher'}
     ],
-    result_display: [
-	      [
-		{
-		'pre': '<h3><a href="',
-		'field': 'http://purl.org/dc/terms/isPartOf',
-		'post': '/'
-		},
-		{
-		'field': 'http://www.eea.europa.eu/portal_types/Highlight#id',
-		'post': '">'
-		},
-		{
-		'field': 'http://purl.org/dc/terms/title',
-		'post': '</a></h3>'
-		}
-		],
-	      [{'field': 'http://purl.org/dc/terms/description'}]
-    ],
-    linkify: false,
     paging: {
       from: 0,
       size: 10
