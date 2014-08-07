@@ -6,42 +6,14 @@
  * or a config variable can point to a remote config
  * 
  * created by Mark MacGillivray - mark@cottagelabs.com
+ * refactored and updated by Johannes Weberhofer - jweberhofer@weberhofer.at
  *
  * http://cottagelabs.com
+ * http://www.weberhfoer.at
  *
  * There is an explanation of the options below.
  *
  */
-
-// first define the bind with delay function from (saves loading it separately) 
-// https://github.com/bgrins/bindWithDelay/blob/master/bindWithDelay.js
-
-(function($) {
-    $.fn.bindWithDelay = function( type, data, fn, timeout, throttle ) {
-        var wait = null;
-        var that = this;
-
-        if ( $.isFunction( data ) ) {
-            throttle = timeout;
-            timeout = fn;
-            fn = data;
-            data = undefined;
-        }
-
-        function cb() {
-            var e = $.extend(true, { }, arguments[0]);
-            var throttler = function() {
-                wait = null;
-                fn.apply(that, [e]);
-            };
-
-            if (!throttle) { clearTimeout(wait); }
-            if (!throttle || !wait) { wait = setTimeout(throttler, timeout); }
-        }
-
-        return this.bind(type, data, cb);
-    };
-})(jQuery);
 
 // add extension to jQuery with a function to get URL parameters
 jQuery.extend({
@@ -453,25 +425,29 @@ search box - the end user will not know they are happening.
         // functions to do with filters
         // ===============================================
         
-        // show the filter values
+        /**
+         * show the filter values
+         */
         var showfiltervals = function(event) {
             event.preventDefault();
             if ( $(this).hasClass('facetview_open') ) {
-                $(this).children('i').removeClass('icon-minus');
-                $(this).children('i').addClass('icon-plus');
+                $(this).children('span').removeClass('icon-minus');
+                $(this).children('span').addClass('icon-plus');
                 $(this).removeClass('facetview_open');
                 $('[id="facetview_' + $(this).attr('rel') +'"]', obj ).children().find('.facetview_filtervalue').hide();
                 $(this).siblings('.facetview_filteroptions').hide();
             } else {
-                $(this).children('i').removeClass('icon-plus');
-                $(this).children('i').addClass('icon-minus');
+                $(this).children('span').removeClass('icon-plus');
+                $(this).children('span').addClass('icon-minus');
                 $(this).addClass('facetview_open');
                 $('[id="facetview_' + $(this).attr('rel') +'"]', obj ).children().find('.facetview_filtervalue').show();
                 $(this).siblings('.facetview_filteroptions').show();
             }
         };
 
-        // function to switch filters to OR instead of AND
+        /**
+         * function to switch filters to OR instead of AND
+         */
         var orfilters = function(event) {
             event.preventDefault();
             if ( $(this).attr('rel') == 'AND' ) {
@@ -486,7 +462,9 @@ search box - the end user will not know they are happening.
             dosearch();
         }
 
-        // function to perform for sorting of filters
+        /**
+         * function to perform for sorting of filters
+         */
         var sortfilters = function(event) {
             event.preventDefault();
             var sortwhat = $(this).attr('href');
@@ -502,19 +480,19 @@ search box - the end user will not know they are happening.
             // iterate to next sort type on click. order is term, rterm, count, rcount
             if ( $(this).hasClass('facetview_term') ) {
                 options.facets[which]['order'] = 'reverse_term';
-                $(this).html('a-z <i class="icon-arrow-up"></i>');
+                $(this).html('a-z <span class="glyphicon glyphicon-arrow-up"></span>');
                 $(this).removeClass('facetview_term').addClass('facetview_rterm');
             } else if ( $(this).hasClass('facetview_rterm') ) {
                 options.facets[which]['order'] = 'count';
-                $(this).html('count <i class="icon-arrow-down"></i>');
+                $(this).html('count <span class="glyphicon glyphicon-arrow-down"></span>');
                 $(this).removeClass('facetview_rterm').addClass('facetview_count');
             } else if ( $(this).hasClass('facetview_count') ) {
                 options.facets[which]['order'] = 'reverse_count';
-                $(this).html('count <i class="icon-arrow-up"></i>');
+                $(this).html('count <span class="glyphicon glyphicon-arrow-up"></span>');
                 $(this).removeClass('facetview_count').addClass('facetview_rcount');
             } else if ( $(this).hasClass('facetview_rcount') ) {
                 options.facets[which]['order'] = 'term';
-                $(this).html('a-z <i class="icon-arrow-down"></i>');
+                $(this).html('a-z <span class="glyphicon glyphicon-arrow-down"></span>');
                 $(this).removeClass('facetview_rcount').addClass('facetview_term');
             }
             dosearch();
@@ -537,8 +515,10 @@ search box - the end user will not know they are happening.
             }
         };
 
-        // insert a facet range once selected
-        // TODO: UPDATE
+        /**
+         * insert a facet range once selected
+         * TODO: UPDATE
+         */
         var dofacetrange = function(rel) {
             $('#facetview_rangeresults_' + rel, obj).remove();
             var range = $('#facetview_rangechoices_' + rel, obj).html();
@@ -547,24 +527,30 @@ search box - the end user will not know they are happening.
                 btn btn-info" rel="' + rel + 
                 '" alt="remove" title="remove"' +
                 ' href="' + $(this).attr("href") + '">' +
-                range + ' <i class="icon-white icon-remove"></i></a></div>';
+                range + ' <span class="glyphicon glyphicon-remove"></span></a></div>';
             $('#facetview_selectedfilters', obj).append(newobj);
             $('.facetview_filterselected', obj).unbind('click',clearfilter);
             $('.facetview_filterselected', obj).bind('click',clearfilter);
             options.paging.from = 0;
             dosearch();
         };
-        // clear a facet range
+        /**
+         * clear a facet range
+         */
         var clearfacetrange = function(event) {
             event.preventDefault();
             $('#facetview_rangeresults_' + $(this).attr('rel'), obj).remove();
             $('#facetview_rangeplaceholder_' + $(this).attr('rel'), obj).remove();
             dosearch();
         };
-        // build a facet range selector
+        
+        /**
+         * build a facet range selector
+         * 
+         * TODO: when a facet range is requested, should hide the facet list from the menu
+         * should perhaps also remove any selections already made on that facet
+         */
         var facetrange = function(event) {
-            // TODO: when a facet range is requested, should hide the facet list from the menu
-            // should perhaps also remove any selections already made on that facet
             event.preventDefault();
             var rel = $(this).attr('rel');
             var rangeselect = '<div id="facetview_rangeplaceholder_' + rel + '" class="facetview_rangecontainer clearfix"> \
@@ -575,7 +561,7 @@ search box - the end user will not know they are happening.
                 <span class="facetview_highrangeval_' + rel + '">...</span></h3> \
                 <div style="float:right;" class="btn-group">';
             rangeselect += '<a class="facetview_facetrange_remove btn" rel="' + rel + '" alt="remove" title="remove" \
-                 href="#"><i class="icon-remove"></i></a> \
+                 href="#"><span class="glyphicon glyphicon-remove"></span></a> \
                 </div></div> \
                 <div class="clearfix" style="margin:20px;" id="facetview_slider_' + rel + '"></div> \
                 </div>';
@@ -603,29 +589,40 @@ search box - the end user will not know they are happening.
             $('#facetview_rangechoices_' + rel + ' .facetview_highrangeval_' + rel, obj).html( values[ values.length-1] );
         };
 
-        // pass a list of filters to be displayed
+        /**
+         * pass a list of filters to be displayed
+         */
         var buildfilters = function() {
             if ( options.facets.length > 0 ) {
                 var filters = options.facets;
                 var thefilters = '';
                 for ( var idx = 0; idx < filters.length; idx++ ) {
-                    var _filterTmpl = '<table id="facetview_{{FILTER_NAME}}" class="facetview_filters table table-bordered table-condensed table-striped" style="display:none;"> \
-                        <tr><td><a class="facetview_filtershow" title="filter by {{FILTER_DISPLAY}}" rel="{{FILTER_NAME}}" \
-                        style="color:#333; font-weight:bold;" href=""><i class="icon-plus"></i> {{FILTER_DISPLAY}} \
-                        </a> \
-                        <div class="btn-group facetview_filteroptions" style="display:none; margin-top:5px;"> \
-                            <a class="btn btn-small facetview_learnmore" title="click to view search help information" href="#"><b>?</b></a> \
-                            <a class="btn btn-small facetview_morefacetvals" title="filter list size" rel="{{FACET_IDX}}" href="{{FILTER_EXACT}}">{{FILTER_HOWMANY}}</a> \
-                            <a class="btn btn-small facetview_sort {{FILTER_SORTTERM}}" title="filter value order" href="{{FILTER_EXACT}}">{{FILTER_SORTCONTENT}}</a> \
-                            <a class="btn btn-small facetview_or" title="select another option from this filter" rel="AND" href="{{FILTER_EXACT}}" style="color:#aaa;">OR</a> \
-                            ';
+                    var _filterTmpl = '<div class="panel-group facetview_filters" id="facetview_{{FILTER_NAME}}"> \
+                        <div class="panel panel-default"> \
+                         <div class="panel-heading"> \
+                          <h4 class="panel-title glyphicon glyphicon-plus"> \
+                           <a data-toggle="collapse" data-parent="#accordion" href="#{{FILTER_NAME}}" title="filter by {{FILTER_DISPLAY}}"> \
+                            {{FILTER_DISPLAY}} \
+                           </a> \
+                          </h4> \
+                         <div id="{{FILTER_NAME}}" class="panel-collapse collapse"> \
+                           <table class="table table-striped table-condensed"> \
+                           <thead><tr><td> \
+                            <div id="{{FILTER_NAME}}" class="btn-group btn-group-xs facetview_filteroptions"> \
+                             <button type="button" class="btn btn-info facetview_learnmore" title="click to view search help information" href="#"><b>?</b></button> \
+                             <button type="button" class="btn btn-info facetview_morefacetvals" title="filter list size" rel="{{FACET_IDX}}" href="{{FILTER_EXACT}}">{{FILTER_HOWMANY}}</button> \
+                             <button type="button" class="btn btn-info facetview_sort {{FILTER_SORTTERM}}" title="filter value order" href="{{FILTER_EXACT}}">{{FILTER_SORTCONTENT}}</button> \
+                             <button type="button" class="btn btn-info facetview_or" title="select another option from this filter" rel="AND" href="{{FILTER_EXACT}}" style="color:#aaa;">OR</button> \
+                         ';
                     if ( options.enable_rangeselect ) {
-                        _filterTmpl += '<a class="btn btn-small facetview_facetrange" title="make a range selection on this filter" rel="{{FACET_IDX}}" href="{{FILTER_EXACT}}" style="color:#aaa;">range</a>';
+                        _filterTmpl += '<button type="button" class="btn facetview_facetrange" title="make a range selection on this filter" rel="{{FACET_IDX}}" href="{{FILTER_EXACT}}" style="color:#aaa;">range</button>';
                     }
-                    _filterTmpl +='</div> \
-                        </td></tr> \
-                        </table>';
+                    _filterTmpl +='  \
+                          </td></tr></thead> \
+                         <tbody></tbody></table> \
+                        </div></div></div>';
                     _filterTmpl = _filterTmpl.replace(/{{FILTER_NAME}}/g, filters[idx]['field'].replace(/\./gi,'_').replace(/\:/gi,'_')).replace(/{{FILTER_EXACT}}/g, filters[idx]['field']);
+
                     thefilters += _filterTmpl;
                     if ('size' in filters[idx] ) {
                         thefilters = thefilters.replace(/{{FILTER_HOWMANY}}/gi, filters[idx]['size']);
@@ -635,20 +632,20 @@ search box - the end user will not know they are happening.
                     if ( 'order' in filters[idx] ) {
                         if ( filters[idx]['order'] == 'term' ) {
                             thefilters = thefilters.replace(/{{FILTER_SORTTERM}}/g, 'facetview_term');
-                            thefilters = thefilters.replace(/{{FILTER_SORTCONTENT}}/g, 'a-z <i class="icon-arrow-down"></i>');
+                            thefilters = thefilters.replace(/{{FILTER_SORTCONTENT}}/g, 'a-z <span class="glyphicon glyphicon-arrow-down"></span>');
                         } else if ( filters[idx]['order'] == 'reverse_term' ) {
                             thefilters = thefilters.replace(/{{FILTER_SORTTERM}}/g, 'facetview_rterm');
-                            thefilters = thefilters.replace(/{{FILTER_SORTCONTENT}}/g, 'a-z <i class="icon-arrow-up"></i>');
+                            thefilters = thefilters.replace(/{{FILTER_SORTCONTENT}}/g, 'a-z <span class="glyphicon glyphicon-arrow-up"></span>');
                         } else if ( filters[idx]['order'] == 'count' ) {
                             thefilters = thefilters.replace(/{{FILTER_SORTTERM}}/g, 'facetview_count');
-                            thefilters = thefilters.replace(/{{FILTER_SORTCONTENT}}/g, 'count <i class="icon-arrow-down"></i>');
+                            thefilters = thefilters.replace(/{{FILTER_SORTCONTENT}}/g, 'count <span class="glyphicon glyphicon-arrow-down"></span>');
                         } else if ( filters[idx]['order'] == 'reverse_count' ) {
                             thefilters = thefilters.replace(/{{FILTER_SORTTERM}}/g, 'facetview_rcount');
-                            thefilters = thefilters.replace(/{{FILTER_SORTCONTENT}}/g, 'count <i class="icon-arrow-up"></i>');
+                            thefilters = thefilters.replace(/{{FILTER_SORTCONTENT}}/g, 'count <span class="glyphicon glyphicon-arrow-up"></span>');
                         };
                     } else {
                         thefilters = thefilters.replace(/{{FILTER_SORTTERM}}/g, 'facetview_count');
-                        thefilters = thefilters.replace(/{{FILTER_SORTCONTENT}}/g, 'count <i class="icon-arrow-down"></i>');
+                        thefilters = thefilters.replace(/{{FILTER_SORTCONTENT}}/g, 'count <span class="glyphicon glyphicon-arrow-down"></span>');
                     };
                     thefilters = thefilters.replace(/{{FACET_IDX}}/gi,idx);
                     if ('display' in filters[idx]) {
@@ -669,8 +666,10 @@ search box - the end user will not know they are happening.
             };
         };
 
-        // trigger a search when a filter choice is clicked
-        // or when a source param is found and passed on page load
+        /**
+         * trigger a search when a filter choice is clicked
+         * or when a source param is found and passed on page load
+         */
         var clickfilterchoice = function(event,rel,href) {
             if ( event ) {
                 event.preventDefault();
@@ -690,7 +689,7 @@ search box - the end user will not know they are happening.
             newobj += '" rel="' + rel + 
                 '" alt="remove" title="remove"' +
                 ' href="' + href + '">' +
-                href + ' <i class="icon-white icon-remove" style="margin-top:1px;"></i></a>';
+                href + ' <span class="glyphicon glyphicon-remove" style="margin-top:1px;"></span></a>';
 
             if ( $('#facetview_group_' + relclean, obj).length ) {
                 $('#facetview_group_' + relclean, obj).append(newobj);
@@ -708,7 +707,9 @@ search box - the end user will not know they are happening.
             };
         };
 
-        // clear a filter when clear button is pressed, and re-do the search
+        /**
+         * clear a filter when clear button is pressed, and re-do the search
+         */
         var clearfilter = function(event) {
             event.preventDefault();
             if ( $(this).siblings().length == 0 ) {
@@ -719,12 +720,17 @@ search box - the end user will not know they are happening.
             dosearch();
         };
         
+        
+        
         // ===============================================
         // functions to do with building results
         // ===============================================
 
-        // read the result object and return useful vals
-        // returns an object that contains things like ["data"] and ["facets"]
+        /**
+         * read the result object and return useful vals
+         * @param dataobj
+         * @return an object that contains things like ["data"] and ["facets"]
+         */
         var parseresults = function(dataobj) {
             var resultobj = new Object();
             resultobj["records"] = new Array();
@@ -756,7 +762,10 @@ search box - the end user will not know they are happening.
             return resultobj;
         };
 
-        // decrement result set
+        /**
+         * decrement result set
+         * @param event
+         */
         var decrement = function(event) {
             event.preventDefault();
             if ( $(this).html() != '..' ) {
@@ -765,7 +774,11 @@ search box - the end user will not know they are happening.
                 dosearch();
             }
         };
-        // increment result set
+        
+        /**
+         * increment result set
+         * @param event
+         */
         var increment = function(event) {
             event.preventDefault();
             if ( $(this).html() != '..' ) {
@@ -774,7 +787,12 @@ search box - the end user will not know they are happening.
             }
         };
 
-        // used to get value by dotted notation in result_display
+        /**
+         * used to get value by dotted notation in result_display
+         * @param obj
+         * @param dotted_notation
+         * @return field value
+         */
         var getvalue = function(obj, dotted_notation) {
             var parts = dotted_notation.split('.');
             parts.reverse();
@@ -791,7 +809,7 @@ search box - the end user will not know they are happening.
                 else
                     return addressed_ob;
             } else {
-                if ( addressed_ob !== undefined ) {
+                if ( addressed_ob !== undefined && addressed_ob !== null) {
                     var thevalue = [];
                     for ( var row = 0; row < addressed_ob.length; row++ ) {
                         thevalue.push(getvalue(addressed_ob[row], left));
@@ -803,7 +821,11 @@ search box - the end user will not know they are happening.
             }
         };
 
-        // given a result record, build how it should look on the page
+        /**
+         * given a result record, build how it should look on the page
+         * 
+         * @param index
+         */
         var buildrecord = function(index) {
             var record = options.data['records'][index];
             var result = options.resultwrap_start;
@@ -848,7 +870,11 @@ search box - the end user will not know they are happening.
             return result;
         };
 
-        // view a full record when selected
+        /**
+         * view a full record when selected
+         * 
+         * @param event
+         */
         var viewrecord = function(event) {
             event.preventDefault();
             var record = options.data['records'][$(this).attr('href')];
@@ -856,26 +882,28 @@ search box - the end user will not know they are happening.
             
         }
 
-        // put the results on the page
+        /**
+         * put the results on the page
+         * 
+         * @param sdata
+         */
         var showresults = function(sdata) {
             options.rawdata = sdata;
             // get the data and parse from the es layout
             var data = parseresults(sdata);
             options.data = data;
-            
             // for each filter setup, find the results for it and append them to the relevant filter
             for ( var each = 0; each < options.facets.length; each++ ) {
                 var facet = options.facets[each]['field'];
                 var facetclean = options.facets[each]['field'].replace(/\./gi,'_').replace(/\:/gi,'_');
-                var facet_filter = $('[id="facetview_'+facetclean+'"]', obj);
-                facet_filter.children().find('.facetview_filtervalue').remove();
                 var records = data["facets"][ facet ];
+                var append = '';
                 for ( var item in records ) {
-                    var append = '<tr class="facetview_filtervalue" style="display:none;"><td><a class="facetview_filterchoice' +
+                    append += '<tr><td class="list-group-item facetview_filtervalue"><a class="facetview_filterchoice' +
                         '" rel="' + facet + '" href="' + item + '">' + item +
-                        ' (' + records[item] + ')</a></td></tr>';
-                    facet_filter.append(append);
+                        '<span class="badge pull-right">(' + records[item] + ')</span></td></tr>';
                 }
+                $('tbody', '#facetview_'+facetclean).html(append);
                 if ( $('.facetview_filtershow[rel="' + facetclean + '"]', obj).hasClass('facetview_open') ) {
                     facet_filter.children().find('.facetview_filtervalue').show();
                 }
@@ -905,13 +933,11 @@ search box - the end user will not know they are happening.
                     <a alt="next" title="next" class="facetview_increment" style="color:#333;float:right;padding:0 20px 20px 40px;" href="{{to}}">&gt;</a> \
                 </div>';
             } else {
-                var metaTmpl = '<div class="pagination"> \
-                    <ul> \
-                        <li class="prev"><a class="facetview_decrement" href="{{from}}">&laquo; back</a></li> \
-                        <li class="active"><a>{{from}} &ndash; {{to}} of {{total}}</a></li> \
-                        <li class="next"><a class="facetview_increment" href="{{to}}">next &raquo;</a></li> \
-                    </ul> \
-                </div>';
+                var metaTmpl = '<ul class="pagination"> \
+                    <li class="prev"><a class="facetview_decrement" href="{{from}}">&laquo;</a></li> \
+                    <li class="active"><a>{{from}} &ndash; {{to}} of {{total}}</a></li> \
+                    <li class="next"><a class="facetview_increment" href="{{to}}">&raquo;</a></li> \
+                </ul>';
             };
             $('.facetview_metadata', obj).first().html("Not found...");
             if (data.found) {
@@ -957,7 +983,12 @@ search box - the end user will not know they are happening.
         // functions to do with searching
         // ===============================================
 
-        // fuzzify the freetext search query terms if required
+        /**
+         * fuzzify the freetext search query terms if required
+         * 
+         * @param querystr
+         * @result a new querystring
+         */
         var fuzzify = function(querystr) {
             var rqs = querystr
             if ( options.default_freetext_fuzzify !== undefined ) {
@@ -981,7 +1012,11 @@ search box - the end user will not know they are happening.
             return rqs;
         };
 
-        // build the search query URL based on current params
+        /**
+         * build the search query URL based on current params
+         * 
+         * @return query
+         */
         var elasticsearchquery = function() {
             var qs = {};
             var bool = false;
@@ -1123,7 +1158,10 @@ search box - the end user will not know they are happening.
             return qy;
         };
 
-        // execute a search
+        /**
+         * execute a search; show the results when successful
+         * 
+         */
         var dosearch = function() {
             jQuery('.notify_loading').show();
             // update the options with the latest q value
@@ -1149,13 +1187,21 @@ search box - the end user will not know they are happening.
             });
         };
 
-        // show search help
+        /**
+         * show search help
+         * 
+         * @param event
+         */
         var learnmore = function(event) {
             event.preventDefault();
             $('#facetview_learnmore', obj).toggle();
         };
 
-        // adjust how many results are shown
+        /**
+         * adjust how many results are shown
+         * 
+         * @param event
+         */
         var howmany = function(event) {
             event.preventDefault();
             var newhowmany = prompt('Currently displaying ' + options.paging.size + 
@@ -1168,20 +1214,31 @@ search box - the end user will not know they are happening.
             }
         };
         
-        // change the search result order
+        /**
+         * change the search result order; handle the screen
+         * 
+         * @param event
+         */
         var order = function(event) {
             event.preventDefault();
             if ( $(this).attr('href') == 'desc' ) {
-                $(this).html('<i class="icon-arrow-up"></i>');
+                $(this).html('<span class="glyphicon glyphicon-arrow-up"></span>');
                 $(this).attr('href','asc');
                 $(this).attr('title','current order ascending. Click to change to descending');
             } else {
-                $(this).html('<i class="icon-arrow-down"></i>');
+                $(this).html('<span class="glyphicon glyphicon-arrow-down"></span>');
                 $(this).attr('href','desc');
                 $(this).attr('title','current order descending. Click to change to ascending');
             };
             orderby();
         };
+        
+        
+        /**
+         * change the search result order; set the options
+         * 
+         * @param event
+         */
         var orderby = function(event) {
             event ? event.preventDefault() : "";
             var sortchoice = $('.facetview_orderby', obj).val();
@@ -1197,7 +1254,11 @@ search box - the end user will not know they are happening.
             dosearch();
         };
         
-        // parse any source params out for an initial search
+        /**
+         * parse any source params out for an initial search
+         * 
+         * @param event
+         */
         var parsesource = function() {
             var qrystr = options.source.query;
             if ( 'bool' in qrystr ) {
@@ -1228,13 +1289,21 @@ search box - the end user will not know they are happening.
             };
         }
         
-        // show the current url with the result set as the source param
+        /**
+         * show the current url with the result set as the source param
+         * 
+         * @param event
+         */
         var sharesave = function(event) {
             event.preventDefault();
             $('.facetview_sharesavebox', obj).toggle();
         };
         
-        // adjust the search field focus
+        /**
+         * adjust the search field focus
+         * 
+         * @param event
+         */
         var searchfield = function(event) {
             event.preventDefault();
             options.paging.from = 0;
@@ -1280,36 +1349,38 @@ search box - the end user will not know they are happening.
         thehelp += '<p><a class="facetview_learnmore label" href="#">close the help</a></p></div>';
         
         // the facet view object to be appended to the page
-        var thefacetview = '<div id="facetview"><div class="row-fluid">';
+        var thefacetview = '<div id="facetview"><div class="row">';
         if ( options.facets.length > 0 ) {
-            thefacetview += '<div class="span3"><div id="facetview_filters" style="padding-top:45px;"></div></div>';
-            thefacetview += '<div class="span9" id="facetview_rightcol">';
+            thefacetview += '<div class="col-md-3"> \
+                              <div id="facetview_filters"> \
+                              </div> \
+                             </div> \
+                             <div class="col-md-9" id="facetview_rightcol">';
         } else {
-            thefacetview += '<div class="span12" id="facetview_rightcol">';
+            thefacetview += '<div class="col-md-12" id="facetview_rightcol">';
         }
-        thefacetview += '<div class="facetview_search_options_container">';
-        thefacetview += '<div class="btn-group" style="display:inline-block; margin-right:5px;"> \
-            <a class="btn btn-small" title="clear all search settings and start again" href=""><i class="icon-remove"></i></a> \
-            <a class="btn btn-small facetview_learnmore" title="click to view search help information" href="#"><b>?</b></a> \
-            <a class="btn btn-small facetview_howmany" title="change result set size" href="#">{{HOW_MANY}}</a>';
+        thefacetview += '<div class="facetview_search_options_container"> \
+           <div class="row"> \
+            <div class="col-lg-6"> \
+             <div class="input-group"> \
+              <div class="input-group-btn"> \
+               <button type="button" class="btn btn-default" title="clear all search settings and start again"><span class="glyphicon glyphicon-remove"></span></button> \
+               <button type="button" class="btn btn-default facetview_learnmore" title="click to view search help information">?</button> \
+               <button type="button" class="btn btn-default facetview_howmany" title="change result set size">{{HOW_MANY}}</button> \
+              </div>';
         if ( options.search_sortby.length > 0 ) {
-            thefacetview += '<a class="btn btn-small facetview_order" title="current order descending. Click to change to ascending" \
-                href="desc"><i class="icon-arrow-down"></i></a>';
-            thefacetview += '</div>';
-            thefacetview += '<select class="facetview_orderby" style="border-radius:5px; \
-                -moz-border-radius:5px; -webkit-border-radius:5px; width:100px; background:#eee; margin:0 5px 21px 0;"> \
+            thefacetview += '<a class="btn facetview_order" title="current order descending. Click to change to ascending" \
+                href="desc"><span class="glyphicon glyphicon-arrow-down"></span></a>';
+            thefacetview += '<select class="facetview_orderby"> \
                 <option value="">order by</option>';
             for ( var each = 0; each < options.search_sortby.length; each++ ) {
                 var obj = options.search_sortby[each];
                 thefacetview += '<option value="' + obj['field'] + '">' + obj['display'] + '</option>';
             };
             thefacetview += '</select>';
-        } else {
-            thefacetview += '</div>';
         };
         if ( options.searchbox_fieldselect.length > 0 ) {
-            thefacetview += '<select class="facetview_searchfield" style="border-radius:5px 0px 0px 5px; \
-                -moz-border-radius:5px 0px 0px 5px; -webkit-border-radius:5px 0px 0px 5px; width:100px; margin:0 -2px 21px 0; background:' + options.searchbox_shade + ';">';
+            thefacetview += '<select class="facetview_searchfield">';
             thefacetview += '<option value="">search all</option>';
             for ( var each = 0; each < options.searchbox_fieldselect.length; each++ ) {
                 var obj = options.searchbox_fieldselect[each];
@@ -1317,18 +1388,20 @@ search box - the end user will not know they are happening.
             };
             thefacetview += '</select>';
         };
-        thefacetview += '<input type="text" class="facetview_freetext span4" style="display:inline-block; margin:0 0 21px 0; background:' + options.searchbox_shade + ';" name="q" \
-            value="" placeholder="search term" />';
+        thefacetview += '<input type="text" class="facetview_freetext form-control" name="q" value="" placeholder="search term" />';
+        
         if ( options.sharesave_link ) {
-            thefacetview += '<a class="btn facetview_sharesave" title="share or save this search" style="margin:0 0 21px 5px;" href=""><i class="icon-share-alt"></i></a>';
+            thefacetview += '<div class="input-group-btn">'
+            thefacetview += '<button type="button" class="btn btn-default facetview_sharesave" title="share or save this search" href=""><span class="glyphicon glyphicon-share"></span></a>';
+            thefacetview += '</div>';
             thefacetview += '<div class="facetview_sharesavebox alert alert-info" style="display:none;"> \
                 <button type="button" class="facetview_sharesave close">×</button> \
                 <p>Share or save this search:</p> \
-                <textarea class="facetview_sharesaveurl" style="width:100%;height:100px;">http://' + window.location.host + 
+                <textarea class="facetview_sharesaveurl">http://' + window.location.host + 
                 window.location.pathname + '?source=' + options.querystring + '</textarea> \
                 </div>';
         }
-        thefacetview += '</div>';
+        thefacetview += '</div></div></div></div>';
         thefacetview += thehelp;
         thefacetview += '<div style="clear:both;" class="btn-toolbar" id="facetview_selectedfilters"></div>';
         options.pager_on_top ? thefacetview += '<div class="facetview_metadata" style="margin-top:20px;"></div>' : "";
@@ -1389,7 +1462,7 @@ search box - the end user will not know they are happening.
                 $.ajax({
                     type: "get",
                     url: options.config_file,
-                    dataType: "jsonp",
+                    dataType: "json",
                     success: function(data) {
                         options = $.extend(options, data);
                         whenready();
