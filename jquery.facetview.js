@@ -1290,16 +1290,6 @@ search box - the end user will not know they are happening.
         }
         
         /**
-         * show the current url with the result set as the source param
-         * 
-         * @param event
-         */
-        var sharesave = function(event) {
-            event.preventDefault();
-            $('.facetview_sharesavebox', obj).toggle();
-        };
-        
-        /**
          * adjust the search field focus
          * 
          * @param event
@@ -1391,14 +1381,11 @@ search box - the end user will not know they are happening.
         thefacetview += '<input type="text" class="facetview_freetext form-control" name="q" value="" placeholder="search term" />';
         
         if ( options.sharesave_link ) {
-            thefacetview += '<div class="input-group-btn">'
-            thefacetview += '<button type="button" class="btn btn-default facetview_sharesave" title="share or save this search" href=""><span class="glyphicon glyphicon-share"></span></a>';
-            thefacetview += '</div>';
-            thefacetview += '<div class="facetview_sharesavebox alert alert-info" style="display:none;"> \
-                <button type="button" class="facetview_sharesave close">×</button> \
-                <p>Share or save this search:</p> \
-                <textarea class="facetview_sharesaveurl">http://' + window.location.host + 
-                window.location.pathname + '?source=' + options.querystring + '</textarea> \
+            thefacetview += '<div class="input-group-btn"> \
+                  <button type="button" class="btn btn-default facetview_sharesave" data-toggle="popover" \
+                    title="share or save this search" href="#"> \
+                    <span class="glyphicon glyphicon-share"></span></a> \
+                  </button> \
                 </div>';
         }
         thefacetview += '</div></div></div></div>';
@@ -1422,7 +1409,15 @@ search box - the end user will not know they are happening.
                 thefacetview = thefacetview.replace(/{{HOW_MANY}}/gi,options.paging.size);
                 obj.append(thefacetview);
                 !options.embedded_search ? $('.facetview_search_options_container', obj).hide() : "";
-
+                
+                $('.facetview_sharesave', obj).popover( 
+                        { 
+                            container: 'body',
+                            placement: 'auto',
+                            content : function( ) { 
+                                return window.location.protocol + '/' + window.location.host + window.location.pathname + '?source=' + options.querystring; 
+                            }
+                        });
 
                 // bind learn more and how many triggers
                 $('.facetview_learnmore', obj).bind('click',learnmore);
@@ -1430,7 +1425,6 @@ search box - the end user will not know they are happening.
                 $('.facetview_searchfield', obj).bind('change',searchfield);
                 $('.facetview_orderby', obj).bind('change',orderby);
                 $('.facetview_order', obj).bind('click',order);
-                $('.facetview_sharesave', obj).bind('click',sharesave);
 
                 // check paging info is available
                 !options.paging.size && options.paging.size != 0 ? options.paging.size = 10 : "";
