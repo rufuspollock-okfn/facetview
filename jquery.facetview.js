@@ -954,7 +954,7 @@ search box - the end user will not know they are happening.
                 $('.facetview_increment', obj).bind('click',increment);
                 data.found <= to ? $('.facetview_increment', obj).html('..') : "";
             } else {
-                $('.facetview_metadata', obj).html("Not found...");
+                $('.facetview_metadata', obj).html('<div class="alert alert-warning" role="alert">Not found...</div>');
             }
 
             // put the filtered results on the page
@@ -1353,9 +1353,9 @@ search box - the end user will not know they are happening.
         }
         thefacetview += '</div></div></div></div>';
         thefacetview += '<div class="clearfix btn-toolbar" id="facetview_selectedfilters"></div>';
-        options.pager_on_top ? thefacetview += '<div class="clearfix"><div class="panel-body facetview_metadata"></div></div>' : '';
+        options.pager_on_top ? thefacetview += '<div class="clearfix"><div class="facetview_metadata"></div></div>' : '';
         thefacetview += options.searchwrap_start + options.searchwrap_end;
-        options.pager_on_top ? '' : thefacetview += '<div class="clearfix"><div class="panel-body facetview_metadata"></div></div>';
+        options.pager_on_top ? '' : thefacetview += '<div class="clearfix"><div class="facetview_metadata"></div></div>';
 
         var obj = undefined;
 
