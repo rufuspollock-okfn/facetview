@@ -927,11 +927,11 @@ search box - the end user will not know they are happening.
                 options.paging.size = parseInt(options.paging.size);
             }
             if ( options.pager_slider ) {
-                var metaTmpl = '<div style="font-size:20px;font-weight:bold;margin:5px 0 10px 0;padding:5px 0 5px 0;border:1px solid #eee;border-radius:5px;-moz-border-radius:5px;-webkit-border-radius:5px;"> \
-                    <a alt="previous" title="previous" class="facetview_decrement" style="color:#333;float:left;padding:0 40px 20px 20px;" href="{{from}}">&lt;</a> \
-                    <span style="margin:30%;">{{from}} &ndash; {{to}} of {{total}}</span> \
-                    <a alt="next" title="next" class="facetview_increment" style="color:#333;float:right;padding:0 20px 20px 40px;" href="{{to}}">&gt;</a> \
-                </div>';
+                var metaTmpl = '<ul class="pagination"> \
+                    <li class="prev"><a alt="previous" title="previous" class="facetview_decrement" href="{{from}}">&lt;</a></li> \
+                    <li class="active">{{from}} &ndash; {{to}} of {{total}}</li> \
+                    <li class="next"><a alt="next" title="next" class="facetview_increment" href="{{to}}">&gt;</a></li> \
+                </ul>';
             } else {
                 var metaTmpl = '<ul class="pagination"> \
                     <li class="prev"><a class="facetview_decrement" href="{{from}}">&laquo;</a></li> \
@@ -939,7 +939,6 @@ search box - the end user will not know they are happening.
                     <li class="next"><a class="facetview_increment" href="{{to}}">&raquo;</a></li> \
                 </ul>';
             };
-            $('.facetview_metadata', obj).first().html("Not found...");
             if (data.found) {
                 var from = options.paging.from + 1;
                 var size = options.paging.size;
@@ -954,6 +953,8 @@ search box - the end user will not know they are happening.
                 from < size ? $('.facetview_decrement', obj).html('..') : "";
                 $('.facetview_increment', obj).bind('click',increment);
                 data.found <= to ? $('.facetview_increment', obj).html('..') : "";
+            } else {
+                $('.facetview_metadata', obj).html("Not found...");
             }
 
             // put the filtered results on the page
@@ -1300,44 +1301,6 @@ search box - the end user will not know they are happening.
             dosearch();
         };
 
-        // a help box for embed in the facet view object below
-        var thehelp = '<div id="facetview_learnmore" class="well" style="margin-top:10px; display:none;">'
-        options.sharesave_link ? thehelp += '<p><b>Share</b> or <b>save</b> the current search by clicking the share/save arrow button on the right.</p>' : "";
-        thehelp += '<p><b>Remove all</b> search values and settings by clicking the <b>X</b> icon at the left of the search box above.</p> \
-            <p><b>Partial matches with wildcard</b> can be performed by using the asterisk <b>*</b> wildcard. For example, <b>einste*</b>, <b>*nstei*</b>.</p> \
-            <p><b>Fuzzy matches</b> can be performed using tilde <b>~</b>. For example, <b>einsten~</b> may help find <b>einstein</b>.</p> \
-            <p><b>Exact matches</b> can be performed with <b>"</b> double quotes. For example <b>"einstein"</b> or <b>"albert einstein"</b>.</p> \
-            <p>Match all search terms by concatenating them with <b>AND</b>. For example <b>albert AND einstein</b>.</p> \
-            <p>Match any term by concatenating them with <b>OR</b>. For example <b>albert OR einstein</b>.</p> \
-            <p><b>Combinations</b> will work too, like <b>albert OR einste~</b>, or <b>"albert" "einstein"</b>.</p> \
-            <p><b>Result set size</b> can be altered by clicking on the result size number preceding the search box above.</p>';
-        if ( options.searchbox_fieldselect.length > 0 ) {
-            thehelp += '<p>By default, terms are searched for across entire record entries. \
-                This can be restricted to particular fields by selecting the field of interest from the <b>search field</b> dropdown</p>';
-        };
-        if ( options.search_sortby.length > 0 ) {
-            thehelp += '<p>Choose a field to <b>sort the search results</b> by clicking the double arrow above.</p>';
-        };
-        if ( options.facets.length > 0 ) {
-            thehelp += '<hr></hr>';
-            thehelp += '<p>Use the <b>filters</b> on the left to directly select values of interest. \
-                Click the filter name to open the list of available terms and show further filter options.</p> \
-                <p><b>Filter list size</b> can be altered by clicking on the filter size number.</p> \
-                <p><b>Filter list order </b> can be adjusted by clicking the order options - \
-                from a-z ascending or descending, or by count ascending or descending.</p> \
-                <p>Filters search for unique values by default; to do an <b>OR</b> search - e.g. to look for more than one value \
-                for a particular filter - click the OR button for the relevant filter then choose your values.</p> \
-                <p>To further assist discovery of particular filter values, use in combination \
-                with the main search bar - search terms entered there will automatically adjust the available filter values.</p>';
-            if ( options.enable_rangeselect ) {
-                thehelp += '<p><b>Apply a filter range</b> rather than just selecting a single value by clicking on the <b>range</b> button. \
-                    This enables restriction of result sets to within a range of values - for example from year 1990 to 2012.</p> \
-                    <p>Filter ranges are only available across filter values already in the filter list; \
-                    so if a wider filter range is required, first increase the filter size then select the filter range.</p>';
-            }
-        };
-        thehelp += '<p><a class="facetview_learnmore label" href="#">close the help</a></p></div>';
-        
         // the facet view object to be appended to the page
         var thefacetview = '<div id="facetview"><div class="row">';
         if ( options.facets.length > 0 ) {
@@ -1355,7 +1318,7 @@ search box - the end user will not know they are happening.
              <div class="input-group"> \
               <div class="input-group-btn"> \
                <button type="button" class="btn btn-default" title="clear all search settings and start again"><span class="glyphicon glyphicon-remove"></span></button> \
-               <button type="button" class="btn btn-default facetview_learnmore" title="click to view search help information">?</button> \
+               <button type="button" class="btn btn-default facetview_learnmore" data-toggle="popover" title="Search help information">?</button> \
                <button type="button" class="btn btn-default facetview_howmany" title="change result set size">{{HOW_MANY}}</button> \
               </div>';
         if ( options.search_sortby.length > 0 ) {
@@ -1389,11 +1352,10 @@ search box - the end user will not know they are happening.
                 </div>';
         }
         thefacetview += '</div></div></div></div>';
-        thefacetview += thehelp;
-        thefacetview += '<div style="clear:both;" class="btn-toolbar" id="facetview_selectedfilters"></div>';
-        options.pager_on_top ? thefacetview += '<div class="facetview_metadata" style="margin-top:20px;"></div>' : "";
+        thefacetview += '<div class="clearfix btn-toolbar" id="facetview_selectedfilters"></div>';
+        options.pager_on_top ? thefacetview += '<div class="clearfix"><div class="panel-body facetview_metadata"></div></div>' : '';
         thefacetview += options.searchwrap_start + options.searchwrap_end;
-        thefacetview += '<div class="facetview_metadata"></div></div></div></div>';
+        options.pager_on_top ? '' : thefacetview += '<div class="clearfix"><div class="panel-body facetview_metadata"></div></div>';
 
         var obj = undefined;
 
@@ -1419,8 +1381,54 @@ search box - the end user will not know they are happening.
                             }
                         });
 
+                $('.facetview_learnmore', obj).popover( 
+                        { 
+                            container: 'body',
+                            placement: 'bottom',
+                            html : true,
+                            content : function( ) { 
+                                var thehelp = '';
+                                options.sharesave_link ? thehelp += '<p><b>Share</b> or <b>save</b> the current search by clicking the share/save arrow button on the right.</p>' : "";
+                                thehelp += '<p><b>Remove all</b> search values and settings by clicking the <b>X</b> icon at the left of the search box above.</p> \
+                                    <p><b>Partial matches with wildcard</b> can be performed by using the asterisk <b>*</b> wildcard. For example, <b>einste*</b>, <b>*nstei*</b>.</p> \
+                                    <p><b>Fuzzy matches</b> can be performed using tilde <b>~</b>. For example, <b>einsten~</b> may help find <b>einstein</b>.</p> \
+                                    <p><b>Exact matches</b> can be performed with <b>"</b> double quotes. For example <b>"einstein"</b> or <b>"albert einstein"</b>.</p> \
+                                    <p>Match all search terms by concatenating them with <b>AND</b>. For example <b>albert AND einstein</b>.</p> \
+                                    <p>Match any term by concatenating them with <b>OR</b>. For example <b>albert OR einstein</b>.</p> \
+                                    <p><b>Combinations</b> will work too, like <b>albert OR einste~</b>, or <b>"albert" "einstein"</b>.</p> \
+                                    <p><b>Result set size</b> can be altered by clicking on the result size number preceding the search box above.</p>';
+                                if ( options.searchbox_fieldselect.length > 0 ) {
+                                    thehelp += '<p>By default, terms are searched for across entire record entries. \
+                                        This can be restricted to particular fields by selecting the field of interest from the <b>search field</b> dropdown</p>';
+                                }
+                                if ( options.search_sortby.length > 0 ) {
+                                    thehelp += '<p>Choose a field to <b>sort the search results</b> by clicking the double arrow above.</p>';
+                                }
+                                if ( options.facets.length > 0 ) {
+                                    thehelp += '<hr></hr>';
+                                    thehelp += '<p>Use the <b>filters</b> on the left to directly select values of interest. \
+                                        Click the filter name to open the list of available terms and show further filter options.</p> \
+                                        <p><b>Filter list size</b> can be altered by clicking on the filter size number.</p> \
+                                        <p><b>Filter list order </b> can be adjusted by clicking the order options - \
+                                        from a-z ascending or descending, or by count ascending or descending.</p> \
+                                        <p>Filters search for unique values by default; to do an <b>OR</b> search - e.g. to look for more than one value \
+                                        for a particular filter - click the OR button for the relevant filter then choose your values.</p> \
+                                        <p>To further assist discovery of particular filter values, use in combination \
+                                        with the main search bar - search terms entered there will automatically adjust the available filter values.</p>';
+                                    if ( options.enable_rangeselect ) {
+                                        thehelp += '<p><b>Apply a filter range</b> rather than just selecting a single value by clicking on the <b>range</b> button. \
+                                            This enables restriction of result sets to within a range of values - for example from year 1990 to 2012.</p> \
+                                            <p>Filter ranges are only available across filter values already in the filter list; \
+                                            so if a wider filter range is required, first increase the filter size then select the filter range.</p>';
+                                    }
+                                }
+                                thehelp += '<p></div>';
+                                return thehelp;
+                            }
+                        });
+                
+                
                 // bind learn more and how many triggers
-                $('.facetview_learnmore', obj).bind('click',learnmore);
                 $('.facetview_howmany', obj).bind('click',howmany);
                 $('.facetview_searchfield', obj).bind('change',searchfield);
                 $('.facetview_orderby', obj).bind('change',orderby);

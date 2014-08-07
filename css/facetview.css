@@ -2,6 +2,9 @@
 	max-width: 50%;
 }
 
+#facetview_selectedfilters {
+	margin: 12px 0 12px 0;
+}
 
 /*
 #facetview_freetext{
