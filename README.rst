@@ -31,17 +31,17 @@ Using FacetView
 
 Add the following code to your web page::
 
-  <script type="text/javascript" src="vendor/jquery/1.7.1/jquery-1.7.1.min.js"></script>
+  <script type="text/javascript" src="vendor/jquery/1.11.1/jquery.min.js"></script>
+  <script type="text/javascript" src="vendor/bindWithDelay/bindWithDelay.js"></script>
   <link rel="stylesheet" href="vendor/bootstrap/css/bootstrap.min.css">
-  <script type="text/javascript" src="vendor/bootstrap/js/bootstrap.min.js"></script>  
-  <script type="text/javascript" src="vendor/linkify/1.0/jquery.linkify-1.0-min.js"></script>  
+  <link rel="stylesheet" href="vendor/bootstrap/css/bootstrap-theme.min.css">
+  <script type="text/javascript" src="vendor/bootstrap/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="vendor/linkify/1.0/jquery.linkify-1.0-min.js"></script>
   <link rel="stylesheet" href="vendor/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.css">
   <script type="text/javascript" src="vendor/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.min.js"></script>
   <script type="text/javascript" src="jquery.facetview.js"></script>
   <link rel="stylesheet" href="css/facetview.css">
-  <script type="text/javascript" src="vendor/d3/d3.min.js"></script>
-  <script type="text/javascript" src="vendor/d3/d3.geom.min.js?2.1.3"></script>
-  <script type="text/javascript" src="vendor/d3/d3.layout.min.js?2.1.3"></script>
+  <link rel="stylesheet" href="css/style.css">
 
 
 * BUT change the src URLs to something sensible depending on where you install 

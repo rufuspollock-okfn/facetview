@@ -1,3 +1,12 @@
+.popover {
+	max-width: 50%;
+}
+
+#facetview_selectedfilters {
+	margin: 12px 0 12px 0;
+}
+
+/*
 #facetview_freetext{
     -moz-border-radius: 0px;
     -webkit-border-radius: 0px;
@@ -75,3 +84,4 @@
     margin:0 5px 0 5px;
 }
 
+*/
