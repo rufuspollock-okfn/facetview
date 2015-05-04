@@ -321,6 +321,7 @@ default_operator
 ----------------
 Sets the default operator in text search strings - elasticsearch uses OR by default, but can also be AND
 
+
 default_freetext_fuzzify
 ------------------------
 If this exists and is not false, it should be either * or ~. If it is * then * will be prepended and appended
@@ -342,55 +343,32 @@ search box - the end user will not know they are happening.
         var resdisplay = [
                 [
                     {
-                        "field": "author.name"
-                    },
+                        
+                        "field": "attr_stream_name"
+                        
+                    }
+                    
+                ],
+                [   
                     {
-                        "pre": "(",
-                        "field": "year",
-                        "post": ")"
+                        "field":"attr_myname"
                     }
                 ],
-                [
+                /*[
                     {
-                        "pre": "<strong>",
-                        "field": "title",
-                        "post": "</strong>"
+                        "field":"content"
                     }
-                ],
+                ],*/
                 [
                     {
-                        "field": "howpublished"
+                        "field":"attr_mylat"
                     },
                     {
-                        "pre": "in <em>",
-                        "field": "journal.name",
-                        "post": "</em>,"
-                    },
-                    {
-                        "pre": "<em>",
-                        "field": "booktitle",
-                        "post": "</em>,"
-                    },
-                    {
-                        "pre": "vol. ",
-                        "field": "volume",
-                        "post": ","
-                    },
-                    {
-                        "pre": "p. ",
-                        "field": "pages"
-                    },
-                    {
-                        "field": "publisher"
-                    }
-                ],
-                [
-                    {
-                        "field": "link.url"
+                        "field":"attr_mylong"
                     }
                 ]
+                 
             ];
-
 
         // specify the defaults
         var defaults = {
@@ -400,28 +378,35 @@ search box - the end user will not know they are happening.
             "searchbox_fieldselect": [],
             "searchbox_shade": "#ecf4ff",
             "search_sortby": [],
-            "sharesave_link": true,
+            "sharesave_link": false,
             "description":"",
             "facets":[],
+            "facet_display_count":5,
             "extra_facets": {},
             "enable_rangeselect": false,
             "include_facets_in_querystring": false,
             "result_display": resdisplay,
-            "display_images": true,
-            "search_url":"",
+            "display_images": false,
             "datatype":"jsonp",
             "initialsearch":true,
             "fields": false,
             "partial_fields": false,
             "nested": [],
-            "default_url_params":{},
+            "default_url_params":{
+                'wt':'json',
+                'indent':'true'},
             "freetext_submit_delay":"500",
+            "query_parameter":"q",
             "q":"",
             "sort":[],
             "predefined_filters":{},
             "paging":{
                 "from":0,
                 "size":10
+            },
+            "solr_paging_params":{
+                "from":"start",
+                "size":"rows"
             },
             "pager_on_top": false,
             "pager_slider": false,
@@ -435,7 +420,8 @@ search box - the end user will not know they are happening.
             "pushstate": true,
             "linkify": true,
             "default_operator": "OR",
-            "default_freetext_fuzzify": false
+            "default_freetext_fuzzify": false,
+
         };
 
 
@@ -457,14 +443,18 @@ search box - the end user will not know they are happening.
         var showfiltervals = function(event) {
             event.preventDefault();
             if ( $(this).hasClass('facetview_open') ) {
-                $(this).children('i').removeClass('icon-minus');
-                $(this).children('i').addClass('icon-plus');
+                $(this).children('i').removeClass('glyphicon-minus');
+                $(this).children('i').removeClass('glyphicon');
+                $(this).children('i').addClass('glyphicon');
+                $(this).children('i').addClass('glyphicon-plus');
                 $(this).removeClass('facetview_open');
                 $('[id="facetview_' + $(this).attr('rel') +'"]', obj ).children().find('.facetview_filtervalue').hide();
                 $(this).siblings('.facetview_filteroptions').hide();
             } else {
-                $(this).children('i').removeClass('icon-plus');
-                $(this).children('i').addClass('icon-minus');
+                $(this).children('i').removeClass('glyphicon-plus');
+                $(this).children('i').removeClass('glyphicon');
+                $(this).children('i').addClass('glyphicon');
+                $(this).children('i').addClass('glyphicon-minus');
                 $(this).addClass('facetview_open');
                 $('[id="facetview_' + $(this).attr('rel') +'"]', obj ).children().find('.facetview_filtervalue').show();
                 $(this).siblings('.facetview_filteroptions').show();
@@ -499,22 +489,23 @@ search box - the end user will not know they are happening.
                     }
                 }
             }
+
             // iterate to next sort type on click. order is term, rterm, count, rcount
             if ( $(this).hasClass('facetview_term') ) {
                 options.facets[which]['order'] = 'reverse_term';
-                $(this).html('a-z <i class="icon-arrow-up"></i>');
+                $(this).html('a-z <i class="glyphicon glyphicon-arrow-up"></i>');
                 $(this).removeClass('facetview_term').addClass('facetview_rterm');
             } else if ( $(this).hasClass('facetview_rterm') ) {
                 options.facets[which]['order'] = 'count';
-                $(this).html('count <i class="icon-arrow-down"></i>');
+                $(this).html('count <i class="glyphicon glyphicon-arrow-down"></i>');
                 $(this).removeClass('facetview_rterm').addClass('facetview_count');
             } else if ( $(this).hasClass('facetview_count') ) {
                 options.facets[which]['order'] = 'reverse_count';
-                $(this).html('count <i class="icon-arrow-up"></i>');
+                $(this).html('count <i class="glyphicon glyphicon-arrow-up"></i>');
                 $(this).removeClass('facetview_count').addClass('facetview_rcount');
             } else if ( $(this).hasClass('facetview_rcount') ) {
                 options.facets[which]['order'] = 'term';
-                $(this).html('a-z <i class="icon-arrow-down"></i>');
+                $(this).html('a-z <i class="glyphicon glyphicon-arrow-down"></i>');
                 $(this).removeClass('facetview_rcount').addClass('facetview_term');
             }
             dosearch();
@@ -527,7 +518,7 @@ search box - the end user will not know they are happening.
             if ('size' in morewhat ) {
                 var currentval = morewhat['size'];
             } else {
-                var currentval = 10;
+                var currentval = options.facet_display_count;
             }
             var newmore = prompt('Currently showing ' + currentval + '. How many would you like instead?');
             if (newmore) {
@@ -547,7 +538,7 @@ search box - the end user will not know they are happening.
                 btn btn-info" rel="' + rel + 
                 '" alt="remove" title="remove"' +
                 ' href="' + $(this).attr("href") + '">' +
-                range + ' <i class="icon-white icon-remove"></i></a></div>';
+                range + ' <i class="glyphicon glyphicon-white glyphicon-remove"></i></a></div>';
             $('#facetview_selectedfilters', obj).append(newobj);
             $('.facetview_filterselected', obj).unbind('click',clearfilter);
             $('.facetview_filterselected', obj).bind('click',clearfilter);
@@ -574,8 +565,8 @@ search box - the end user will not know they are happening.
                 <small>to</small> \
                 <span class="facetview_highrangeval_' + rel + '">...</span></h3> \
                 <div style="float:right;" class="btn-group">';
-            rangeselect += '<a class="facetview_facetrange_remove btn" rel="' + rel + '" alt="remove" title="remove" \
-                 href="#"><i class="icon-remove"></i></a> \
+            rangeselect += '<a class="facetview_facetrange_remove btn btn-default" rel="' + rel + '" alt="remove" title="remove" \
+                 href="#"><i class="glyphicon glyphicon-remove"></i></a> \
                 </div></div> \
                 <div class="clearfix" style="margin:20px;" id="facetview_slider_' + rel + '"></div> \
                 </div>';
@@ -604,6 +595,7 @@ search box - the end user will not know they are happening.
         };
 
         // pass a list of filters to be displayed
+        
         var buildfilters = function() {
             if ( options.facets.length > 0 ) {
                 var filters = options.facets;
@@ -611,16 +603,16 @@ search box - the end user will not know they are happening.
                 for ( var idx = 0; idx < filters.length; idx++ ) {
                     var _filterTmpl = '<table id="facetview_{{FILTER_NAME}}" class="facetview_filters table table-bordered table-condensed table-striped" style="display:none;"> \
                         <tr><td><a class="facetview_filtershow" title="filter by {{FILTER_DISPLAY}}" rel="{{FILTER_NAME}}" \
-                        style="color:#333; font-weight:bold;" href=""><i class="icon-plus"></i> {{FILTER_DISPLAY}} \
-                        </a> \
-                        <div class="btn-group facetview_filteroptions" style="display:none; margin-top:5px;"> \
-                            <a class="btn btn-small facetview_learnmore" title="click to view search help information" href="#"><b>?</b></a> \
-                            <a class="btn btn-small facetview_morefacetvals" title="filter list size" rel="{{FACET_IDX}}" href="{{FILTER_EXACT}}">{{FILTER_HOWMANY}}</a> \
-                            <a class="btn btn-small facetview_sort {{FILTER_SORTTERM}}" title="filter value order" href="{{FILTER_EXACT}}">{{FILTER_SORTCONTENT}}</a> \
-                            <a class="btn btn-small facetview_or" title="select another option from this filter" rel="AND" href="{{FILTER_EXACT}}" style="color:#aaa;">OR</a> \
-                            ';
+                        style="color:#333; font-weight:bold;" href=""><i class="glyphicon glyphicon-plus"></i> {{FILTER_DISPLAY}} \
+                        </a> ';
+                        /*<div class="btn-group facetview_filteroptions" style="display:none; margin-top:5px;"> \
+                            <a class="btn btn-sm facetview_learnmore" title="click to view search help information" href="#"><b>?</b></a> \
+                            <a class="btn btn-sm facetview_morefacetvals" title="filter list size" rel="{{FACET_IDX}}" href="{{FILTER_EXACT}}">{{FILTER_HOWMANY}}</a> \
+                            <a class="btn btn-sm facetview_sort {{FILTER_SORTTERM}}" title="filter value order" href="{{FILTER_EXACT}}">{{FILTER_SORTCONTENT}}</a> \
+                            <a class="btn btn-sm facetview_or" title="select another option from this filter" rel="AND" href="{{FILTER_EXACT}}" style="color:#aaa;">OR</a> \
+                            ';*/
                     if ( options.enable_rangeselect ) {
-                        _filterTmpl += '<a class="btn btn-small facetview_facetrange" title="make a range selection on this filter" rel="{{FACET_IDX}}" href="{{FILTER_EXACT}}" style="color:#aaa;">range</a>';
+                        _filterTmpl += '<a class="btn btn-sm facetview_facetrange" title="make a range selection on this filter" rel="{{FACET_IDX}}" href="{{FILTER_EXACT}}" style="color:#aaa;">range</a>';
                     }
                     _filterTmpl +='</div> \
                         </td></tr> \
@@ -635,20 +627,20 @@ search box - the end user will not know they are happening.
                     if ( 'order' in filters[idx] ) {
                         if ( filters[idx]['order'] == 'term' ) {
                             thefilters = thefilters.replace(/{{FILTER_SORTTERM}}/g, 'facetview_term');
-                            thefilters = thefilters.replace(/{{FILTER_SORTCONTENT}}/g, 'a-z <i class="icon-arrow-down"></i>');
+                            thefilters = thefilters.replace(/{{FILTER_SORTCONTENT}}/g, 'a-z <i class="glyphicon glyphicon-arrow-down"></i>');
                         } else if ( filters[idx]['order'] == 'reverse_term' ) {
                             thefilters = thefilters.replace(/{{FILTER_SORTTERM}}/g, 'facetview_rterm');
-                            thefilters = thefilters.replace(/{{FILTER_SORTCONTENT}}/g, 'a-z <i class="icon-arrow-up"></i>');
+                            thefilters = thefilters.replace(/{{FILTER_SORTCONTENT}}/g, 'a-z <i class="glyphicon glyphicon-arrow-up"></i>');
                         } else if ( filters[idx]['order'] == 'count' ) {
                             thefilters = thefilters.replace(/{{FILTER_SORTTERM}}/g, 'facetview_count');
-                            thefilters = thefilters.replace(/{{FILTER_SORTCONTENT}}/g, 'count <i class="icon-arrow-down"></i>');
+                            thefilters = thefilters.replace(/{{FILTER_SORTCONTENT}}/g, 'count <i class="glyphicon glyphicon-arrow-down"></i>');
                         } else if ( filters[idx]['order'] == 'reverse_count' ) {
                             thefilters = thefilters.replace(/{{FILTER_SORTTERM}}/g, 'facetview_rcount');
-                            thefilters = thefilters.replace(/{{FILTER_SORTCONTENT}}/g, 'count <i class="icon-arrow-up"></i>');
+                            thefilters = thefilters.replace(/{{FILTER_SORTCONTENT}}/g, 'count <i class="glyphicon glyphicon-arrow-up"></i>');
                         };
                     } else {
                         thefilters = thefilters.replace(/{{FILTER_SORTTERM}}/g, 'facetview_count');
-                        thefilters = thefilters.replace(/{{FILTER_SORTCONTENT}}/g, 'count <i class="icon-arrow-down"></i>');
+                        thefilters = thefilters.replace(/{{FILTER_SORTCONTENT}}/g, 'count <i class="glyphicon glyphicon-arrow-down"></i>');
                     };
                     thefilters = thefilters.replace(/{{FACET_IDX}}/gi,idx);
                     if ('display' in filters[idx]) {
@@ -665,6 +657,7 @@ search box - the end user will not know they are happening.
                 $('.facetview_filtershow', obj).bind('click',showfiltervals);
                 $('.facetview_learnmore', obj).unbind('click',learnmore);
                 $('.facetview_learnmore', obj).bind('click',learnmore);
+        $('.facetview_filtershow' ).trigger( "click" );
                 options.description ? $('#facetview_filters', obj).append('<div>' + options.description + '</div>') : "";
             };
         };
@@ -690,7 +683,7 @@ search box - the end user will not know they are happening.
             newobj += '" rel="' + rel + 
                 '" alt="remove" title="remove"' +
                 ' href="' + href + '">' +
-                href + ' <i class="icon-white icon-remove" style="margin-top:1px;"></i></a>';
+                href + ' <i class="glyphicon glyphicon-white glyphicon-remove" style="margin-top:1px;"></i></a>';
 
             if ( $('#facetview_group_' + relclean, obj).length ) {
                 $('#facetview_group_' + relclean, obj).append(newobj);
@@ -707,6 +700,85 @@ search box - the end user will not know they are happening.
                 dosearch();
             };
         };
+
+
+
+
+/* NEW VERSION OF BUILD FILTER */
+/*
+var buildfilters = function () {
+            var filters = options.facets;
+            var thefilters = "<h3>Filter by</h3>";
+            for (var idx in filters) {
+                var _filterTmpl = ' \
+                    <div class="btn-group"> \
+                    <a style="text-align:left; min-width:70%;" class="facetview_filtershow btn" \
+                      rel="{{FILTER_NAME}}" href=""> \
+                      <i class="icon-plus"></i> \
+                      {{FILTER_DISPLAY}}</a> \
+                      <a class="btn dropdown-toggle" data-toggle="dropdown" \
+                      href="#"><span class="caret"></span></a> \
+                      <ul class="dropdown-menu"> \
+                        <li><a class="facetview_sort facetview_count" href="{{FILTER_EXACT}}">sort by count</a></li> \
+                        <li><a class="facetview_sort facetview_term" href="{{FILTER_EXACT}}">sort by term</a></li> \
+                        <li><a class="facetview_sort facetview_rcount" href="{{FILTER_EXACT}}">sort reverse count</a></li> \
+                        <li><a class="facetview_sort facetview_rterm" href="{{FILTER_EXACT}}">sort reverse term</a></li> \
+                        <li class="divider"></li> \
+                        <li><a class="facetview_facetrange" rel="{{FACET_IDX}}" href="{{FILTER_EXACT}}">select a filter range</a></li> \
+                        <li class="divider"></li> \
+                        <li><a class="facetview_morefacetvals" rel="{{FACET_IDX}}" href="{{FILTER_EXACT}}">show up to {{FILTER_HOWMANY}}</a></li> \
+                        </ul></div> \
+                  <ul id="facetview_{{FILTER_NAME}}" \
+                    class="facetview_filters"></ul> \
+                    ';
+                thefilters += _filterTmpl.replace(/{{FILTER_NAME}}/g, filters[idx]['field'].replace(/\./gi, '_')).replace(/{{FILTER_EXACT}}/g, filters[idx]['field']);
+                if ('size' in filters[idx]) {
+                    thefilters = thefilters.replace(/{{FILTER_HOWMANY}}/gi, filters[idx]['size'])
+                } else {
+                    thefilters = thefilters.replace(/{{FILTER_HOWMANY}}/gi, 10)
+                }
+                thefilters = thefilters.replace(/{{FACET_IDX}}/gi, idx)
+                if ('display' in filters[idx]) {
+                    thefilters = thefilters.replace(/{{FILTER_DISPLAY}}/g, filters[idx]['display'])
+                } else {
+                    thefilters = thefilters.replace(/{{FILTER_DISPLAY}}/g, filters[idx]['field'])
+                }
+            }
+            $('#facetview_filters').append(thefilters)
+            $('.facetview_morefacetvals').bind('click', morefacetvals)
+            $('.facetview_facetrange').bind('click', facetrange)
+            $('.facetview_sort').bind('click', sortfilters)
+            $('.facetview_filtershow').bind('click', showfiltervals)
+        }
+
+        // set the available filter values based on results
+        var putvalsinfilters = function (data) {
+            // for each filter setup, find the results for it and append them to the relevant filter
+            for (var each in options.facets) {
+                $('#facetview_' + options.facets[each]['field'].replace(/\./gi, '_')).children().remove();
+                var records = data["facets"][options.facets[each]['field']];
+                for (var item in records) {
+                    var append = '<li><a class="facetview_filterchoice' +
+                        '" rel="' + options.facets[each]['field'] + '" href="' + item + '">' + item +
+                        ' (' + records[item] + ')</a></li>';
+                    $('#facetview_' + options.facets[each]['field'].replace(/\./gi, '_')).append(append);
+                }
+                if (!$('.facetview_filtershow[rel="' + options.facets[each]['field'].replace(/\./gi, '_') + '"]').hasClass('facetview_open')) {
+                    $('#facetview_' + options.facets[each]['field'].replace(/\./gi, '_')).children().hide();
+                }
+            }
+            $('.facetview_filterchoice').bind('click', clickfilterchoice);
+        }
+
+
+*/
+
+
+
+
+
+
+
 
         // clear a filter when clear button is pressed, and re-do the search
         var clearfilter = function(event) {
@@ -731,27 +803,47 @@ search box - the end user will not know they are happening.
             resultobj["start"] = "";
             resultobj["found"] = "";
             resultobj["facets"] = new Object();
-            for ( var item = 0; item < dataobj.hits.hits.length; item++ ) {
-                if ( options.fields ) {
-                    resultobj["records"].push(dataobj.hits.hits[item].fields);
-                } else if ( options.partial_fields ) {
-                    var keys = [];
-                    for(var key in options.partial_fields){
-                        keys.push(key);
+            if ( options.search_index == "elasticsearch" ) {
+
+                for ( var item = 0; item < dataobj.hits.hits.length; item++ ) {
+                    if ( options.fields ) {
+                        resultobj["records"].push(dataobj.hits.hits[item].fields);
+                    } else if ( options.partial_fields ) {
+                        var keys = [];
+                        for(var key in options.partial_fields){
+                            keys.push(key);
+                        }
+                        resultobj["records"].push(dataobj.hits.hits[item].fields[keys[0]]);
+                    } else {
+                        resultobj["records"].push(dataobj.hits.hits[item]._source);
                     }
-                    resultobj["records"].push(dataobj.hits.hits[item].fields[keys[0]]);
-                } else {
-                    resultobj["records"].push(dataobj.hits.hits[item]._source);
                 }
-            }
-            resultobj["start"] = "";
-            resultobj["found"] = dataobj.hits.total;
-            for (var item in dataobj.facets) {
-                var facetsobj = new Object();
-                for (var thing = 0; thing < dataobj.facets[item]["terms"].length; thing++) {
-                    facetsobj[ dataobj.facets[item]["terms"][thing]["term"] ] = dataobj.facets[item]["terms"][thing]["count"];
+                resultobj["start"] = "";
+                resultobj["found"] = dataobj.hits.total;
+                for (var item in dataobj.facets) {
+                    var facetsobj = new Object();
+                    for (var thing = 0; thing < dataobj.facets[item]["terms"].length; thing++) {
+                        facetsobj[ dataobj.facets[item]["terms"][thing]["term"] ] = dataobj.facets[item]["terms"][thing]["count"];
+                    }
+                    resultobj["facets"][item] = facetsobj;
+               }
+            } else {
+                resultobj["records"] = dataobj.response.docs;                       
+                resultobj["start"] = dataobj.response.start;
+                resultobj["found"] = dataobj.response.numFound;                 
+        if (dataobj.facet_counts) {
+                    for (var item in dataobj.facet_counts.facet_fields) {
+                        var facetsobj = new Object();
+                        var count = 0;
+                        for ( var each in dataobj.facet_counts.facet_fields[item]) { 
+                if ( count % 2 == 0 ) {
+                            facetsobj[dataobj.facet_counts.facet_fields[item][each] ] = dataobj.facet_counts.facet_fields[item][count + 1];
+                            }
+                            count += 1;
+                        }
+                        resultobj["facets"][item] = facetsobj;
+                    }
                 }
-                resultobj["facets"][item] = facetsobj;
             }
             return resultobj;
         };
@@ -794,7 +886,7 @@ search box - the end user will not know they are happening.
                 if ( addressed_ob !== undefined ) {
                     var thevalue = [];
                     for ( var row = 0; row < addressed_ob.length; row++ ) {
-                        thevalue.push(getvalue(addressed_ob[row], left));
+                        thevalue.push(addressed_ob[row]);//thevalue.push(getvalue(addressed_ob[row], left));
                     }
                     return thevalue;
                 } else {
@@ -820,11 +912,17 @@ search box - the end user will not know they are happening.
             var display = options.result_display;
             var lines = '';
             for ( var lineitem = 0; lineitem < display.length; lineitem++ ) {
+
                 line = "";
                 for ( var object = 0; object < display[lineitem].length; object++ ) {
                     var thekey = display[lineitem][object]['field'];
                     var thevalue = getvalue(record, thekey);
+                    console.log("Entering loop in builf record" + thekey);
                     if (thevalue && thevalue.toString().length) {
+                        if(thekey == "attr_stream_name"){
+                            line += "<strong><a href = newJData/"+thevalue+"> "+thevalue+"</a></strong>";
+                        }
+                        else{    
                         display[lineitem][object]['pre']
                             ? line += display[lineitem][object]['pre'] : false;
                         if ( typeof(thevalue) == 'object' ) {
@@ -835,8 +933,11 @@ search box - the end user will not know they are happening.
                         } else {
                             line += thevalue;
                         }
+                    }
                         display[lineitem][object]['post'] 
                             ? line += display[lineitem][object]['post'] : line += ' ';
+
+                            console.log("the line formed is ++ "+ line);
                     }
                 }
                 if (line) {
@@ -845,6 +946,7 @@ search box - the end user will not know they are happening.
             }
             lines ? result += lines : result += JSON.stringify(record,"","    ");
             result += options.resultwrap_end;
+            //console.log("result from buildindex "+result);
             return result;
         };
 
@@ -852,7 +954,7 @@ search box - the end user will not know they are happening.
         var viewrecord = function(event) {
             event.preventDefault();
             var record = options.data['records'][$(this).attr('href')];
-            alert(JSON.stringify(record,"","    "));
+            //alert(JSON.stringify(record,"","    "));
             
         }
 
@@ -906,14 +1008,14 @@ search box - the end user will not know they are happening.
                 </div>';
             } else {
                 var metaTmpl = '<div class="pagination"> \
-                    <ul> \
+                    <ul class="pagination"> \
                         <li class="prev"><a class="facetview_decrement" href="{{from}}">&laquo; back</a></li> \
                         <li class="active"><a>{{from}} &ndash; {{to}} of {{total}}</a></li> \
                         <li class="next"><a class="facetview_increment" href="{{to}}">next &raquo;</a></li> \
                     </ul> \
                 </div>';
             };
-            $('.facetview_metadata', obj).first().html("Not found...");
+            $('.facetview_metadata', obj).first().html("Please Enter a Query");
             if (data.found) {
                 var from = options.paging.from + 1;
                 var size = options.paging.size;
@@ -1123,6 +1225,52 @@ search box - the end user will not know they are happening.
             return qy;
         };
 
+        var solrsearchquery = function() {
+            // set default URL params
+            var urlparams = "";
+            for (var item in options.default_url_params) {
+                urlparams += item + "=" + options.default_url_params[item] + "&";
+            }
+            // do paging params
+            var pageparams = "";
+            for (var item in options.paging) {
+                pageparams += options.solr_paging_params[item] + "=" + options.paging[item] + "&";
+            }
+            // set facet params
+            var urlfilters = "";
+            for (var item in options.facets) {
+                urlfilters += "facet.field=" + options.facets[item]['field'] + "&";
+                if ( options.facets[item]['size'] ) {
+                    urlfilters += "f." + options.facets[item]['field'] + ".facet.limit=" + options.facets[item]['size'] + "&";
+                }
+            }
+            if ( options.facets.length > 0 ) {
+                urlfilters += "facet=on&";
+            }
+            // build starting URL
+            var theurl = urlparams + pageparams + urlfilters;
+            // add default query values
+            // build the query, starting with default values
+            var query = "";
+            //for (var item in options.predefined_filters) {
+            // query += item + ":" + options.predefined_filters[item] + " AND ";
+            //}
+            $('.facetview_filterselected',obj).each(function() {
+                query += $(this).attr('rel') + ':"' +
+                $(this).attr('href') + '" AND ';
+            });
+            // add any freetext filter
+            if (options.q != "") {
+                query += options.q + '*';
+            }
+            query = query.replace(/ AND $/,"");
+            // set a default for blank search
+            if (query == "") {
+                query = "";
+            }
+            theurl += options.query_parameter + '=' + query;
+            return theurl;
+         };
         // execute a search
         var dosearch = function() {
             jQuery('.notify_loading').show();
@@ -1133,19 +1281,27 @@ search box - the end user will not know they are happening.
                 options.q = $(options.searchbox_class).last().val();
             };
             // make the search query
-            var qrystr = elasticsearchquery();
+            var qrystr = '';
+            //if ( options.search_index == "elasticsearch") {
+                // qrystr = elasticsearchquery();
+            //} else if (options.search_index == "solr") {
+            
+            qrystr = solrsearchquery();
+            
+            //}
             // augment the URL bar if possible
-            if ( options.pushstate ) {
-                var currurl = '?source=' + options.querystring;
-                window.history.pushState("","search",currurl);
-            };
-            $.ajax({
-                type: "get",
-                url: options.search_url,
-                data: {source: qrystr},
-                // processData: false,
-                dataType: options.datatype,
-                success: showresults
+            // if ( options.pushstate ) {
+            //     var currurl = '?source=' + options.querystring;
+            //     window.history.pushState("","search",currurl);
+            // };
+            $.ajax({ 
+              type: "get", 
+              url: options.search_url + solrsearchquery(), 
+              dataType:options.datatype, 
+              jsonp:"json.wrf", 
+              success: function(data) {                 
+            showresults(data); 
+        } 
             });
         };
 
@@ -1172,11 +1328,11 @@ search box - the end user will not know they are happening.
         var order = function(event) {
             event.preventDefault();
             if ( $(this).attr('href') == 'desc' ) {
-                $(this).html('<i class="icon-arrow-up"></i>');
+                $(this).html('<i class="glyphicon glyphicon-arrow-up"></i>');
                 $(this).attr('href','asc');
                 $(this).attr('title','current order ascending. Click to change to descending');
             } else {
-                $(this).html('<i class="icon-arrow-down"></i>');
+                $(this).html('<i class="glyphicon glyphicon-arrow-down"></i>');
                 $(this).attr('href','desc');
                 $(this).attr('title','current order descending. Click to change to ascending');
             };
@@ -1283,24 +1439,24 @@ search box - the end user will not know they are happening.
                     so if a wider filter range is required, first increase the filter size then select the filter range.</p>';
             }
         };
-        thehelp += '<p><a class="facetview_learnmore label" href="#">close the help</a></p></div>';
+        thehelp += '<p><a class="facetview_learnmore label label-default" href="#">close the help</a></p></div>';
         
         // the facet view object to be appended to the page
-        var thefacetview = '<div id="facetview"><div class="row-fluid">';
+        var thefacetview = '<div id="facetview"><div class="row" style="border:0px solid red; width:100%">';
         if ( options.facets.length > 0 ) {
-            thefacetview += '<div class="span3"><div id="facetview_filters" style="padding-top:45px;"></div></div>';
-            thefacetview += '<div class="span9" id="facetview_rightcol">';
+            thefacetview += '<div class="col-md-3" style="border:0px solid yellow; display:inline-block; width:30%; text-align:center; position:relative;vertical-align:top" ><div id="facetview_filters" style="padding-top:45px;"></div></div>';
+            thefacetview += '<div class="col-md-9" style="border:0px solid green; display:inline-block; width:60%; float:right; text-align:center; position:relative; vertical-align:top" id="facetview_rightcol">';
         } else {
-            thefacetview += '<div class="span12" id="facetview_rightcol">';
+            thefacetview += '<div class="col-md-12" id="facetview_rightcol">';
         }
-        thefacetview += '<div class="facetview_search_options_container">';
+        thefacetview += '<div class="facetview_search_options_container btn-toolbar">';
         thefacetview += '<div class="btn-group" style="display:inline-block; margin-right:5px;"> \
-            <a class="btn btn-small" title="clear all search settings and start again" href=""><i class="icon-remove"></i></a> \
-            <a class="btn btn-small facetview_learnmore" title="click to view search help information" href="#"><b>?</b></a> \
-            <a class="btn btn-small facetview_howmany" title="change result set size" href="#">{{HOW_MANY}}</a>';
+            <a class="btn btn-default" title="clear all search settings and start again" href=""><i class="glyphicon glyphicon-remove">Clear All</i></a> \
+            <a class="btn btn-default facetview_learnmore" title="click to view search help information" href="#"><b>?</b></a>\
+            <a class="btn btn-default facetview_howmany" title="change result set size" href="#">{{HOW_MANY}}</a>';
         if ( options.search_sortby.length > 0 ) {
-            thefacetview += '<a class="btn btn-small facetview_order" title="current order descending. Click to change to ascending" \
-                href="desc"><i class="icon-arrow-down"></i></a>';
+            thefacetview += '<a class="btn btn-sm facetview_order" title="current order descending. Click to change to ascending" \
+                href="desc"><i class="glyphicon glyphicon-arrow-down"></i></a>';
             thefacetview += '</div>';
             thefacetview += '<select class="facetview_orderby" style="border-radius:5px; \
                 -moz-border-radius:5px; -webkit-border-radius:5px; width:100px; background:#eee; margin:0 5px 21px 0;"> \
@@ -1323,12 +1479,12 @@ search box - the end user will not know they are happening.
             };
             thefacetview += '</select>';
         };
-        thefacetview += '<input type="text" class="facetview_freetext span4" style="display:inline-block; margin:0 0 21px 0; background:' + options.searchbox_shade + ';" name="q" \
+        thefacetview += '<input type="text" class="facetview_freetext col-md-4" style="display: inline-block ; margin:0 0 21px 0; border-radius:0.4em; background:' + options.searchbox_shade + ';" name="q" \
             value="" placeholder="search term" />';
         if ( options.sharesave_link ) {
-            thefacetview += '<a class="btn facetview_sharesave" title="share or save this search" style="margin:0 0 21px 5px;" href=""><i class="icon-share-alt"></i></a>';
+            thefacetview += '<a class="btn btn-default facetview_sharesave" title="share or save this search" style="margin:0 0 21px 5px;" href=""><i class="glyphicon glyphicon-share-alt"></i></a>';
             thefacetview += '<div class="facetview_sharesavebox alert alert-info" style="display:none;"> \
-                <button type="button" class="facetview_sharesave close">×</button> \
+                <button type="button" class="facetview_sharesave close"></button> \
                 <p>Share or save this search:</p> \
                 <textarea class="facetview_sharesaveurl" style="width:100%;height:100px;">http://' + window.location.host + 
                 window.location.pathname + '?source=' + options.querystring + '</textarea> \
@@ -1352,7 +1508,11 @@ search box - the end user will not know they are happening.
             // what to do when ready to go
             var whenready = function() {
                 // append the facetview object to this object
+                /*for(var i in obj){
+                    if(obj.hasOwnProperty(i)){
+                    alert("putting facetview on obj ---> " + i + " ==== "+obj[i]);} }*/
                 thefacetview = thefacetview.replace(/{{HOW_MANY}}/gi,options.paging.size);
+
                 obj.append(thefacetview);
                 !options.embedded_search ? $('.facetview_search_options_container', obj).hide() : "";
 
@@ -1370,10 +1530,10 @@ search box - the end user will not know they are happening.
                 !options.paging.from ? options.paging.from = 0 : "";
 
                 // handle any source options
-                if ( options.source ) {
-                    parsesource();
-                    delete options.source;
-                }
+                // if ( options.source ) {
+                //     parsesource();
+                //     delete options.source;
+                // }
 
                 // set any default search values into the search bar and create any required filters
                 if ( options.searchbox_class.length == 0 ) {
