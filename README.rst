@@ -1,6 +1,14 @@
 FacetView_ is a pure javascript frontend for ElasticSearch search
 indices.
 
+Facetview2
+==========
+
+A more modular codebase is available at https://github.com/CottageLabs/facetview2
+
+Old facetview docs below
+========================
+
 (This used to work against SOLR too, but the need to maintain support for that became less, and is now not a priority. So has been removed altogether. If anyone needs it, it could be added back in by writing an alternative to the elasticsearchquery() with a solrsearchquery(), and making sure the returned resultset can be parsed out properly. Used to work fine so it can be done, but as new functionality like nesting and so on was brought in, it became less important.)
 
 It's been developed as a jQuery plugin and lets you easily embed a faceted
@@ -8,7 +16,7 @@ browse front end into any web page.
 
 .. _FacetView: http://okfnlabs.org/facetview/
 
-Development is now taking place in this repo: http://github.com/okfn/facetview
+Development of this version is NOT currently active. Facetview1 repo: http://github.com/okfn/facetview
 
 
 Demo
