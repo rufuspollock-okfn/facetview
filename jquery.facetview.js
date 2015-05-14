@@ -920,7 +920,7 @@ var buildfilters = function () {
                     console.log("Entering loop in builf record" + thekey);
                     if (thevalue && thevalue.toString().length) {
                         if(thekey == "attr_stream_name"){
-                            line += "<strong><a href = newJData/"+thevalue+"> "+thevalue+"</a></strong>";
+                            line += "<strong><a href = "+thevalue+"> "+thevalue+"</a></strong>";
                         }
                         else{    
                         display[lineitem][object]['pre']
