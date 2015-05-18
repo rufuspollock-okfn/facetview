@@ -744,6 +744,14 @@ search box - the end user will not know they are happening.
                     resultobj["records"].push(dataobj.hits.hits[item]._source);
                 }
             }
+
+            // add _id if available
+            for (var i = 0; i < resultobj["records"].length; i++) {
+                if ("_id" in dataobj.hits.hits[i]) {
+                   resultobj["records"][i]["_id"] = dataobj.hits.hits[i]["_id"];
+                }
+            }
+			
             resultobj["start"] = "";
             resultobj["found"] = dataobj.hits.total;
             for (var item in dataobj.facets) {
